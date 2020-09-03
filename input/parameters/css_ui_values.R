@@ -1,4 +1,4 @@
-# ui inputs - Luke, can these all be moved to parameters.R? -------------------
+# ui inputs -------------------------------------------------------------------
 plot.height <- "340px"
 plot.width <- "95%"
 

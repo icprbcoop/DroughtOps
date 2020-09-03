@@ -61,7 +61,7 @@ jrr_reservoir_ops_today_func <- function(date_sim, res, res.ts.df,
     cap <- res@capacity # see reservoir_make.R for basic res data
     # also for jrr need to know the "conservation pool" storage 
     #   because all water above this is neither ws nor wq storage
-    #   (jrr_cap_cp is currently given in parameters.R) 
+    #   (jrr_cap_cp is currently given in parameters_ops.R) 
     jrr_cap_cp <- 28223.0
     cap_ws <- jrr_cap_cp*jrr_ws_frac
     cap_wq <- jrr_cap_cp*jrr_wq_frac

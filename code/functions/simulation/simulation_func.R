@@ -206,20 +206,20 @@ simulation_func <- function(date_sim0,
   #
   # Compute ws need in 9 days - for N Br release
   #  - add a bit extra for quick and dirty balancing
-  # jrr_sen_balance set in parameters.R
+  # jrr_sen_balance set in parameters_ops.R
   ws_need_9day <- estimate_need_func(lfalls_obs_fc9_no_ws,
                                      mos_9day + jrr_sen_balance)
   #
   # What about the "Occoquan load-shift"? to save L Seneca storage
   #   Load-shifting, ie additional Occ withdrawal, is only allowed
   #     if Occoquan storage is above an "emergency level"
-  #     occ_stor_emerg is the emergency level, set in parameters.R
-  #     occ_fixed_ls is a fixed load-shift amount, set in parameters.R
+  #     occ_stor_emerg is the emergency level, set in parameters_ops.R
+  #     occ_fixed_ls is a fixed load-shift amount, set in parameters_ops.R
   occ_ls <- 0
   sen_rel_req <- ws_need_1day
   occ_stor <- last(occ.ts.df1$storage)
   if (ws_need_1day > 0 & occ_stor > occ_stor_emerg){
-    occ_ls <- occ_fixed_ls # set this as 15 in parameters.R
+    occ_ls <- occ_fixed_ls # set this as 15 in parameters_ops.R
     sen_rel_req <- ws_need_1day - occ_fixed_ls
     if (sen_rel_req < 0) {sen_rel_req = 0}
   }

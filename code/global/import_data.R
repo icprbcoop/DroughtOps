@@ -28,8 +28,12 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.csv.df
-#   - used in complete_daily_flows.R to create flows.daily.mgd.df
+# flows.daily.cfs.df
+# flows.daily.mgd.df
+#   - used for the plots on sit awareness & 10 day ops tabs
+#   - used to compute baseflow correction for lffs flows
+#   - DELETE? used to create inflows.df in reservoirs_make.R
+#   - DELETE? used to create potomac.data.df in potomac_flows_init.R
 # demands.daily.df - really withdrawals right now
 #   - used to create potomac.data.df in potomac_flows_init.R
 #   - used in sim_main_func in call to simulation_func
@@ -52,7 +56,7 @@ gages <- data.table::fread(paste(parameters_path, "gages.csv", sep = ""),
                            header = TRUE,
                            data.table = FALSE)
 list_gage_locations <- c("date", gages$location)
-llen <- length(list_gage_locations)
+llen <- length(list_gage_locations) # no. columns in daily data input file
 gage_locations <- list_gage_locations[2:llen]
 gage_locations <- as.list(gage_locations)
 
@@ -77,12 +81,13 @@ flows.daily.cfs.df0 <- data.table::fread(
   arrange(date_time)
 
 # Identify the last date with daily flow data
-flowday_last <- tail(flows.daily.cfs.df0, 1)$date_time
+daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
 
 # Add rest of the year's dates to this df; added flow values = NA
 #  - this seems to make the app more robust if missing data
+# flows.daily.cfs.df <- flows.daily.cfs.df0
 flows.daily.cfs.df <- flows.daily.cfs.df0 %>%
-  add_row(date_time = seq.Date(flowday_last + 1, date_dec31, by = "day"))
+  add_row(date_time = seq.Date(daily_flow_data_last_date + 1, date_dec31, by = "day"))
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -190,6 +195,18 @@ for(i in 1:days_prior_in_year) {
 demands.daily.df <- demands.daily.df %>%
   dplyr::arrange(date_time) %>%
   dplyr::mutate(date_time = round_date(date_time, unit = "days"))
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Convert daily flows to MGD, add recession flows for selected gages, 
+#    and combine with daily demands
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+flows.daily.mgd.df <- recess_daily_flows_func(flows.daily.cfs.df, 
+                                              demands.daily.mgd.df, 
+                                              daily_flow_data_last_date,
+                                              llen)
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

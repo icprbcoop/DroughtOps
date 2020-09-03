@@ -109,7 +109,7 @@ forecasts_flows_func <- function(date_sim00, qavald, qavaln,
                            withdr_pot_rockv,
                   sen_outflow = sen_outflow_today, # a func input
                   sen_outflow_lagged = sen_outflow_yesterday,
-                  sen_watershed = sen_other_watershed_flows, # from parameters.R
+                  sen_watershed = sen_other_watershed_flows, # from parameters_ops.R
                   jrr_outflow = jrr_outflow_today, # a func input
                   savage_outflow = jrr_outflow*0.2,
                   jrr_outflow_lagged = jrr_outflow_lagged_today,

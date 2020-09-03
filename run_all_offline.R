@@ -39,7 +39,7 @@ source("input/parameters/parameters_physical.R", local = TRUE)
 
 #******************************************************************
 
-# date_today0 is set in /input/parameters/parameters.R, 
+# date_today0 is set in global.R, 
 #    but might want to change it, by using date_today
 # date_today <- as.Date("1930-02-01")
 date_today <- date_today0

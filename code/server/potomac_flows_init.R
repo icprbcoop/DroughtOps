@@ -63,7 +63,7 @@ n_today <- length(potomac.data.df00$date_time)
 #--------------------------------------------------------------------------------
 jrr_outflow_lagged_default <- 129
 sen_outflow_lagged_default <- 9
-sen_other <- sen_other_watershed_flows # from parameters.R
+sen_other <- sen_other_watershed_flows # from parameters_ops.R
 #
 # potomac.ts.df0 <- potomac.data.df0[1,] %>%
 potomac.ts.df0 <- potomac.data.df00 %>%

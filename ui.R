@@ -40,8 +40,7 @@ dashboardPage(skin = "blue" ,
                              "Select end date of simulation (> yesterday)",
                              width = "200px",
                              # value = "1930-02-15",
-                             value = date_today0,
-                             # date_today0 = today() - set in parameters.R
+                             value = date_today0, # set in global.R
                              min = date_start,
                              max = date_end,
                              format = "yyyy-mm-dd"),

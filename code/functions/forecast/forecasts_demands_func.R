@@ -27,7 +27,7 @@ forecasts_demands_func <- function(date_sim000,
                                    dr_wma,
                                    demands.daily.df){
   d_reduction_factor <- 1.0 - dr_wma
-  # This is an demand multiplication factor set in parameters.R
+  # This is an demand multiplication factor set in parameters_ops.R
   #   - it's usually 1 but can be something else for QAing or other purposes
   d_factor <- d_reduction_factor*d_wma_factor
   #

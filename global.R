@@ -44,9 +44,10 @@ date_today0 <- as.Date(today())
 # For 2019 DREX
 # date_today0 <- as.Date("2019-11-21")
 
-#-----drought map functions are declared before they are used in import data
+#-----some functions are declared so they can be used in import data
 source("code/functions/display/md_drought_map_func.R", local = TRUE)
 source("code/functions/display/va_drought_map_func.R", local = TRUE)
+source("code/functions/recess_daily_flows.R", local = TRUE)
 #------------------------------------------------------------------------------
 
 #-----define parameters and import data ----------------------
@@ -55,7 +56,6 @@ source("input/parameters/parameters_ops.R", local = TRUE)
 source("input/parameters/parameters_physical.R", local = TRUE)
 source("code/global/import_data.R", local = TRUE)#
 source("input/parameters/css_ui_values.R", local = TRUE)
-source("code/global/complete_daily_flows.R", local = TRUE)
 #----------------------------------------------------------------------------
 
 # Read classes and functions --------------------------------------------------
