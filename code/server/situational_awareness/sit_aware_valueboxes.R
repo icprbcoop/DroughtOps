@@ -7,7 +7,7 @@
 #------------------------------------------------------------------
   flows_yesterday.df <- flows.daily.mgd.df %>%
     filter(date_time == date_today0 - 1)
-  print(flows_yesterday.df$date_time[1])
+  print(flows_yesterday.df)
 
   output$por_flow <- renderValueBox({
   por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting
@@ -16,16 +16,16 @@
   por_mgd <- flows_yesterday.df$por[1]
   
   # Error trapping in case there is no data available for yesterday:
-  if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date)
+  if(flows_yesterday.df$date_time[1] <= daily_flow_data_last_date)
      por_flow <- paste("Flow at Point of Rocks yesterday = ",
                     round(por_mgd*mgd_to_cfs), " cfs",
                     " (", round(por_mgd), " MGD)", sep = "") else
                       por_flow <- "Yesterday's Point of Rocks daily flow value is not available"
   valueBox(
-    value = tags$p(por_flow, style = "font-size: 60%;"),
+    value = tags$p(por_flow, style = "font-size: 50%;"),
     subtitle = NULL,
-         # color = if (por_flow >= por_threshold) "green" else "yellow"
-    color = "blue"
+    color = if (por_flow >= por_threshold) "blue" else "yellow"
+    # color = "blue"
   )
 })
 
@@ -39,14 +39,14 @@ output$lfalls_obs <- renderValueBox({
                       " cfs (", round(lfalls_mgd),
                       " MGD)", sep = "")
   # Error trapping in case there is no data available for yesterday:
-  if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date)
+  if(flows_yesterday.df$date_time[1] <= daily_flow_data_last_date)
     lfalls_obs <- paste("Flow at Little Falls yesterday = ",
                       round(lfalls_mgd*mgd_to_cfs), " cfs",
                       " (", round(lfalls_mgd), " MGD)", sep = "") else
                         lfalls_obs <- "Yesterday's Little Falls daily flow value is not available"
   
   valueBox(
-    value = tags$p(lfalls_obs, style = "font-size: 60%;"),
+    value = tags$p(lfalls_obs, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "blue"
   )
