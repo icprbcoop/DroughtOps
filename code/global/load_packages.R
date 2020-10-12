@@ -22,6 +22,8 @@ need <- c("shiny",
           "rgdal",
           "png",
           "RCurl",
+          "curl",
+          "rvest",
           "tidyverse") 
 # find out which packages are installed
 ins <- installed.packages()[, 1] 

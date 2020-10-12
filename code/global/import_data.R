@@ -6,17 +6,17 @@
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
-# gages.csv - file listing USGS stream gages we use
+# gages_daily.csv - file listing USGS stream gages we use for daily data
 # flows_daily_cfs.csv - current daily streamflow data
 #   - code set up so that these time series should begin on Jan 1 of current year
 #   - daily data can be downloaded from CO-OP's Data Portal
-#   - link is https://icprbcoop.org/drupal4/icprb/flow-data
+#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
 #   - name appropriately then save the file to /input/ts/current/
 # flows_hourly_cfs.csv - current hourly streamflow data
 #   - hourly data can be downloaded from CO-OP's Data Portal
-#   - link is https://icprbcoop.org/drupal4/icprb/flow-data
+#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
 #   - grab last few days of data and paste into existing file (or memory error!)
-#   - file is in /input/ts/current/
+#   - name appropriately then save the file to /input/ts/current/
 # coop_pot_withdrawals.csv - WMA supplier hourly withdrawal data
 #   - daily data can be downloaded from CO-OP's Data Portal
 #   - link is https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv
@@ -46,39 +46,85 @@
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Import daily streamflow time series:
+# Preliminaries
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Read list of gages: has id, location, description ---------------------------
+# Read list of daily flow gages: id, location, description --------------------
 #   - e.g. 1638500, por, Potomac River at Point of Rocks
-gages <- data.table::fread(paste(parameters_path, "gages.csv", sep = ""),
+gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv", sep = ""),
                            header = TRUE,
                            data.table = FALSE)
-list_gage_locations <- c("date", gages$location)
-llen <- length(list_gage_locations) # no. columns in daily data input file
-gage_locations <- list_gage_locations[2:llen]
-gage_locations <- as.list(gage_locations)
+list_gages_daily_locations <- c("date", gages_daily$location)
+llen <- length(list_gages_daily_locations) # no. columns in daily data input file
+gages_daily_locations <- list_gages_daily_locations[2:llen]
+gages_daily_locations <- as.list(gages_daily_locations)
 
 # Will make use of first and last day of current year
 date_dec31 <- lubridate::ceiling_date(date_today0, unit = "year") - 1
 date_jan1 <- lubridate::floor_date(date_today0, unit = "year")
+ # Also may use
+today_month <- substring(date_today0, first = 6, last = 7)
+today_day <- substring(date_today0, first = 9, last = 10)
+today_year <- substring(date_today0, first = 1, last = 4)
 
-# Read daily flow data --------------------------------------------------------
-#   - for daily data use as.Date - getting rid of time
-flows.daily.cfs.df0 <- data.table::fread(
-  paste(ts_path, "flows_daily_cfs.csv", sep = ""),
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
-  col.names = list_gage_locations, # 1st column is "date"
-  na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-  data.table = FALSE) %>%
-  dplyr::mutate(date_time = as.Date(date)) %>%
-  select(-date) %>%
-  filter(!is.na(date_time)) %>%
-  select(date_time, everything()) %>%
-  arrange(date_time)
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Import daily streamflow time series
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+# switch - move this to global?
+autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+# autoread_dailyflows <- 0 # read data from file in local directory
+
+# DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL-------------------------------
+# Read daily flow data automatically from Data Portal
+#   - start date is January 1 of the current year
+
+# read the online data
+if(autoread_dailyflows == 1) {
+  
+  #   - paste together the url for the Data Portal's daily flow data
+  url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?startdate=01%2F01%2F2020"
+  url_daily <- paste(url_daily0, "&enddate=", today_month, "%2F", 
+                     today_day,
+                     "%2F", today_year, "&format=daily&submit=Submit", sep="")
+  
+  # read the online data table
+  flows.daily.cfs.df0 <- data.table::fread(
+    url_daily,
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    col.names = list_gages_daily_locations, # 1st column is "date"
+    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+    data.table = FALSE) %>%
+    dplyr::mutate(date_time = as.Date(date)) %>%
+    select(-date) %>%
+    filter(!is.na(date_time)) %>%
+    select(date_time, everything()) %>%
+    arrange(date_time)
+}
+
+# DAILY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY-----------------
+# Read daily flow data from file residing in /input/ts/current/
+
+if(autoread_dailyflows == 0) {
+  flows.daily.cfs.df0 <- data.table::fread(
+    paste(ts_path, "flows_daily_cfs.csv", sep = ""),
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    col.names = list_gages_daily_locations, # 1st column is "date"
+    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+    data.table = FALSE) %>%
+    dplyr::mutate(date_time = as.Date(date)) %>%
+    select(-date) %>%
+    filter(!is.na(date_time)) %>%
+    select(date_time, everything()) %>%
+    arrange(date_time)
+}
 
 # Identify the last date with daily flow data
 daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
@@ -102,7 +148,7 @@ flows.hourly.cfs.df <- data.table::fread(
   header = TRUE,
   stringsAsFactors = FALSE,
   colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
-  col.names = list_gage_locations, # 1st column is "date"
+  col.names = list_gages_daily_locations, # 1st column is "date"
   na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
   data.table = FALSE) %>%
   # mutate(date_time = date)
@@ -126,6 +172,15 @@ flows.hourly.cfs.df <- flows.hourly.cfs.df %>%
 #------------------------------------------------------------------------------
 
 # Read hourly withdrawal data -------------------------------------------------
+withdr.hourly.auto.df0 <- data.table::fread(
+  "https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv",
+  skip = 12,
+  header = TRUE,
+  stringsAsFactors = FALSE,
+  # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+  na.strings = c("", "#N/A", -999999),
+  data.table = FALSE)
+
 withdr.hourly.df0 <- data.table::fread(
   paste(ts_path, "coop_pot_withdrawals.csv", sep = ""),
   skip = 12,
