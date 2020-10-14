@@ -131,8 +131,8 @@ output$one_day_ops_plot2 <- renderPlot({
   ggplot(lfalls_1day.plot2.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
     scale_color_manual(values = c("orange", "deepskyblue1","red", 
-                                  "deepskyblue2", "deepskyblue3",
-                                  "plum", "steelblue", "palegreen3")) +
+                                  "deepskyblue2", "purple",
+                                  "deepskyblue3", "steelblue", "palegreen3")) +
     scale_linetype_manual(values = c("solid", "solid", "dashed",
                                      "dotted", "dashed",
                                      "solid", "solid", "solid")) +

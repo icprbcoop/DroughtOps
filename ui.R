@@ -30,8 +30,8 @@ dashboardPage(skin = "blue" ,
                    dateRangeInput("plot_range",
                                   "Specify plot range",
                                   # start = date_start,
-                                  start = "2020-05-06",
-                                  end = "2020-10-30",
+                                  start = "2020-06-01",
+                                  end = "2020-11-30",
                                   # start = date_start,
                                   # end = date_end,
                                   format = "yyyy-mm-dd",
@@ -114,8 +114,8 @@ dashboardPage(skin = "blue" ,
       source("code/ui/ten_day_ops_ui.R", local = TRUE)$value,
       # source("code/ui/long_term_operations.R", local = TRUE)$value,
       source("code/ui/demands_ui.R", local = TRUE)$value,
-      source("code/ui/simulation_ui.R", local = TRUE)$value,
-      source("code/ui/download_data_ui.R", local = TRUE)$value
+      source("code/ui/simulation_ui.R", local = TRUE)$value
+      # source("code/ui/download_data_ui.R", local = TRUE)$value
       )
     ) # end dashboardBody
 ) # end dashboardPage
