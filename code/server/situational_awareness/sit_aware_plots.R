@@ -32,6 +32,7 @@
 
 # Select flows of interest ----------------------------------------------------
 #   - plot will be cfs
+
 sit_aware_cfs.df <- flows.daily.mgd.df %>%
   dplyr::select(date_time, lfalls, por, monoc_jug, shen_mill,
                 seneca, d_pot_total) %>%
@@ -64,6 +65,7 @@ output$sit_aware_flows_plot <- renderPlot({
 #------------------------------------------------------------------
 # Create graph of storage and releases for each reservoir
 #------------------------------------------------------------------
+
 output$sit_aware_jrr_stor <- renderPlot({
   graph_title <- "Jennings Randolph"
   jrr.graph <- ts$jrr %>%
@@ -78,6 +80,7 @@ output$sit_aware_jrr_stor <- renderPlot({
            value = "MG", -Date) %>%
     filter(Date >= input$plot_range[1],
            Date <= input$plot_range[2])
+  
   ggplot(data = jrr.graph,
          aes(x = Date, y = MG, group = Legend)) +
     geom_line(aes(color = Legend, size = Legend)) +
@@ -92,6 +95,8 @@ output$sit_aware_jrr_stor <- renderPlot({
     theme(legend.position = "right",
           legend.title = element_blank())
 }) # end jrr renderPlot testing
+
+
 #
 #------------------------------------------------------------------
 # I can't get the following graphing function to work:
@@ -167,5 +172,7 @@ output$sit_aware_occ_stor <- renderPlot({
           axis.title.y = element_blank()) +
     theme(legend.position = "none")
 }) # end occ renderPlot
+
+print("finishing sit_aware_plots")
 
   

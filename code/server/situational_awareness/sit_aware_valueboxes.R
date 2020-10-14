@@ -7,8 +7,7 @@
 #------------------------------------------------------------------
   flows_yesterday.df <- flows.daily.mgd.df %>%
     filter(date_time == date_today0 - 1)
-  print(flows_yesterday.df)
-
+  
   output$por_flow <- renderValueBox({
   por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting
   
@@ -246,6 +245,7 @@ output$QA_out <- renderValueBox({
     color = "blue"
   )
 })
+  
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 # Temporary output for QAing

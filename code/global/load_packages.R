@@ -24,6 +24,7 @@ need <- c("shiny",
           "RCurl",
           "curl",
           "rvest",
+          "dataRetrieval",
           "tidyverse") 
 # find out which packages are installed
 ins <- installed.packages()[, 1] 

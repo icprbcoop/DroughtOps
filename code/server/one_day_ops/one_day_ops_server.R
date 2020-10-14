@@ -54,8 +54,13 @@ ops_1day_daily.df <- flows.daily.mgd.df %>%
 
 # Convert flows to mgd 
 func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
+
+# The number of columns in the hourly table depends on the datq source.
+ncol_hourly_flows <- length(flows.hourly.cfs.df[1,])
+
 flows.hourly.mgd.df <- flows.hourly.cfs.df %>%
-  dplyr::mutate_at(2:32, func_cfs_to_mgd) %>%
+  # dplyr::mutate_at(2:32, func_cfs_to_mgd) %>%
+  dplyr::mutate_at(2:ncol_hourly_flows, func_cfs_to_mgd) %>%
   dplyr::mutate(date = as.Date(round_date(date_time, unit = "days"))) 
 
 # Add Potomac withdrawals

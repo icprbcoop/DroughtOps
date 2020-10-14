@@ -1,7 +1,7 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# This script imports time series inputs (ts).
+# This script imports time series data (ts).
 # The path to the time series data is defined by /config/paths.R
 # *****************************************************************************
 # INPUTS
@@ -52,13 +52,18 @@
 
 # Read list of daily flow gages: id, location, description --------------------
 #   - e.g. 1638500, por, Potomac River at Point of Rocks
-gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv", sep = ""),
+gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv", 
+                                       sep = ""),
                            header = TRUE,
                            data.table = FALSE)
 list_gages_daily_locations <- c("date", gages_daily$location)
-llen <- length(list_gages_daily_locations) # no. columns in daily data input file
+
+# first get number of columns in Sarah's flow data files
+llen <- length(list_gages_daily_locations) 
 gages_daily_locations <- list_gages_daily_locations[2:llen]
 gages_daily_locations <- as.list(gages_daily_locations)
+
+# Create list of hourly 
 
 # Will make use of first and last day of current year
 date_dec31 <- lubridate::ceiling_date(date_today0, unit = "year") - 1
@@ -78,7 +83,8 @@ today_year <- substring(date_today0, first = 1, last = 4)
 autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 # autoread_dailyflows <- 0 # read data from file in local directory
 
-# DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL-------------------------------
+#------------------------------------------------------------------------------
+# DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
 # Read daily flow data automatically from Data Portal
 #   - start date is January 1 of the current year
 
@@ -86,10 +92,12 @@ autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 if(autoread_dailyflows == 1) {
   
   #   - paste together the url for the Data Portal's daily flow data
-  url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?startdate=01%2F01%2F2020"
-  url_daily <- paste(url_daily0, "&enddate=", today_month, "%2F", 
-                     today_day,
-                     "%2F", today_year, "&format=daily&submit=Submit", sep="")
+  url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?"
+  url_daily <- paste(url_daily0, "startdate=01%2F01%2F2020&enddate=", 
+                     today_month, "%2F", 
+                     today_day, "%2F", 
+                     today_year, "&format=daily&submit=Submit", 
+                     sep="")
   
   # read the online data table
   flows.daily.cfs.df0 <- data.table::fread(
@@ -107,7 +115,8 @@ if(autoread_dailyflows == 1) {
     arrange(date_time)
 }
 
-# DAILY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY-----------------
+#------------------------------------------------------------------------------
+# DAILY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
 # Read daily flow data from file residing in /input/ts/current/
 
 if(autoread_dailyflows == 0) {
@@ -133,37 +142,88 @@ daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
 #  - this seems to make the app more robust if missing data
 # flows.daily.cfs.df <- flows.daily.cfs.df0
 flows.daily.cfs.df <- flows.daily.cfs.df0 %>%
-  add_row(date_time = seq.Date(daily_flow_data_last_date + 1, date_dec31, by = "day"))
-
+  add_row(date_time = seq.Date(daily_flow_data_last_date + 1, 
+                               date_dec31, 
+                               by = "day"))
+print("finished creating flows.daily.cfs.df")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Import hourly streamflow time series:
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Read hourly flow data -------------------------------------------------------
-#   - for hourly data use as.POSIXct
-flows.hourly.cfs.df <- data.table::fread(
-  paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
-  col.names = list_gages_daily_locations, # 1st column is "date"
-  na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-  data.table = FALSE) %>%
-  # mutate(date_time = date)
-  dplyr::mutate(date_time = as.POSIXct(date)) %>%
-  select(-date) %>%
-  arrange(date_time) %>%
-  filter(!is.na(date_time)) %>% # sometime these are sneaking in
-  head(-1) %>% # the last record is sometimes missing most data
-  select(date_time, everything())
+# switch - move this to global?
+autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
+# autoread_hourlyflows <- 0 # read data from file in local directory
+
+#------------------------------------------------------------------------------
+# HOURLY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
+# Read hourly flow data automatically from NWIS
+
+# read the NWIS online data
+if(autoread_hourlyflows == 1) {
+  
+  # right now grabbing just por, monoc_jug, goose, seneca, lfalls real-time data
+  gages_hourly_names <- c("lfalls", "seneca",
+                          "goose", "monoc_jug", "por")
+  gages_hourly_nos <- c("01646500", "01645000",
+                        "01644000", "01643000", "01638500")
+  
+  # grab real-time data for fixed number of past days, currently 60 days
+  n_past_days <- 60
+  start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
+  start_date <- lubridate::with_tz(start_date, "EST")
+  
+  # Create dummy df of date hours
+  temp0 <- start_date - lubridate::hours(1) # first step back 1 hour
+  flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
+    add_row(date_time = seq.POSIXt(start_date,
+                                   by = "hour",
+                                   length.out = n_past_days*24))
+  
+  flows.hourly.cfs.df <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
+                                               gage_names = gages_hourly_names, 
+                                               flows_empty = flows.hourly.empty.df,
+                                               start_date = date_today0 - 
+                                                 lubridate::days(n_past_days),
+                                               end_date = date_today0,
+                                               usgs_param = "00060")
+  
+  # Trim off some NA's at the beginning
+  flows.hourly.cfs.df <- tail(flows.hourly.cfs.df, (n_past_days - 1)*24)
+  }
+
+#------------------------------------------------------------------------------
+# HOURLY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
+# Read hourly flow data from file residing in /input/ts/current/
+
+if(autoread_hourlyflows == 0) {
+  
+  #   - for hourly data use as.POSIXct
+  flows.hourly.cfs.df <- data.table::fread(
+    paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    col.names = list_gages_daily_locations, # 1st column is "date"
+    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+    data.table = FALSE) %>%
+    # mutate(date_time = date)
+    dplyr::mutate(date_time = as.POSIXct(date)) %>%
+    select(-date) %>%
+    arrange(date_time) %>%
+    filter(!is.na(date_time)) %>% # sometime these are sneaking in
+    head(-1) %>% # the last record is sometimes missing most data
+    select(date_time, everything())
+}
 
 # Add 3 days of rows; added flow values = NA
 last_hour <- tail(flows.hourly.cfs.df$date_time, 1)
 last_hour <- last_hour + lubridate::hours(1)
 flows.hourly.cfs.df <- flows.hourly.cfs.df %>%
   add_row(date_time = seq.POSIXt(last_hour, length.out = 72, by = "hour"))
+
+print("finished creating flows.hourly.cfs.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -251,6 +311,8 @@ demands.daily.df <- demands.daily.df %>%
   dplyr::arrange(date_time) %>%
   dplyr::mutate(date_time = round_date(date_time, unit = "days"))
 
+print("finished creating demands.daily.df")
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Convert daily flows to MGD, add recession flows for selected gages, 
@@ -262,7 +324,7 @@ flows.daily.mgd.df <- recess_daily_flows_func(flows.daily.cfs.df,
                                               demands.daily.mgd.df, 
                                               daily_flow_data_last_date,
                                               llen)
-
+print("finished creating flows.daily.mgd.df")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Read the datafile with hourly LFFS forecasts
@@ -298,6 +360,8 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   mutate(date_time = as.Date(date)) %>%
   select(date_time, lfalls_lffs) %>%
   ungroup()
+
+print("finished creating lffs.daily.cfs.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
