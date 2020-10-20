@@ -7,22 +7,36 @@
 # INPUTS
 # *****************************************************************************
 # gages_daily.csv - file listing USGS stream gages we use for daily data
-# flows_daily_cfs.csv - current daily streamflow data
-#   - code set up so that these time series should begin on Jan 1 of current year
-#   - daily data can be downloaded from CO-OP's Data Portal
-#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
-#   - name appropriately then save the file to /input/ts/current/
-# flows_hourly_cfs.csv - current hourly streamflow data
-#   - hourly data can be downloaded from CO-OP's Data Portal
-#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
-#   - grab last few days of data and paste into existing file (or memory error!)
-#   - name appropriately then save the file to /input/ts/current/
+# 
+# past daily flow data can be obtained from 2 sources
+#   (start date is Jan 1 and end date is today)
+#   OPTION 1: read file directly from Data Portal
+#             (autoread_dailyflows == 1)
+#   OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
+#             (autoread_dailyflows == 0)
+
+# past hourly flow data can be obtained from 2 sources
+#   (start date is user-selected and end date is today)
+#   OPTION 1: read file directly from USGS's NWIS websites
+#             (autoread_dailyflows == 1)
+#   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
+#             (autoread_dailyflows == 0)
+
+# past and forecasted withdrawal data from 2 sources
+#   (start date is user-selected and end date is today)
+#   OPTION 1: read file directly from Data Portal
+#             (autoread_dailywithdr == 1)
+#   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
+#             (autoread_dailywithdr == 0)
+
 # coop_pot_withdrawals.csv - WMA supplier hourly withdrawal data
 #   - daily data can be downloaded from CO-OP's Data Portal
 #   - link is https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv
 #   - save the file to /input/ts/current/
+
 # state_drought_status.csv - time series of gw, precip, etc indices for MD, VA
 #   - this is currently a dummy file from 2018 DREX
+
 # Fake reservoir ops dfs, e.g., drex2018_output_sen.csv
 #   - used to initialize the res.ts.df's until I decide how to handle this
 # *****************************************************************************
@@ -79,19 +93,19 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# switch - move this to global?
+# Set switch (move this to global?)--------------------------------------------
 autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 # autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
 # DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
-# Read daily flow data automatically from Data Portal
+#   - read daily flow data automatically from Data Portal
 #   - start date is January 1 of the current year
+#------------------------------------------------------------------------------
 
-# read the online data
 if(autoread_dailyflows == 1) {
   
-  #   - paste together the url for the Data Portal's daily flow data
+  # paste together the url for Data Portal's daily flow data-------------------
   url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?"
   url_daily <- paste(url_daily0, "startdate=01%2F01%2F2020&enddate=", 
                      today_month, "%2F", 
@@ -99,7 +113,7 @@ if(autoread_dailyflows == 1) {
                      today_year, "&format=daily&submit=Submit", 
                      sep="")
   
-  # read the online data table
+  # read the online data table-------------------------------------------------
   flows.daily.cfs.df0 <- data.table::fread(
     url_daily,
     header = TRUE,
@@ -117,9 +131,17 @@ if(autoread_dailyflows == 1) {
 
 #------------------------------------------------------------------------------
 # DAILY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
-# Read daily flow data from file residing in /input/ts/current/
+#   - read daily flow data from file residing in /input/ts/current/
+#   - file name is flows_daily_cfs.csv
+#   - code set up so that these time series should begin on Jan 1 of current year
+#   - daily data can be downloaded from CO-OP's Data Portal
+#      - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
+#      - name appropriately then save the file to /input/ts/current/
+#------------------------------------------------------------------------------
 
 if(autoread_dailyflows == 0) {
+  
+  # read the lacal data table--------------------------------------------------
   flows.daily.cfs.df0 <- data.table::fread(
     paste(ts_path, "flows_daily_cfs.csv", sep = ""),
     header = TRUE,
@@ -135,52 +157,56 @@ if(autoread_dailyflows == 0) {
     arrange(date_time)
 }
 
-# Identify the last date with daily flow data
+# Add rest of the year's dates to this df--------------------------------------
+#  - this seems to make the app more robust if missing data
+#  - added flow values are set to NA
+
+# identify the last date with daily flow data
 daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
 
-# Add rest of the year's dates to this df; added flow values = NA
-#  - this seems to make the app more robust if missing data
-# flows.daily.cfs.df <- flows.daily.cfs.df0
+# add future dates and dummy data to the df
 flows.daily.cfs.df <- flows.daily.cfs.df0 %>%
   add_row(date_time = seq.Date(daily_flow_data_last_date + 1, 
                                date_dec31, 
                                by = "day"))
-print("finished creating flows.daily.cfs.df")
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Import hourly streamflow time series:
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# switch - move this to global?
+# Set switch (move this to global?)--------------------------------------------
 autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
 # autoread_hourlyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
 # HOURLY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
-# Read hourly flow data automatically from NWIS
+#   - read hourly data automatically from NWIS using package, dataRetrieval
+#------------------------------------------------------------------------------
 
-# read the NWIS online data
 if(autoread_hourlyflows == 1) {
   
-  # right now grabbing just por, monoc_jug, goose, seneca, lfalls real-time data
+  # define the desired gages---------------------------------------------------
   gages_hourly_names <- c("lfalls", "seneca",
                           "goose", "monoc_jug", "por")
   gages_hourly_nos <- c("01646500", "01645000",
                         "01644000", "01643000", "01638500")
   
-  # grab real-time data for fixed number of past days, currently 60 days
+  # set desired number of past days--------------------------------------------
   n_past_days <- 60
   start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
   start_date <- lubridate::with_tz(start_date, "EST")
   
-  # Create dummy df of date hours
+  # Create dummy df of dates and hours-----------------------------------------
   temp0 <- start_date - lubridate::hours(1) # first step back 1 hour
   flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
     add_row(date_time = seq.POSIXt(start_date,
                                    by = "hour",
                                    length.out = n_past_days*24))
   
+  # download hourly flows into a df--------------------------------------------
+  #   (the function below makes use of the USGS's package, dataRetrieval)
   flows.hourly.cfs.df <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
                                                gage_names = gages_hourly_names, 
                                                flows_empty = flows.hourly.empty.df,
@@ -189,17 +215,26 @@ if(autoread_hourlyflows == 1) {
                                                end_date = date_today0,
                                                usgs_param = "00060")
   
-  # Trim off some NA's at the beginning
+  # Trim off a day of beginning rows to get rid of NA's------------------------
+  #   (this needs to be improved - ripe for creating a bug!)
   flows.hourly.cfs.df <- tail(flows.hourly.cfs.df, (n_past_days - 1)*24)
   }
 
 #------------------------------------------------------------------------------
 # HOURLY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
-# Read hourly flow data from file residing in /input/ts/current/
+#   - flow data file resides in /input/ts/current/
+#   - file name is flows_hourly_cfs.csv
+#   - hourly data can be downloaded from CO-OP's Data Portal
+#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
+#      - grab last few days of data only (or memory error!)
+#      - name appropriately then save the file to /input/ts/current/
+#      - can create a longer time series by pasting new data into existing file
+#------------------------------------------------------------------------------
 
 if(autoread_hourlyflows == 0) {
-  
-  #   - for hourly data use as.POSIXct
+
+  # read the lacal data table--------------------------------------------------
+  #   (need to convert date times to POSIXct for hourly's)
   flows.hourly.cfs.df <- data.table::fread(
     paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
     header = TRUE,
@@ -217,13 +252,12 @@ if(autoread_hourlyflows == 0) {
     select(date_time, everything())
 }
 
-# Add 3 days of rows; added flow values = NA
+# Add 3 days of rows with added flow values = NA-------------------------------
+#   (revisit - not sure if this is necessary or why it's being done)
 last_hour <- tail(flows.hourly.cfs.df$date_time, 1)
 last_hour <- last_hour + lubridate::hours(1)
 flows.hourly.cfs.df <- flows.hourly.cfs.df %>%
   add_row(date_time = seq.POSIXt(last_hour, length.out = 72, by = "hour"))
-
-print("finished creating flows.hourly.cfs.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -231,7 +265,7 @@ print("finished creating flows.hourly.cfs.df")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Read hourly withdrawal data -------------------------------------------------
+# Read hourly withdrawal data directly from Data Portal------------------------
 withdr.hourly.auto.df0 <- data.table::fread(
   "https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv",
   skip = 12,
