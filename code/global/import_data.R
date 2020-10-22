@@ -94,8 +94,8 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
-# autoread_dailyflows <- 0 # read data from file in local directory
+# autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
 # DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
