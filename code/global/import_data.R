@@ -466,14 +466,19 @@ pat.ts.df00 <- data.table::fread(paste(ts_path, "drex2018_output_pat.csv", sep =
 
 # calls function to get the latest version of the maryland drought map
 # md_drought_map = md_drought_map_func(date_today0)
-md_drought_map <- readPNG("input/MD_droughtmap_temp.png")
+
+#####this has been set to 
+#this pulls directly from the url
+md_drought_map <- 'https://mde.maryland.gov/programs/Water/droughtinformation/Currentconditions/PublishingImages/DroughtGraphsStarting2019jan31/Drought2020-08-31.png'
+#change input to below to pull the map from input directory
+#readPNG("input/MD_droughtmap_temp.png")
 
 #calls function to get the latest version of the virginia drought map
 #---toggle
 ##for day to day
 
-# va_drought_map = va_drought_map_func()
-va_drought_map = readPNG("input/VA_droughtmap_temp.png")
+va_drought_map = va_drought_map_func()
+#va_drought_map = readPNG("input/VA_droughtmap_temp.png")
 ##to publish
 # project.dir <- rprojroot::find_rstudio_root_file()
 # va_drought_map = file.path(project.dir,'/global/images/va_drought_placeholder.png')

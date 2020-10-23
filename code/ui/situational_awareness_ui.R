@@ -74,44 +74,46 @@ tabPanel("Situational Awareness",
           width=NULL,
           height=50,
           htmlOutput(outputId = "mwcog_stage")
-        ) #,
+        ) ,
 
         #these two boxes are for outputting the Maryland drought map
         #and Virginia drought squares
 
-        # #----------------------beginning of Maryland section-----------------------------------
-        # box(
-        #   title = NULL,#"MARYLAND DROUGHT STATUS",
-        #   width = NULL,#6,
-        #   height = 220,
-        #   htmlOutput(outputId="MD_title"),
-        #   box(tags$img(alt="Drought Status Map:2019-05-31",
-        #                src= md_drought_map,
-        #                style="width:250px;height:150px;border:0;")
-        #     #leafletOutput("mymap", height =140, width =300)
-        #     )
-        #   ),
-        # #tags$p("Western region: Drought Watch; Central region: Drought Warning")),
-        # #-------------------------end of Maryland section---------------------------------------
-        # 
-        # 
-        # #------------------------beginning of Virginia section----------------------------------
-        # box(
-        #   title = NULL,#"VIRGINIA DROUGHT STATUS",
-        #   width = NULL,#6,
-        #   height = 220,
-        #   htmlOutput(outputId="VA_title"),
-        #   
-        #   box(
-        #     tags$img(alt="Drought Status Map:2019-05-31",
-        #              src= va_drought_map,#"https://deq1.bse.vt.edu/drought/state/images/maps/imageMapFile15627929031512.png",
-        #              style="width:200px;height:150px;border:0;")
-        #   )
-        #   
-        #   
-        #   # htmlOutput(outputId = "boxes2")
-        # )
-        # #"NoVa: Drought Watch; Shenandoah: Drought Emergency")
+        #----------------------beginning of Maryland section-----------------------------------
+        box(
+          title = NULL,#"MARYLAND DROUGHT STATUS",
+          width = NULL,#6,
+          height = 260,#220,
+          htmlOutput(outputId="MD_title"),
+          box(
+            tags$img(alt="Drought Status Map:2019-05-31",
+                       src= md_drought_map,
+                       style="width:250px;height:150px;border:0;")
+            #leafletOutput("mymap", height =140, width =300)
+            )
+          ), #END OF MARYLAND DROUGHT UI
+        #tags$p("Western region: Drought Watch; Central region: Drought Warning")),
+        #-------------------------end of Maryland section---------------------------------------
+
+
+        #------------------------beginning of Virginia section----------------------------------
+        box(
+          title = NULL,#"VIRGINIA DROUGHT STATUS",
+          width = NULL,#6,
+          height = 260,#220
+          htmlOutput(outputId="VA_title"),
+
+          box(
+            tags$img(alt="Drought Status Map:2019-05-31",
+                     src= va_drought_map,#"https://deq1.bse.vt.edu/drought/state/images/maps/imageMapFile15627929031512.png",
+                     style="width:200px;height:150px;border:0;")
+          )
+
+
+          # htmlOutput(outputId = "boxes2")
+        ) #END OF VIRGINIA DROUGHT UI
+        
+        #"NoVa: Drought Watch; Shenandoah: Drought Emergency")
       ) # end of c3 - 2nd main column
     ) # end of c1 - major column that contains whole body
   ), # end of major row that contains whole body
