@@ -5,7 +5,6 @@
 shinyServer(function(input, output, session) {
   # Multi-use
   source("code/server/dates_server.R", local = TRUE) # - legacy Zach script?
-  source("code/server/process_lffs.R", local = TRUE)
 
   # Situational awareness tab
   source("code/server/situational_awareness/sit_aware_plots.R", local=TRUE)

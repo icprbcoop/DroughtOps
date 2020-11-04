@@ -29,7 +29,7 @@
 source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
-ts_path <- "input/ts/current/" # use for actual operations
+ts_path <- "input/ts/current/" # path for data in local directory
 # ts_path <- "input/ts/2019_drex/" # for 2019 DREX
 parameters_path <- "input/parameters/"
 ts_output <- "output/" # path of output directory
@@ -66,13 +66,20 @@ source("code/functions/display/warning_color_func.R", local = TRUE)
 # this is a lazy Friday fix that should be changed later:
 source("code/functions/display/warning_color_map_func.R", local = TRUE)
 
-# Read input parameters and import data ----------------------
+# Read input parameters -------------------------------------------------------
 # source("config/paths.R", local = TRUE)
 source("input/parameters/parameters_ops.R", local = TRUE)
 source("input/parameters/parameters_physical.R", local = TRUE)
-source("code/global/import_data.R", local = TRUE)#
 source("input/parameters/css_ui_values.R", local = TRUE)
-#----------------------------------------------------------------------------
+
+# Import time series data and do some processing
+source("code/global/import_data.R", local = TRUE)
+source("code/global/data_processing/process_daily_flows.R", local = TRUE)
+source("code/global/data_processing/process_hourly_flows.R", local = TRUE)
+source("code/global/data_processing/process_withdrawals.R", local = TRUE)
+source("code/global/data_processing/process_lffs.R", local = TRUE)
+
+#------------------------------------------------------------------------------
 
 
 

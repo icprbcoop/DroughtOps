@@ -1,53 +1,59 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# This script imports time series data (ts).
-# The path to the time series data is defined by /config/paths.R
+# This script is run by global.R
+# It imports time series (ts) data.
+# The path to the local files with time series data is defined in global.R
+# The paths to the automatically accessed online data are given below
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
 # gages_daily.csv - file listing USGS stream gages we use for daily data
 # 
-# past daily flow data can be obtained from 2 sources
+#------------------------------------------------------------------------------
+# DAILY FLOW DATA
+#   Can be obtained from 2 sources:
 #   (start date is Jan 1 and end date is today)
 #   OPTION 1: read file directly from Data Portal
 #             (autoread_dailyflows == 1)
 #   OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
-
-# past hourly flow data can be obtained from 2 sources
+#------------------------------------------------------------------------------
+# HOURLY FLOW DATA
+#   Can be obtained from 2 sources:
 #   (start date is user-selected and end date is today)
 #   OPTION 1: read file directly from USGS's NWIS websites
-#             (autoread_dailyflows == 1)
+#             (autoread_hourlyflows == 1)
 #   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
-#             (autoread_dailyflows == 0)
-
-# past and forecasted withdrawal data from 2 sources
-#   (start date is user-selected and end date is today)
+#             (autoread_hourlyflows == 0)
+#------------------------------------------------------------------------------
+# WITHDRAWAL DATA
+#   Can be obtained from 2 sources:
+#   (start date is user-selected and end date is 15 days in the future)
 #   OPTION 1: read file directly from Data Portal
-#             (autoread_dailywithdr == 1)
+#             (autoread_hourlywithdrawals == 1)
 #   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
-#             (autoread_dailywithdr == 0)
+#             (autoread_hourlywithdrawals == 0)
 
-# coop_pot_withdrawals.csv - WMA supplier hourly withdrawal data
-#   - daily data can be downloaded from CO-OP's Data Portal
-#   - link is https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv
-#   - save the file to /input/ts/current/
+#------------------------------------------------------------------------------
+# LFFS DATA
+#   From file loaded by LFFS to the Data Portal
 
-# state_drought_status.csv - time series of gw, precip, etc indices for MD, VA
+#------------------------------------------------------------------------------
+# STATE DROUGHT STATUS
+#   - time series of gw, precip, etc indices for MD, VA
+#   - read from state_drought_status.csv 
 #   - this is currently a dummy file from 2018 DREX
 
+#------------------------------------------------------------------------------
 # Fake reservoir ops dfs, e.g., drex2018_output_sen.csv
 #   - used to initialize the res.ts.df's until I decide how to handle this
+
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.cfs.df
-# flows.daily.mgd.df
-#   - used for the plots on sit awareness & 10 day ops tabs
-#   - used to compute baseflow correction for lffs flows
-#   - DELETE? used to create inflows.df in reservoirs_make.R
-#   - DELETE? used to create potomac.data.df in potomac_flows_init.R
+# flows.daily.cfs.df0 - processed by /data_processing/process_daily_flows.R
+# flows.hourly.cfs.df0 - processed by /data_processing/process_hourly_flows.R
 # demands.daily.df - really withdrawals right now
 #   - used to create potomac.data.df in potomac_flows_init.R
 #   - used in sim_main_func in call to simulation_func
@@ -60,7 +66,7 @@
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Preliminaries
+# PRELIMINARIES
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -89,7 +95,7 @@ today_year <- substring(date_today0, first = 1, last = 4)
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Import daily streamflow time series
+# DAILY FLOW DATA
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -157,22 +163,9 @@ if(autoread_dailyflows == 0) {
     arrange(date_time)
 }
 
-# Add rest of the year's dates to this df--------------------------------------
-#  - this seems to make the app more robust if missing data
-#  - added flow values are set to NA
-
-# identify the last date with daily flow data
-daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
-
-# add future dates and dummy data to the df
-flows.daily.cfs.df <- flows.daily.cfs.df0 %>%
-  add_row(date_time = seq.Date(daily_flow_data_last_date + 1, 
-                               date_dec31, 
-                               by = "day"))
-
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Import hourly streamflow time series:
+# HOURLY FLOW DATA:
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -207,7 +200,7 @@ if(autoread_hourlyflows == 1) {
   
   # download hourly flows into a df--------------------------------------------
   #   (the function below makes use of the USGS's package, dataRetrieval)
-  flows.hourly.cfs.df <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
+  flows.hourly.cfs.df0 <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
                                                gage_names = gages_hourly_names, 
                                                flows_empty = flows.hourly.empty.df,
                                                start_date = date_today0 - 
@@ -217,7 +210,7 @@ if(autoread_hourlyflows == 1) {
   
   # Trim off a day of beginning rows to get rid of NA's------------------------
   #   (this needs to be improved - ripe for creating a bug!)
-  flows.hourly.cfs.df <- tail(flows.hourly.cfs.df, (n_past_days - 1)*24)
+  flows.hourly.cfs.df <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
   }
 
 #------------------------------------------------------------------------------
@@ -235,7 +228,7 @@ if(autoread_hourlyflows == 0) {
 
   # read the lacal data table--------------------------------------------------
   #   (need to convert date times to POSIXct for hourly's)
-  flows.hourly.cfs.df <- data.table::fread(
+  flows.hourly.cfs.df0 <- data.table::fread(
     paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
     header = TRUE,
     stringsAsFactors = FALSE,
@@ -252,116 +245,65 @@ if(autoread_hourlyflows == 0) {
     select(date_time, everything())
 }
 
-# Add 3 days of rows with added flow values = NA-------------------------------
-#   (revisit - not sure if this is necessary or why it's being done)
-last_hour <- tail(flows.hourly.cfs.df$date_time, 1)
-last_hour <- last_hour + lubridate::hours(1)
-flows.hourly.cfs.df <- flows.hourly.cfs.df %>%
-  add_row(date_time = seq.POSIXt(last_hour, length.out = 72, by = "hour"))
-
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Import a time series of recent WMA system withdrawals and withdr forecasts
+# WITHDRAWAL DATA
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Read hourly withdrawal data directly from Data Portal------------------------
-withdr.hourly.auto.df0 <- data.table::fread(
-  "https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv",
-  skip = 12,
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-  na.strings = c("", "#N/A", -999999),
-  data.table = FALSE)
+# Set switch (move this to global?)--------------------------------------------
+autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
+# autoread_hourlywithdrawals <- 0 # read data from file in local directory
 
-withdr.hourly.df0 <- data.table::fread(
-  paste(ts_path, "coop_pot_withdrawals.csv", sep = ""),
-  skip = 12,
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-  na.strings = c("", "#N/A", -999999),
-  data.table = FALSE)
+# move to parameters.R later - factor for converting withdrs to demands:
+withdr_to_demands <- 0.97 # consistent with PRRISM "production loss" rates
+# a temporary need until the time series becomes available
+discharge_broadrun <- 5 # MGD
+# also might be temporary - FW Central SA demand - water purchased from WA
+d_fw_c <- 10 # MGD
 
-# Get df in necessary format --------------------------------------------------
-withdr.hourly.df <- withdr.hourly.df0 %>%
-  dplyr::rename_with(tolower) %>% # switch to lowercase col names
-  dplyr::rename(date_time = datetime,
-                w_wssc = wssc,
-                w_fw_w = fw,
-                w_lw = lw) %>%
-  filter(!is.na(date_time)) %>% # sometime these are sneaking in
-  dplyr::mutate(date_time = as.POSIXct(date_time, tz = "EST"),
-                date = round_date(date_time, unit = "days"),
-                w_wa = wa_gf + wa_lf,
-                w_fw_e = 70, w_fw_c = 20,
-                # total Potomac withdrawals:
-                w_pot_total = w_fw_w + w_wssc + w_lw + w_wa
-                )  %>%
-  dplyr::select(-wa_gf, -wa_lf)
+#------------------------------------------------------------------------------
+# WITHDRAWAL OPTION 1 - AUTOMATIC DATA RETRIEVAL
+#   - read hourly withdrawal data automatically from Data Portal
+#------------------------------------------------------------------------------
 
-# Compute daily withdrawals ---------------------------------------------------
-demands.daily.df <- withdr.hourly.df %>%
-  select(-date_time) %>%
-  group_by(date) %>%
-  # summarise_all(mean) %>%
-  summarise(across(everything(), mean), .groups = "keep") %>%
-  # temporarily go back to d (demand) instead of w (withdrawal)
-  rename(date_time = date, d_wa = w_wa, d_fw_w = w_fw_w, d_lw = w_lw,
-         d_wssc = w_wssc, d_pot_total = w_pot_total, 
-         d_fw_e = w_fw_e, d_fw_c = w_fw_c) %>%
-  mutate(date_time = as.Date(date_time)) %>%
-  ungroup()
-
-# # Fill in df with full year of demands so that app won't break --------------
-ncols <- length(demands.daily.df[1,])
-data_first_date <- head(demands.daily.df$date_time, 1)
-data_last_date <- tail(demands.daily.df$date_time, 1)
-data_last <- tail(demands.daily.df[, 2:ncols], 1)
-data_first <- head(demands.daily.df[, 2:ncols], 1)
-current_year <- year(data_last_date)
-days_left_in_year <- as.numeric(date_dec31 - data_last_date)
-next_date <- data_last_date
-
-for(i in 1:days_left_in_year) {
-  next_date <- next_date + days(1)
-  next_row <- cbind(date_time = next_date, data_last)
-  demands.daily.df <- rbind(demands.daily.df, next_row)
+if(autoread_hourlywithdrawals == 1) {
+  # read the online table -------------------------------------------------------
+  withdrawals.hourly.mgd.df0 <- data.table::fread(
+    "https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv",
+    skip = 12,
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    na.strings = c("", "#N/A", -999999),
+    data.table = FALSE)
 }
 
-# Fill in df with constant past demands so that app won't break ---------------
-data_first_date <- as.Date(data_first_date)
-days_prior_in_year <- as.numeric(difftime(data_first_date,
-                                          date_jan1, 
-                                    units = "days"))
-prior_date <- data_first_date
-for(i in 1:days_prior_in_year) {
-  prior_date <- prior_date - days(1)
-  prior_row <- cbind(date_time = prior_date, data_first)
-  demands.daily.df <- rbind(demands.daily.df, prior_row)
+#------------------------------------------------------------------------------
+# WITHDRAWAL OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
+#   - withdrawal data file resides in /input/ts/current/
+#   - file name is coop_pot_withdrawals.csv
+#   - data can be downloaded from CO-OP's Data Portal via the "Products" tab
+#      - data is expressed as hourly
+#      - data extends from 30 days in past to 15 days in future
+#      - name appropriately then save the file to /input/ts/current/
+#      - can create a longer time series by pasting new data into existing file
+#------------------------------------------------------------------------------
+
+if(autoread_hourlywithdrawals == 0) {
+  withdrawals.hourly.mgd.df0 <- data.table::fread(
+    paste(ts_path, "coop_pot_withdrawals.csv", sep = ""),
+    skip = 12,
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    na.strings = c("", "#N/A", -999999),
+    data.table = FALSE)
 }
-demands.daily.df <- demands.daily.df %>%
-  dplyr::arrange(date_time) %>%
-  dplyr::mutate(date_time = round_date(date_time, unit = "days"))
-
-print("finished creating demands.daily.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Convert daily flows to MGD, add recession flows for selected gages, 
-#    and combine with daily demands
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-
-flows.daily.mgd.df <- recess_daily_flows_func(flows.daily.cfs.df, 
-                                              demands.daily.mgd.df, 
-                                              daily_flow_data_last_date,
-                                              llen)
-print("finished creating flows.daily.mgd.df")
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# Read the datafile with hourly LFFS forecasts
+# LFFS DATA
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
