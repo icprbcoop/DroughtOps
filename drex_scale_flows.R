@@ -108,7 +108,8 @@ flows.lffs.actual <- data.table::fread(
   colClasses = c(rep("numeric", 6)), # force cols to numeric
   col.names = c("year", "month", "day", "minute", "second", "lfalls_lffs"),
   data.table = FALSE) %>%
-  filter(year >= current_year) # %>%
+  # filter(year >= current_year) # %>%
+  filter(year >= today_year) # %>%
 
 flows.lffs.scaled <- flows.lffs.actual %>%
   # convert LFalls obs to LFalls adj before scaling

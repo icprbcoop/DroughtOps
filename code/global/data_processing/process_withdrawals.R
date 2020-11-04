@@ -62,7 +62,7 @@ data_first_date <- head(demands.daily.df$date_time, 1)
 data_last_date <- tail(demands.daily.df$date_time, 1)
 data_last <- tail(demands.daily.df[, 2:ncols], 1)
 data_first <- head(demands.daily.df[, 2:ncols], 1)
-current_year <- year(data_last_date)
+# current_year <- year(data_last_date)
 days_left_in_year <- as.numeric(date_dec31 - data_last_date)
 next_date <- data_last_date
 

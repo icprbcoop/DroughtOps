@@ -320,7 +320,7 @@ lffs.hourly.cfs.all.df <- data.table::fread(
   data.table = FALSE) 
 
 lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df %>%
-  filter(year >= current_year) %>%
+  filter(year >= today_year) %>%
   dplyr::mutate(date_time = 
                   lubridate::make_datetime(year, month, 
                                            day, minute, second),
