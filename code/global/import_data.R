@@ -79,8 +79,8 @@ gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv",
 list_gages_daily_locations <- c("date", gages_daily$location)
 
 # first get number of columns in Sarah's flow data files
-llen <- length(list_gages_daily_locations) 
-gages_daily_locations <- list_gages_daily_locations[2:llen]
+n_gages_daily <- length(list_gages_daily_locations) - 1
+gages_daily_locations <- list_gages_daily_locations[2:(n_gages_daily + 1)]
 gages_daily_locations <- as.list(gages_daily_locations)
 
 # Create list of hourly 
@@ -162,7 +162,7 @@ if(autoread_dailyflows == 0) {
     select(date_time, everything()) %>%
     arrange(date_time)
 }
-
+print("Finished importing daily flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA:
@@ -244,7 +244,7 @@ if(autoread_hourlyflows == 0) {
     head(-1) %>% # the last record is sometimes missing most data
     select(date_time, everything())
 }
-
+print("finished importing hourly flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # WITHDRAWAL DATA
@@ -255,11 +255,9 @@ if(autoread_hourlyflows == 0) {
 autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
 # autoread_hourlywithdrawals <- 0 # read data from file in local directory
 
-# move to parameters.R later - factor for converting withdrs to demands:
-withdr_to_demands <- 0.97 # consistent with PRRISM "production loss" rates
 # a temporary need until the time series becomes available
 discharge_broadrun <- 5 # MGD
-# also might be temporary - FW Central SA demand - water purchased from WA
+# might be temporary - FW Central SA demand - water purchased from WA
 d_fw_c <- 10 # MGD
 
 #------------------------------------------------------------------------------
@@ -270,7 +268,7 @@ d_fw_c <- 10 # MGD
 if(autoread_hourlywithdrawals == 1) {
   # read the online table -------------------------------------------------------
   withdrawals.hourly.mgd.df0 <- data.table::fread(
-    "https://icprbcoop.org/drupal4/products/coop_pot_withdrawals.csv",
+    "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
     skip = 12,
     header = TRUE,
     stringsAsFactors = FALSE,
@@ -300,7 +298,7 @@ if(autoread_hourlywithdrawals == 0) {
     na.strings = c("", "#N/A", -999999),
     data.table = FALSE)
 }
-
+print("inished importing withdrawals")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # LFFS DATA
@@ -337,7 +335,7 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   select(date_time, lfalls_lffs) %>%
   ungroup()
 
-print("finished creating lffs.daily.cfs.df")
+print("Finished creating lffs.daily.cfs.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

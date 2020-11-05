@@ -24,11 +24,11 @@ fluidRow( # major row that contains whole body
     # now add the content
     column(  # this is the 1st main column - with the graphs
       width = 6,
-      fluidRow( # row with Little Falls flow graph
+      fluidRow( # row with Potomac withdrawal graph
         box(
           title = "Potomac withdrawals - observed and forecasted",
           width = NULL,
-          plotOutput("demands", height = plot.height, width = plot.width)
+          plotOutput("pot_withdrawals", height = plot.height, width = plot.width)
           # plotOutput("potomacFlows", height = "220px")
         )
       ) #,

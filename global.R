@@ -74,19 +74,18 @@ source("input/parameters/css_ui_values.R", local = TRUE)
 
 # Import time series data and do some processing
 source("code/global/import_data.R", local = TRUE)
+print("finished all imports")
 source("code/global/data_processing/process_hourly_flows.R", local = TRUE)
+print("finished processing hourly flows")
 source("code/global/data_processing/process_withdrawals.R", local = TRUE)
+print("finished processing withdrawals")
 source("code/global/data_processing/process_daily_flows.R", local = TRUE)
+print("finished processing daily flows")
 source("code/global/data_processing/process_lffs.R", local = TRUE)
 
 #------------------------------------------------------------------------------
-
-
-
-
 #------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# Create things that need to be accessed by everything
+# Create things that need to be accessed by simulation code
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 

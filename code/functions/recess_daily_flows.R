@@ -9,7 +9,7 @@
 # flows_daily_cfs.csv - current downloaded daily flow data, beginning Jan 1
 # demands.daily.df - WMA supplier daily withdrawal data
 # daily_flow_data_last_date - date of last day of available data
-# llen - number of columns in flows_daily_cfs.csv
+# n_cols - number of columns in flows_daily_cfs.csv
 # *****************************************************************************
 # OUTPUT
 # *****************************************************************************
@@ -26,14 +26,14 @@
 
 
 recess_daily_flows_func <- function(flows.daily.cfs.df, 
-                                    demands.daily.mgd.df, 
+                                    # demands.daily.mgd.df, 
                                     daily_flow_data_last_date,
-                                    llen) {
+                                    n_cols) {
   
   # Convert flows to mgd --------------------------------------------------------
   func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
   flows.daily.mgd.df <- flows.daily.cfs.df %>%
-    dplyr::mutate_at(2:llen, func_cfs_to_mgd)
+    dplyr::mutate_at(2:n_cols, func_cfs_to_mgd)
   
   # Grab the 3 most recent records, for use in recession estimates --------------
   flows.last3days.df <- flows.daily.mgd.df %>%
@@ -44,9 +44,9 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
   recess_mins <- flows.last3days.df %>%
     summarise_all(min)
   
-  # Add Potomac withdrawals -----------------------------------------------------
-  flows.daily.mgd.df <- left_join(flows.daily.mgd.df, demands.daily.df,
-                                  by = "date_time")
+  # # Add Potomac withdrawals -----------------------------------------------------
+  # flows.daily.mgd.df <- left_join(flows.daily.mgd.df, demands.daily.df,
+  #                                 by = "date_time")
   
   # Compute recession flows for future dates ------------------------------------
   # Currently using placeholder recession coefficients of 0.04
@@ -122,24 +122,7 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
       date_time <= date_today0 ~ hawlings,
       date_time > date_today0 ~ recess_mins$hawlings
       *exp(-0.04*as.numeric((date_time - date_today0))),
-      TRUE ~ -9999.9)) # %>%
-  
-  # # recess L Falls itself - just to improve look of graph
-  # dplyr::mutate(lfalls = case_when(
-  #   date_time <= date_today0 ~ lfalls,
-  #   date_time > date_today0 ~ recess_mins$lfalls
-  #   *exp(-0.04*as.numeric((date_time - date_min_lfalls))),
-  #   TRUE ~ -9999.9))
-  
-  #------------------------------------------------------------------------------
-  #------------------------------------------------------------------------------ 
-  # Predict LFalls from upstream gages using constant lags ----------------------
-  #------------------------------------------------------------------------------
-  #------------------------------------------------------------------------------
-  
-  flows.daily.mgd.df <- flows.daily.mgd.df %>%
-    dplyr::mutate(lfalls_from_upstr = lag(por, 2) + lag(monoc_jug, 2)
-                  + lag(goose, 1) + lag(seneca, 1) - lag(d_pot_total, 1))
+      TRUE ~ -9999.9))
   
   return(flows.daily.mgd.df)
 }

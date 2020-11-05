@@ -33,9 +33,9 @@ get_hourly_flows_func <- function(gage_nos, gage_names,
                                   start_date, 
                                   end_date,
                                   usgs_param) {
-  n_gages <- length(gage_nos)
+  n_gages_hourly <- length(gage_nos)
   flows_df <- flows_empty
-  for(i in 1:n_gages) {
+  for(i in 1:n_gages_hourly) {
     flows_rt <- dataRetrieval::readNWISuv(siteNumbers = gage_nos[i],
                                           parameterCd = usgs_param, 
                                           startDate = start_date,

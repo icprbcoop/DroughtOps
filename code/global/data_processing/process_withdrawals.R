@@ -15,8 +15,15 @@
 # production.daily.df - WMA daily production in MGD
 # *****************************************************************************
 
-# Get df in necessary format --------------------------------------------------
+# Preliminary info-------------------------------------------------------------
 
+#   - might be temporary - FW Central SA demand - water purchased from WA
+d_fw_c <- 10 # MGD
+
+# move to parameters.R later - factor for converting withdrs to demands:
+withdrawal_to_production <- 0.97 # consistent with PRRISM "production loss" rates
+
+# Get df in necessary format --------------------------------------------------
 withdr.hourly.df <- withdrawals.hourly.mgd.df0 %>%
   dplyr::rename_with(tolower) %>% # switch to lowercase col names
   dplyr::rename(date_time = datetime,
@@ -35,8 +42,8 @@ withdr.hourly.df <- withdrawals.hourly.mgd.df0 %>%
                 + w_lw_pot + w_wa_pot - discharge_broadrun) %>%
   dplyr::select(-wa_gf, -wa_lf)
 
-# Compute daily withdrawals ---------------------------------------------------
-demands.daily.df <- withdr.hourly.df %>%
+# Compute daily production ----------------------------------------------------
+production.daily.df <- withdr.hourly.df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # summarise_all(mean) %>%
@@ -44,17 +51,28 @@ demands.daily.df <- withdr.hourly.df %>%
   # temporarily go back to d (demand) instead of w (withdrawal)
   rename(date_time = date) %>%
   mutate(date_time = as.Date(date_time),
-         d_wa = w_wa_pot*withdr_to_demands,
-         # d_fw_w, d_fw_e, d_fw_c are used elsewhere; rethink this later
-         d_fw_w = w_fw_pot*withdr_to_demands,
-         d_fw_e = w_fw_occ*withdr_to_demands, 
-         d_fw_c = d_fw_c,
-         d_fw = (w_fw_pot + w_fw_occ)*withdr_to_demands,
-         d_wssc = (w_wssc_pot + w_wssc_pat)*withdr_to_demands,
-         d_lw = w_lw_pot*withdr_to_demands,
-         d_pot_total = w_pot_total*withdr_to_demands
+         p_wa = (w_wa_pot)*withdrawal_to_production,
+         p_fw_w = w_fw_pot*withdrawal_to_production,
+         p_fw_e = w_fw_occ*withdrawal_to_production, 
+         p_fw = p_fw_w + p_fw_e,
+         p_wssc = (w_wssc_pot + w_wssc_pat)*withdrawal_to_production,
+         p_lw = w_lw_pot*withdrawal_to_production,
+         p_pot_total = w_pot_total*withdrawal_to_production
   ) %>%
   ungroup()
+
+# Compute daily demands -------------------------------------------------------
+demands.daily.df <- production.daily.df %>%
+  mutate(date_time = as.Date(date_time),
+         d_wa = p_wa - d_fw_c,
+         d_fw_w = p_fw_w,
+         d_fw_e = p_fw_e, 
+         d_fw_c = d_fw_c,
+         d_fw = d_fw_w + d_fw_e + d_fw_c,
+         d_wssc = p_wssc,
+         d_lw = p_lw,
+         d_pot_total = p_pot_total
+  )
 
 # # Fill in df with full year of demands so that app won't break --------------
 ncols <- length(demands.daily.df[1,])
@@ -86,4 +104,8 @@ for(i in 1:days_prior_in_year) {
 demands.daily.df <- demands.daily.df %>%
   dplyr::arrange(date_time) %>%
   dplyr::mutate(date_time = round_date(date_time, unit = "days"))
+
+# Compute daily production
+production.daily.df <- demands.daily.df %>%
+  dplyr::select(date_time, d_fw_w, d_fw_e, d_wssc)
 

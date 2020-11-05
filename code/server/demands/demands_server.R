@@ -42,7 +42,7 @@ demands_yesterday.df <- demands.plot.df %>%
 # Construct graphs
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-output$demands <- renderPlot({
+output$pot_withdrawals <- renderPlot({
   # gather the data into long format; use the dynamic plot ranges
   demands.df <- gather(demands.plot.df, key = "location", 
                        value = "flow", -date_time) %>%
