@@ -52,6 +52,7 @@ dr_va0 <- 0.0
 dr_md_cent0 <- 0.0
 dr_md_west0 <- 0.0
 mos_1day0 <- 120.0
+mos_0day0 <- 40.0
 dr_wma_override0 <- 0.0
 
 sen_other_watershed_flows <- 0 # wwtp and other land area watershed flows, MGD

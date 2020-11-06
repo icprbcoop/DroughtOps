@@ -1,8 +1,8 @@
-# tabPanel("One Day"
+# tabPanel("Zero Day"
 # 
 # ) # end of tab panel
 
-tabPanel("1-Day Ops",
+tabPanel("0-Day Ops",
          fluidRow( # major row that contains whole body
            column( # major column that contains whole body
              width = 12,
@@ -33,19 +33,16 @@ tabPanel("1-Day Ops",
                ), # end of 1st main column - with graphs
              column( # this is the 2nd main column - with values & triggers
                width = 6, 
-               box(title = "Tomorrow's need from combined L Seneca release
-                   and Occoquan load shift",
+               box(title = "Today's need based on Little Falls now",
                    width = NULL,
                    height=60),
-               box(title = "- based on forecast from upstream gage changes",
-                   width = NULL,
-                   height=30),
                valueBoxOutput("lfalls_fc1", width = NULL),
                valueBoxOutput("lfalls_deficit1", width = NULL),
                br(),
-               box(title = "- based on forecast from LFFS",
+               box(title = "One-day need based on LFFS forecast 
+                   (using baseflow correction)",
                    width = NULL,
-                   height=30),
+                   height=60),
                valueBoxOutput("lfalls_fc2", width = NULL),
                valueBoxOutput("lfalls_deficit2", width = NULL)
                ) # end of 2nd main column
