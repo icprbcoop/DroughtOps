@@ -27,14 +27,8 @@
 # Grab daily time series
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Select values to plot
-demands.plot.df <- demands.daily.df %>%
-  mutate(d_fw_pot = d_fw_w, d_wssc_pot = d_wssc, d_lw_pot = d_lw) %>%
-  # select(date_time, d_fw_pot, d_wssc_pot, wa_gf, wa_lf, d_lw_pot)
-  select(date_time, d_fw_pot, d_wssc_pot, d_wa, d_lw_pot)
-
 # Grab yesterday's values to display
-demands_yesterday.df <- demands.plot.df %>%
+withdrawals_yesterday.df <- withdrawals.daily.df %>%
   filter(date_time == date_today0 - 1)
 
 #------------------------------------------------------------------------------
@@ -42,19 +36,53 @@ demands_yesterday.df <- demands.plot.df %>%
 # Construct graphs
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
+
+# Graph Potomac River withdrawals
 output$pot_withdrawals <- renderPlot({
   # gather the data into long format; use the dynamic plot ranges
-  demands.df <- gather(demands.plot.df, key = "location", 
-                       value = "flow", -date_time) %>%
-    mutate(Date = date_time) %>%
+  withdrawals.plot.df <- withdrawals.daily.df %>%
+    select(Date = date_time,
+           "FW Potomac" = w_fw_pot,
+           "WSSC Water Potomac" = w_wssc_pot,
+           "WA Great Falls" = w_wa_gf,
+           "WA Little Falls" = w_wa_lf,
+           "LW Potomac" = w_lw_pot,
+           "Broad Run discharge" = w_lw_br,
+           "Net Potomac withdrawals" = w_pot_total_net) %>%
+    gather(key = "Legend", 
+           value = "MGD", -Date) %>%
     filter(Date >= input$plot_range[1],
            Date <= input$plot_range[2])
   
   # plot the data
-  ggplot(demands.df, aes(x = date_time, y = flow)) + 
-    geom_line(aes(colour = location)) +
-    labs(x = "", y = "Potomac withdrawals, MGD")
+  ggplot(withdrawals.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
+    geom_line(aes(colour = Legend, size = Legend)) +
+    labs(x = "", y = "Potomac withdrawals, MGD") +
+    scale_size_manual(values = c(1,1,1,2,1,1,1))
 })
+
+# Graph WMA production
+output$wma_production <- renderPlot({
+  # gather the data into long format; use the dynamic plot ranges
+  production.plot.df <- production.daily.df %>%
+    select(Date = date_time,
+           "Fairfax Water" = p_fw,
+           "WSSC Water" = p_wssc,
+           "Washington Aqueduct" = p_wa,
+           "Loudoun Water" = p_lw,
+           "WMA total" = p_wma_total) %>%
+    gather(key = "Legend", 
+           value = "MGD", -Date) %>%
+    filter(Date >= input$plot_range[1],
+           Date <= input$plot_range[2])
+  
+  # plot the data
+  ggplot(production.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
+    geom_line(aes(colour = Legend, size = Legend)) +
+    labs(x = "", y = "WMA production, MGD") +
+    scale_size_manual(values = c(1,1,1,2,1))
+})
+
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -63,61 +91,61 @@ output$pot_withdrawals <- renderPlot({
 #------------------------------------------------------------------------------
 
 # Display yesterday's Potomac withdrawals -------------------------------------
-output$w_pot_fw_yesterday <- renderValueBox({
-  w_fw_yesterday <- paste(
-    "Yesterday's Fairfax Water withdrawal: ",
-    demands_yesterday.df$d_fw_pot[1],
+output$w_fw_pot_yesterday <- renderValueBox({
+  w_fw_pot_yesterday <- paste(
+    "Fairfax Water: ",
+    round(withdrawals_yesterday.df$w_fw_pot[1],0),
     " MGD", sep = "")
   valueBox(
-    value = tags$p(w_fw_yesterday, style = "font-size: 50%;"),
+    value = tags$p(w_fw_pot_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )
 })
 
-output$w_pot_wssc_yesterday <- renderValueBox({
-  w_wssc_yesterday <- paste(
-    "Yesterday's WSSC withdrawal: ",
-    demands_yesterday.df$d_wssc_pot[1],
+output$w_wssc_pot_yesterday <- renderValueBox({
+  w_wssc_pot_yesterday <- paste(
+    "WSSC Water: ",
+    round(withdrawals_yesterday.df$w_wssc_pot[1],0),
     " MGD", sep = "")
   valueBox(
-    value = tags$p(w_wssc_yesterday, style = "font-size: 50%;"),
+    value = tags$p(w_wssc_pot_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )
 })
 
-output$w_pot_gf_yesterday <- renderValueBox({
-  w_gf_yesterday <- paste(
-    "Yesterday's Washington Aqueduct Great Falls withdrawal: ",
-    demands_yesterday.df$wa_gf[1],
+output$w_wa_gf_yesterday <- renderValueBox({
+  w_wa_gf_yesterday <- paste(
+    "Washington Aqueduct Great Falls: ",
+    round(withdrawals_yesterday.df$w_wa_gf[1], 0),
     " MGD", sep = "")
   valueBox(
-    value = tags$p(w_gf_yesterday, style = "font-size: 50%;"),
+    value = tags$p(w_wa_gf_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )
 })
 
-output$w_pot_lf_yesterday <- renderValueBox({
-  w_lf_yesterday <- paste(
-    "Yesterday's Washington Aqueduct Little Falls withdrawal: ",
-    demands_yesterday.df$wa_lf[1],
+output$w_wa_lf_yesterday <- renderValueBox({
+  w_wa_lf_yesterday <- paste(
+    "Washington Aqueduct Little Falls: ",
+    round(withdrawals_yesterday.df$w_wa_lf[1], 0),
     " MGD", sep = "")
   valueBox(
-    value = tags$p(w_lf_yesterday, style = "font-size: 50%;"),
+    value = tags$p(w_wa_lf_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )
 })
 
-output$w_pot_lw_yesterday <- renderValueBox({
-  w_lw_yesterday <- paste(
-    "Yesterday's Loudoun Water withdrawal: ",
-    demands_yesterday.df$d_lw_pot[1],
+output$w_lw_pot_yesterday <- renderValueBox({
+  w_lw_pot_yesterday <- paste(
+    "Loudoun Water: ",
+    round(withdrawals_yesterday.df$w_lw_pot[1], 1),
     " MGD", sep = "")
   valueBox(
-    value = tags$p(w_lw_yesterday, style = "font-size: 50%;"),
+    value = tags$p(w_lw_pot_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )

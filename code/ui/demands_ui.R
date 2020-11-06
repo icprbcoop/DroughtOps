@@ -28,32 +28,28 @@ fluidRow( # major row that contains whole body
         box(
           title = "Potomac withdrawals - observed and forecasted",
           width = NULL,
-          plotOutput("pot_withdrawals", height = plot.height, width = plot.width)
-          # plotOutput("potomacFlows", height = "220px")
+          # plotOutput("pot_withdrawals", height = plot.height, width = plot.width)
+          plotOutput("pot_withdrawals", height = "260px", width = plot.width)
         )
-      ) #,
-      # fluidRow( # row with optional second graph
-      #   # h3("Xxx"),
-      #   column(
-      #     width = 12,
-      #     box(
-      #       title = "Xxx",
-      #       width = NULL,
-      #       plotOutput("nbr_ten_day_plot", height = "220px")
-      #     )
-      #   )
-      # ) # end of 2nd fluid row
+      ),
+      fluidRow( # row with Potomac withdrawal graph
+        box(
+          title = "WMA production",
+          width = NULL,
+          plotOutput("wma_production", height = "260px", width = plot.width)
+        )
+      ) # end of 2nd fluid row
     ), # end of 1st main column - with graphs
     column( # this is the 2nd main column - with values & triggers
       width = 6,
       box(title = "Yesterday's average Potomac withdrawals",
           width = NULL,
           height=60),
-      valueBoxOutput("w_pot_fw_yesterday", width = NULL),
-      valueBoxOutput("w_pot_wssc_yesterday", width = NULL),
-      valueBoxOutput("w_pot_gf_yesterday", width = NULL),
-      valueBoxOutput("w_pot_lf_yesterday", width = NULL),
-      valueBoxOutput("w_pot_lw_yesterday", width = NULL)
+      valueBoxOutput("w_fw_pot_yesterday", width = NULL),
+      valueBoxOutput("w_wssc_pot_yesterday", width = NULL),
+      valueBoxOutput("w_wa_gf_yesterday", width = NULL),
+      valueBoxOutput("w_wa_lf_yesterday", width = NULL),
+      valueBoxOutput("w_lw_pot_yesterday", width = NULL)
 
       # br(),
       # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",

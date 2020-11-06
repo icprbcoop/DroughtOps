@@ -10,7 +10,7 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# withdr.hourly.df - WMA hourly withdrawals in MGD
+# withdrawals.hourly.df - WMA hourly withdrawals in MGD
 # demands.daily.df - WMA daily demands in MGD
 # production.daily.df - WMA daily production in MGD
 # *****************************************************************************
@@ -24,55 +24,75 @@ d_fw_c <- 10 # MGD
 withdrawal_to_production <- 0.97 # consistent with PRRISM "production loss" rates
 
 # Get df in necessary format --------------------------------------------------
-withdr.hourly.df <- withdrawals.hourly.mgd.df0 %>%
+withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
   dplyr::rename_with(tolower) %>% # switch to lowercase col names
   dplyr::rename(date_time = datetime,
                 w_wssc_pot = wssc_pot,
                 w_wssc_pat = wssc_pa,
                 w_fw_pot = fw_pot,
                 w_fw_occ = fw_oc,
-                w_lw_pot = lw_pot) %>%
+                w_wa_gf = wa_gf,
+                w_wa_lf = wa_lf,
+                w_lw_pot = lw_pot,
+                disch_lw_pot = lw_br) %>%
   filter(!is.na(date_time)) %>% # sometime these are sneaking in
   dplyr::mutate(date_time = as.POSIXct(date_time, tz = "EST"),
-                date = round_date(date_time, unit = "days"),
-                w_wa_pot = wa_gf + wa_lf,
-                # w_fw_e = 70, w_fw_c = 20,
-                # total Potomac withdrawals:
-                w_pot_total = w_fw_pot + w_wssc_pot 
-                + w_lw_pot + w_wa_pot - discharge_broadrun) %>%
-  dplyr::select(-wa_gf, -wa_lf)
+                date = round_date(date_time, unit = "days"))
 
-# Compute daily production ----------------------------------------------------
-production.daily.df <- withdr.hourly.df %>%
+# Solve PROBLEM: Broad Run values are spotty and end today---------------------
+# Find last available value
+br_ts0 <- withdrawals.hourly.df %>%
+  dplyr::select(date_time, disch_lw_pot)
+br_ts <- drop_na(br_ts0)
+br_last <- tail(br_ts$disch_lw_pot,1) 
+
+# Fill in last disch_lw_pot NA with last available value
+ltemp <- length(withdrawals.hourly.df$disch_lw_pot)
+withdrawals.hourly.df$disch_lw_pot[ltemp] <- br_last
+
+# Now interpolate Broad Run discharge data column
+withdrawals.hourly.df$disch_lw_pot <- 
+  zoo::na.approx.default(withdrawals.hourly.df$disch_lw_pot)
+
+# Compute daily withdrawals for graphing----------------------------------------
+withdrawals.daily.df <- withdrawals.hourly.df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # summarise_all(mean) %>%
   summarise(across(everything(), mean), .groups = "keep") %>%
-  # temporarily go back to d (demand) instead of w (withdrawal)
   rename(date_time = date) %>%
   mutate(date_time = as.Date(date_time),
-         p_wa = (w_wa_pot)*withdrawal_to_production,
+         w_wa = w_wa_gf + w_wa_lf,
+         w_lw_br = - disch_lw_pot,
+         w_pot_total = w_wa + w_fw_pot + w_wssc_pot + w_lw_pot,
+         w_pot_total_net = w_pot_total + w_lw_br) %>%
+  ungroup()
+
+# Compute daily production for graphing----------------------------------------
+production.daily.df <- withdrawals.daily.df %>%
+  mutate(p_wa = w_wa*withdrawal_to_production,
          p_fw_w = w_fw_pot*withdrawal_to_production,
          p_fw_e = w_fw_occ*withdrawal_to_production, 
          p_fw = p_fw_w + p_fw_e,
          p_wssc = (w_wssc_pot + w_wssc_pat)*withdrawal_to_production,
+         p_wssc_pot = w_wssc_pot*withdrawal_to_production,
          p_lw = w_lw_pot*withdrawal_to_production,
-         p_pot_total = w_pot_total*withdrawal_to_production
-  ) %>%
-  ungroup()
+         p_coop_total = p_wa + p_fw + p_wssc,
+         p_wma_total = p_wa + p_fw + p_wssc + p_lw) %>%
+  select(date_time, p_wa, p_fw, p_wssc, p_wssc_pot, p_lw, 
+         p_fw_e, p_fw_w, p_wma_total, p_coop_total)
 
-# Compute daily demands -------------------------------------------------------
+# Compute daily demands for legacy sim code------------------------------------
 demands.daily.df <- production.daily.df %>%
   mutate(date_time = as.Date(date_time),
          d_wa = p_wa - d_fw_c,
          d_fw_w = p_fw_w,
          d_fw_e = p_fw_e, 
          d_fw_c = d_fw_c,
-         d_fw = d_fw_w + d_fw_e + d_fw_c,
+         d_fw = p_fw + d_fw_c,
          d_wssc = p_wssc,
          d_lw = p_lw,
-         d_pot_total = p_pot_total
-  )
+         d_pot_total = d_wa + d_fw_w + p_wssc_pot + d_lw)
 
 # # Fill in df with full year of demands so that app won't break --------------
 ncols <- length(demands.daily.df[1,])
@@ -105,7 +125,4 @@ demands.daily.df <- demands.daily.df %>%
   dplyr::arrange(date_time) %>%
   dplyr::mutate(date_time = round_date(date_time, unit = "days"))
 
-# Compute daily production
-production.daily.df <- demands.daily.df %>%
-  dplyr::select(date_time, d_fw_w, d_fw_e, d_wssc)
 
