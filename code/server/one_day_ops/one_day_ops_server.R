@@ -154,9 +154,9 @@ lfalls_1day_fc1_mgd <- ops_1day_daily.df %>%
 lfalls_1day_fc1_mgd <- round(
   lfalls_1day_fc1_mgd$lfalls_fc_prrism[1], 0)
 lfalls_1day_fc1_cfs <- round(lfalls_1day_fc1_mgd*mgd_to_cfs, 0)
-output$lfalls_fc1 <- renderValueBox({
+output$lfalls_1day_fc1 <- renderValueBox({
   lfalls_1day_fc1 <- paste(
-    "Forecasted flow at Little Falls in 1 day: ",
+    "Forecasted daily flow at Little Falls in 1 day: ",
                           lfalls_1day_fc1_mgd, " MGD (",
                           lfalls_1day_fc1_cfs, " cfs)",
                           sep = "")
@@ -174,7 +174,7 @@ lfalls_1day_deficit1_mgd <- estimate_need_func(
 )
 lfalls_1day_deficit1_cfs <- round(lfalls_1day_deficit1_mgd*mgd_to_cfs, 0)
 
-output$lfalls_deficit1 <- renderValueBox({
+output$lfalls_1day_deficit1 <- renderValueBox({
   lfalls_1day_def1 <- paste(
     "Forecasted deficit at Little Falls in 1 day: ",
     lfalls_1day_deficit1_mgd, " MGD (",
@@ -194,7 +194,7 @@ lfalls_1day_fc2_mgd <- lffs.daily.mgd.df %>%
 lfalls_1day_fc2_mgd <- round(
   lfalls_1day_fc2_mgd$lfalls_lffs_bf_corrected[1], 0)
 lfalls_1day_fc2_cfs <- round(lfalls_1day_fc2_mgd*mgd_to_cfs, 0)
-output$lfalls_fc2 <- renderValueBox({
+output$lfalls_1day_fc2 <- renderValueBox({
   lfalls_1day_fc2 <- paste(
     "Forecasted flow at Little Falls in 1 day: ",
     lfalls_1day_fc2_mgd, " MGD (",
@@ -214,7 +214,7 @@ lfalls_1day_deficit2_mgd <- estimate_need_func(
 )
 lfalls_1day_deficit2_cfs <- round(lfalls_1day_deficit2_mgd*mgd_to_cfs, 0)
 
-output$lfalls_deficit2 <- renderValueBox({
+output$lfalls_1day_deficit2 <- renderValueBox({
   lfalls_1day_def2 <- paste(
     "Forecasted deficit at Little Falls in 1 day: ",
     lfalls_1day_deficit2_mgd, " MGD (",
@@ -228,3 +228,44 @@ output$lfalls_deficit2 <- renderValueBox({
   )
 })
 
+#********************************************
+
+# LFalls 0-day fc1 - PRRISM algorithm, daily data ----------------------------
+lfalls_0day_fc1_mgd <- ops_1day_daily.df %>%
+  filter(date_time == date_today0)
+lfalls_0day_fc1_mgd <- round(
+  lfalls_0day_fc1_mgd$lfalls_fc_prrism[1], 0)
+lfalls_0day_fc1_cfs <- round(lfalls_0day_fc1_mgd*mgd_to_cfs, 0)
+output$lfalls_0day_fc1 <- renderValueBox({
+  lfalls_0day_fc1 <- paste(
+    "Forecasted daily flow at Little Falls today: ",
+    lfalls_0day_fc1_mgd, " MGD (",
+    lfalls_0day_fc1_cfs, " cfs)",
+    sep = "")
+  valueBox(
+    value = tags$p(lfalls_0day_fc1, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
+# Little Falls 1-day deficit1
+lfalls_0day_deficit1_mgd <- estimate_need_func(
+  lfalls_flow = lfalls_0day_fc1_mgd,
+  mos = mos_0day0
+)
+lfalls_0day_deficit1_cfs <- round(lfalls_0day_deficit1_mgd*mgd_to_cfs, 0)
+
+output$lfalls_0day_deficit1 <- renderValueBox({
+  lfalls_0day_def1 <- paste(
+    "Forecasted deficit at Little Falls in 1 day: ",
+    lfalls_0day_deficit1_mgd, " MGD (",
+    lfalls_0day_deficit1_cfs, " cfs)",
+    sep = "")
+  valueBox(
+    value = tags$p(lfalls_0day_def1, style = "font-size: 50%;"),
+    subtitle = NULL,
+    # LukeV: change color to orange if value > 0
+    color = "light-blue"
+  )
+})

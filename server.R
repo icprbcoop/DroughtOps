@@ -3,8 +3,6 @@
 # then produces output
 #******************************************************************
 shinyServer(function(input, output, session) {
-  # Multi-use
-  source("code/server/dates_server.R", local = TRUE) # - legacy Zach script? (LV)Looks like it.
 
   # Situational awareness tab
   source("code/server/situational_awareness/sit_aware_plots.R", local=TRUE)

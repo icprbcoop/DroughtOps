@@ -96,43 +96,36 @@ output$sit_aware_jrr_stor <- renderPlot({
           legend.title = element_blank())
 }) # end jrr renderPlot testing
 
-
-#
-#------------------------------------------------------------------
-# I can't get the following graphing function to work:
-# output$senStorageReleases <- renderPlot({
-#   sen.graph <- ts$sen
-#   graph_title <- "Seneca"
-#   display_graph_res_func(graph_title, sen.graph)
-# })
-output$sit_aware_sen_stor <- renderPlot({
-  sen.graph <- ts$sen
-  graph_title <- "Little Seneca"
-  res.graph <- sen.graph %>%
-    select(date_time, storage, outflow) %>%
-    gather(key = "Legend",
-           value = "MG", -date_time) %>%
-    filter(date_time >= input$plot_range[1],
-           date_time <= input$plot_range[2])
-  ggplot(data = res.graph,
-         aes(x = date_time, y = MG, group = Legend)) +
-    geom_line(aes(color = Legend, size = Legend)) +
-    scale_color_manual(values = c("lightblue",
-                                  "blue")) +
-    scale_size_manual(values = c(0.5, 1)) +
-    ggtitle(graph_title) +
-    theme(plot.title = element_text(size = 18)) +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_blank()) +
-    theme(legend.position = "none")
+# Create graph of L Seneca storage --------------------------------------------  
+  output$sit_aware_sen_stor <- renderPlot({
+    sen.graph <- storage.daily.bg.df0
+    graph_title <- "Little Seneca"
+    res.graph <- sen.graph %>%
+      select(date_time, stor_sen) %>%
+      gather(key = "Legend",
+             value = "MG", -date_time) %>%
+      filter(date_time >= input$plot_range[1],
+             date_time <= input$plot_range[2])
+    ggplot(data = res.graph,
+           aes(x = date_time, y = MG, group = Legend)) +
+      geom_line(aes(color = Legend, size = Legend)) +
+      scale_color_manual(values = c("blue")) +
+      scale_size_manual(values = c(1)) +
+      scale_y_continuous(name = "Storage, BG", limits = c(0.0, 4.0), 
+                         breaks = c(0, 1, 2, 3, 4)) + 
+      ggtitle(graph_title) +
+      theme(plot.title = element_text(size = 18)) +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank()) +
+      theme(legend.position = "none")
 }) # end sen renderPlot
 #
-#------------------------------------------------------------------
+# Create graph of Patuxent storage --------------------------------------------
 output$sit_aware_pat_stor <- renderPlot({
-  pat.graph <- ts$pat
+  pat.graph <- storage.daily.bg.df0
   graph_title <- "Patuxent"
   res.graph <- pat.graph %>%
-    select(date_time, storage, outflow) %>%
+    select(date_time, stor_pat) %>%
     gather(key = "Legend",
            value = "MG", -date_time) %>%
     filter(date_time >= input$plot_range[1],
@@ -140,9 +133,10 @@ output$sit_aware_pat_stor <- renderPlot({
   ggplot(data = res.graph,
          aes(x = date_time, y = MG, group = Legend)) +
     geom_line(aes(color = Legend, size = Legend)) +
-    scale_color_manual(values = c("lightblue",
-                                  "blue")) +
-    scale_size_manual(values = c(0.5, 1)) +
+    scale_color_manual(values = c("blue")) +
+    scale_size_manual(values = c(1)) +
+    scale_y_continuous(name = "Storage, BG", limits = c(0.0, 11.0), 
+                       breaks = c(0, 2, 4, 6, 8, 10, 12)) +
     ggtitle(graph_title) +
     theme(plot.title = element_text(size = 18)) +
     theme(axis.title.x = element_blank(),
@@ -150,12 +144,12 @@ output$sit_aware_pat_stor <- renderPlot({
     theme(legend.position = "none")
 }) # end pat renderPlot
 #
-#------------------------------------------------------------------
+# Create graph of Occoquan storage --------------------------------------------
 output$sit_aware_occ_stor <- renderPlot({
-  occ.graph <- ts$occ
+  occ.graph <- storage.daily.bg.df0
   graph_title <- "Occoquan"
   res.graph <- occ.graph %>%
-    select(date_time, storage, outflow) %>%
+    select(date_time, stor_occ) %>%
     gather(key = "Legend",
            value = "MG", -date_time) %>%
     filter(date_time >= input$plot_range[1],
@@ -163,15 +157,17 @@ output$sit_aware_occ_stor <- renderPlot({
   ggplot(data = res.graph,
          aes(x = date_time, y = MG, group = Legend)) +
     geom_line(aes(color = Legend, size = Legend)) +
-    scale_color_manual(values = c("lightblue",
-                                  "blue")) +
-    scale_size_manual(values = c(0.5, 1)) +
+    scale_color_manual(values = c("blue")) +
+    scale_size_manual(values = c(1)) +
+    scale_y_continuous(name = "Storage, BG", limits = c(0.0, 10.0), 
+                       breaks = c(0, 2, 4, 6, 8, 10)) +
     ggtitle(graph_title) +
     theme(plot.title = element_text(size = 18)) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank()) +
     theme(legend.position = "none")
 }) # end occ renderPlot
+
 
 print("finishing sit_aware_plots")
 

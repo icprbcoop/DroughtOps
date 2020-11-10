@@ -40,15 +40,17 @@ withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
                 date = round_date(date_time, unit = "days"))
 
 # Solve PROBLEM: Broad Run values are spotty and end today---------------------
-# Find last available value
+# Find last and first available values
 br_ts0 <- withdrawals.hourly.df %>%
   dplyr::select(date_time, disch_lw_pot)
 br_ts <- drop_na(br_ts0)
 br_last <- tail(br_ts$disch_lw_pot,1) 
+br_first <- head(br_ts$disch_lw_pot,1)
 
 # Fill in last disch_lw_pot NA with last available value
 ltemp <- length(withdrawals.hourly.df$disch_lw_pot)
 withdrawals.hourly.df$disch_lw_pot[ltemp] <- br_last
+withdrawals.hourly.df$disch_lw_pot[1] <- br_first
 
 # Now interpolate Broad Run discharge data column
 withdrawals.hourly.df$disch_lw_pot <- 

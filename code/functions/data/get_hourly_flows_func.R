@@ -48,7 +48,7 @@ get_hourly_flows_func <- function(gage_nos, gage_names,
              flows_cfs = X_00060_00000) %>%
       select(date_time, flows_cfs) %>%
       group_by(date_time) %>%
-      summarise(flows_cfs = round(mean(flows_cfs), 0)) %>%
+      summarise(flows_cfs = round(mean(flows_cfs), 0), .groups = "keep") %>%
       ungroup()
     
     flows_df <- left_join(flows_df, flows_hourly, by = "date_time")

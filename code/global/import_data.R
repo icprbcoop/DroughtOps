@@ -162,7 +162,7 @@ if(autoread_dailyflows == 0) {
     select(date_time, everything()) %>%
     arrange(date_time)
 }
-print("Finished importing daily flows")
+print("finished importing daily flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA:
@@ -298,7 +298,7 @@ if(autoread_hourlywithdrawals == 0) {
     na.strings = c("", "#N/A", -999999),
     data.table = FALSE)
 }
-print("inished importing withdrawals")
+print("finished importing withdrawals")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # LFFS DATA
@@ -331,11 +331,12 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   select(-date_time) %>%
   group_by(date) %>%
   summarise(lfalls_lffs = mean(lfalls_lffs)) %>%
+  # summarise(mean(lfalls_lffs), .groups = "keep") %>%
   mutate(date_time = as.Date(date)) %>%
   select(date_time, lfalls_lffs) %>%
   ungroup()
 
-print("Finished creating lffs.daily.cfs.df")
+print("finished creating lffs.daily.cfs.df")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -356,6 +357,84 @@ state.drought.df <- data.table::fread(paste(ts_path, "state_drought_status.csv",
                 ) %>%
   dplyr:: filter(date_time <= date_end,
                  date_time >= date_start)
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Import reservoir storage data
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Set switch (move this to global?)--------------------------------------------
+# autoread_resstorage <- 1 # automatic data retrieval from Data Portal
+autoread_resstorage <- 0 # read data from file in local directory
+
+#------------------------------------------------------------------------------
+# STORAGE OPTION 1 - AUTOMATIC DATA RETRIEVAL
+#   - read daily flow data automatically from Data Portal
+#   - start date is January 1 of the current year
+#------------------------------------------------------------------------------
+
+if(autoread_resstorage == 1) {
+  
+  # paste together the url for Data Portal's storage data-------------------
+  # https://icprbcoop.org/drupal4/icprb/data-view?patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage&startdate=01%2F01%2F2020&enddate=11%2F10%2F2020&format=csv&submit=Submit
+  url_storage0 <- "https://icprbcoop.org/drupal4/icprb/data-view?"
+  urlplus1 <- "patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc"
+  urlplus2 <- "&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc"
+  urlplus3 <- "&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage"
+    url_storagedaily <- paste(url_storage0, 
+                            urlplus1, urlplus2, urlplus3,
+                            "&startdate=01%2F01%2F2020&enddate=", 
+                     today_month, "%2F", 
+                     today_day, "%2F", 
+                     today_year, "&format=csv&submit=Submit", 
+                     sep="")
+  
+  # read the online data table-------------------------------------------------
+  storage.daily.bg.df0 <- data.table::fread(
+    url_storagedaily,
+    skip = 1,
+    header = FALSE,
+    col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
+    stringsAsFactors = FALSE,
+    na.strings = c("", "#N/A", -999999),
+    data.table = FALSE) %>%
+    dplyr::mutate(date_time = as.Date(date_time)) %>%
+    filter(!is.na(date_time)) %>%
+    select(date_time, everything()) %>%
+    arrange(date_time)
+}
+
+#------------------------------------------------------------------------------
+# STORAGE OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
+#   - read daily flow data from file residing in /input/ts/current/
+#   - file name is flows_daily_cfs.csv
+#   - code set up so that these time series should begin on Jan 1 of current year
+#   - daily data can be downloaded from CO-OP's Data Portal
+#      - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
+#      - name appropriately then save the file to /input/ts/current/
+#------------------------------------------------------------------------------
+
+if(autoread_resstorage == 0) {
+  
+  # read the lacal data table--------------------------------------------------
+  storage.daily.bg.df0 <- data.table::fread(
+    paste(ts_path, "storage_daily_bg.csv", sep = ""),
+    skip = 1,
+    header = FALSE,
+    col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
+    stringsAsFactors = FALSE,
+    na.strings = c("", "#N/A", -999999),
+    data.table = FALSE) %>%
+    dplyr::mutate(date_time = as.Date(date_time)) %>%
+    filter(!is.na(date_time)) %>%
+    select(date_time, everything()) %>%
+    arrange(date_time)
+}
+print("Finished importing reservoir storages")
+
+
+
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Import reservoir dfs - this is a temporary fix to get us going in 2019

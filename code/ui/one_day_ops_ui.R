@@ -34,20 +34,34 @@ tabPanel("1-Day Ops",
              column( # this is the 2nd main column - with values & triggers
                width = 6, 
                box(title = "Tomorrow's need from combined L Seneca release
-                   and Occoquan load shift",
+                   and Occoquan load shift", 
                    width = NULL,
                    height=60),
-               box(title = "- based on forecast from upstream gage changes",
+               box(title = "  - based on forecast for tomorrow from upstream gage changes",
                    width = NULL,
-                   height=30),
-               valueBoxOutput("lfalls_fc1", width = NULL),
-               valueBoxOutput("lfalls_deficit1", width = NULL),
+                   height=40),
+               valueBoxOutput("lfalls_1day_fc1", width = NULL),
+               valueBoxOutput("lfalls_1day_deficit1", width = NULL),
+               box(title = "  - based on forecast for tomorrow from LFFS",
+                   width = NULL,
+                   height=40),
+               valueBoxOutput("lfalls_1day_fc2", width = NULL),
+               valueBoxOutput("lfalls_1day_deficit2", width = NULL),
                br(),
-               box(title = "- based on forecast from LFFS",
+               box(title = "Today's need from Patuxent load shift", 
                    width = NULL,
-                   height=30),
-               valueBoxOutput("lfalls_fc2", width = NULL),
-               valueBoxOutput("lfalls_deficit2", width = NULL)
+                   height=40),
+               box(title = "  - based on forecast for today from upstream gage changes",
+                   width = NULL,
+                   height=40),
+               valueBoxOutput("lfalls_0day_fc1", width = NULL),
+               valueBoxOutput("lfalls_0day_deficit1", width = NULL),
+               br(),
+               box(title = "  - based on today's forecast from LFFS",
+                   width = NULL,
+                   height=40)
+               # valueBoxOutput("lfalls_fc2", width = NULL),
+               # valueBoxOutput("lfalls_deficit2", width = NULL)
                ) # end of 2nd main column
            ) # end of major column that contains whole body
          ) # end of major row that contains whole body
