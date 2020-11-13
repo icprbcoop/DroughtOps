@@ -30,13 +30,13 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
                                     daily_flow_data_last_date,
                                     n_cols) {
   
-  # Convert flows to mgd --------------------------------------------------------
-  func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
-  flows.daily.mgd.df <- flows.daily.cfs.df %>%
-    dplyr::mutate_at(2:n_cols, func_cfs_to_mgd)
+  # # Convert flows to mgd --------------------------------------------------------
+  # func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
+  # flows.daily.mgd.df <- flows.daily.cfs.df %>%
+  #   dplyr::mutate_at(2:n_cols, func_cfs_to_mgd)
   
   # Grab the 3 most recent records, for use in recession estimates --------------
-  flows.last3days.df <- flows.daily.mgd.df %>%
+  flows.last3days.df <- flows.daily.cfs.df %>%
     filter(date_time <= daily_flow_data_last_date) %>%
     tail(3)
   
@@ -52,7 +52,7 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
   # Currently using placeholder recession coefficients of 0.04
   #   - should read recession coeffs from parameters.R file
   
-  flows.daily.mgd.df <- flows.daily.mgd.df %>%
+  flows.daily.cfs.df <- flows.daily.cfs.df %>%
     
     # recess por:
     dplyr::mutate(por = case_when(
@@ -124,7 +124,7 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9))
   
-  return(flows.daily.mgd.df)
+  return(flows.daily.cfs.df)
 }
 
 

@@ -75,7 +75,9 @@ ops_1day_hourly.df0 <- left_join(flows.hourly.mgd.df,
 # Add LFFS data
 ops_1day_hourly.df <- left_join(ops_1day_hourly.df0,
                                 lffs.hourly.mgd.df, by = "date_time") %>%
-  mutate(lfalls_lffs = lfalls_lffs/mgd_to_cfs) %>%
+  mutate(lfalls_lffs = lfalls_lffs/mgd_to_cfs,
+         lfalls_lffs_hourly_bf_correction = lfalls_lffs 
+         + lfalls_bf_correction/mgd_to_cfs) %>%
   select(-date)
 
 # # Fill in missing data --------------------------------------------------------
@@ -121,7 +123,7 @@ output$one_day_ops_plot1 <- renderPlot({
 lfalls_1day.plot2.df <- ops_1day_hourly.df %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
  select(-lfalls_bf_correction, -goose, -lfalls_obs, 
-        -lfalls_lffs_daily) %>%
+        -lfalls_lffs_daily, -lfalls_lffs) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot2 <- renderPlot({
@@ -131,10 +133,10 @@ output$one_day_ops_plot2 <- renderPlot({
   ggplot(lfalls_1day.plot2.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
     scale_color_manual(values = c("orange", "deepskyblue1","red", 
-                                  "deepskyblue2", "purple",
+                                  "purple", "deepskyblue2",
                                   "deepskyblue3", "steelblue", "palegreen3")) +
     scale_linetype_manual(values = c("solid", "solid", "dashed",
-                                     "dotted", "dashed",
+                                     "solid", "dotted",
                                      "solid", "solid", "solid")) +
     scale_size_manual(values = c(1, 2, 1, 1, 1, 1, 1, 1)) +
   labs(x = "", y = "MGD")
@@ -167,7 +169,7 @@ output$lfalls_1day_fc1 <- renderValueBox({
   )
 })
 
-# Little Falls 1-day deficit1
+# Little Falls 1-day deficit1--------------------------------------------------
 lfalls_1day_deficit1_mgd <- estimate_need_func(
   lfalls_flow = lfalls_1day_fc1_mgd,
   mos = mos_1day0
@@ -207,7 +209,7 @@ output$lfalls_1day_fc2 <- renderValueBox({
   )
 })
 
-# Little Falls 1-day deficit2 -------------------------------------------------
+# Little Falls 1-day deficit2
 lfalls_1day_deficit2_mgd <- estimate_need_func(
   lfalls_flow = lfalls_1day_fc2_mgd,
   mos = mos_1day0
@@ -249,7 +251,7 @@ output$lfalls_0day_fc1 <- renderValueBox({
   )
 })
 
-# Little Falls 1-day deficit1
+# Little Falls 0-day deficit1
 lfalls_0day_deficit1_mgd <- estimate_need_func(
   lfalls_flow = lfalls_0day_fc1_mgd,
   mos = mos_0day0
@@ -258,12 +260,52 @@ lfalls_0day_deficit1_cfs <- round(lfalls_0day_deficit1_mgd*mgd_to_cfs, 0)
 
 output$lfalls_0day_deficit1 <- renderValueBox({
   lfalls_0day_def1 <- paste(
-    "Forecasted deficit at Little Falls in 1 day: ",
+    "Forecasted deficit at Little Falls today: ",
     lfalls_0day_deficit1_mgd, " MGD (",
     lfalls_0day_deficit1_cfs, " cfs)",
     sep = "")
   valueBox(
     value = tags$p(lfalls_0day_def1, style = "font-size: 50%;"),
+    subtitle = NULL,
+    # LukeV: change color to orange if value > 0
+    color = "light-blue"
+  )
+})
+
+# LFalls 0-day fc2 - LFFS with "baseflow correction" --------------------------
+lfalls_0day_fc2_mgd <- lffs.daily.mgd.df %>%
+  filter(date_time == date_today0)
+lfalls_0day_fc2_mgd <- round(
+  lfalls_0day_fc2_mgd$lfalls_lffs_bf_corrected[1], 0)
+lfalls_0day_fc2_cfs <- round(lfalls_0day_fc2_mgd*mgd_to_cfs, 0)
+output$lfalls_0day_fc2 <- renderValueBox({
+  lfalls_0day_fc2 <- paste(
+    "Forecasted flow at Little Falls today: ",
+    lfalls_0day_fc2_mgd, " MGD (",
+    lfalls_0day_fc2_cfs, " cfs)",
+    sep = "")
+  valueBox(
+    value = tags$p(lfalls_0day_fc2, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
+# Little Falls 0-day deficit2
+lfalls_0day_deficit2_mgd <- estimate_need_func(
+  lfalls_flow = lfalls_0day_fc2_mgd,
+  mos = mos_1day0
+)
+lfalls_0day_deficit2_cfs <- round(lfalls_0day_deficit2_mgd*mgd_to_cfs, 0)
+
+output$lfalls_0day_deficit2 <- renderValueBox({
+  lfalls_0day_def2 <- paste(
+    "Forecasted deficit at Little Falls in 1 day: ",
+    lfalls_0day_deficit2_mgd, " MGD (",
+    lfalls_0day_deficit2_cfs, " cfs)",
+    sep = "")
+  valueBox(
+    value = tags$p(lfalls_0day_def2, style = "font-size: 50%;"),
     subtitle = NULL,
     # LukeV: change color to orange if value > 0
     color = "light-blue"

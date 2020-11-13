@@ -2,7 +2,7 @@
 # 
 # ) # end of tab panel
 
-tabPanel("1-Day Ops",
+tabPanel("Local Reservoir Ops",
          fluidRow( # major row that contains whole body
            column( # major column that contains whole body
              width = 12,
@@ -59,9 +59,9 @@ tabPanel("1-Day Ops",
                br(),
                box(title = "  - based on today's forecast from LFFS",
                    width = NULL,
-                   height=40)
-               # valueBoxOutput("lfalls_fc2", width = NULL),
-               # valueBoxOutput("lfalls_deficit2", width = NULL)
+                   height=40),
+               valueBoxOutput("lfalls_0day_fc2", width = NULL),
+               valueBoxOutput("lfalls_0day_deficit2", width = NULL)
                ) # end of 2nd main column
            ) # end of major column that contains whole body
          ) # end of major row that contains whole body

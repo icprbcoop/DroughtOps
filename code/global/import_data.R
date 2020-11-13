@@ -54,7 +54,7 @@
 # *****************************************************************************
 # flows.daily.cfs.df0 - processed by /data_processing/process_daily_flows.R
 # flows.hourly.cfs.df0 - processed by /data_processing/process_hourly_flows.R
-# demands.daily.df - really withdrawals right now
+# withdrawals.hourly.mgd.df0 - really withdrawals right now
 #   - used to create potomac.data.df in potomac_flows_init.R
 #   - used in sim_main_func in call to simulation_func
 #   - used in sim_add_days_func in call to simulation_func
@@ -232,11 +232,10 @@ if(autoread_hourlyflows == 0) {
     paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
     header = TRUE,
     stringsAsFactors = FALSE,
-    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
-    col.names = list_gages_daily_locations, # 1st column is "date"
+    # colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    # col.names = list_gages_daily_locations, # 1st column is "date"
     na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
     data.table = FALSE) %>%
-    # mutate(date_time = date)
     dplyr::mutate(date_time = as.POSIXct(date)) %>%
     select(-date) %>%
     arrange(date_time) %>%
@@ -280,7 +279,7 @@ if(autoread_hourlywithdrawals == 1) {
 #------------------------------------------------------------------------------
 # WITHDRAWAL OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
 #   - withdrawal data file resides in /input/ts/current/
-#   - file name is coop_pot_withdrawals.csv
+#   - file name is wma_withdrawals.csv
 #   - data can be downloaded from CO-OP's Data Portal via the "Products" tab
 #      - data is expressed as hourly
 #      - data extends from 30 days in past to 15 days in future
@@ -290,7 +289,7 @@ if(autoread_hourlywithdrawals == 1) {
 
 if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
-    paste(ts_path, "coop_pot_withdrawals.csv", sep = ""),
+    paste(ts_path, "wma_withdrawals.csv", sep = ""),
     skip = 12,
     header = TRUE,
     stringsAsFactors = FALSE,
@@ -402,8 +401,23 @@ if(autoread_resstorage == 1) {
     filter(!is.na(date_time)) %>%
     select(date_time, everything()) %>%
     arrange(date_time)
-}
 
+# Now read N Br reservoir data ------------------------------------------------
+start_date_resstor <- as.POSIXct("2020-01-01")
+end_date_resstor <- as.POSIXct(date_today0)
+storage_level_jrr_rt <- dataRetrieval::readNWISuv(siteNumbers = "01595790",
+                                      parameterCd = 62615, 
+                                      startDate = start_date_resstor,
+                                      endDate = end_date_resstor,
+                                      tz = "EST" # time zone is Eastern Standard Time
+                                      )
+storage_level_sav_rt <- dataRetrieval::readNWISuv(siteNumbers = "01597490",
+                                                  parameterCd = 62615, 
+                                                  startDate = start_date_resstor,
+                                                  endDate = end_date_resstor,
+                                                  tz = "EST" # time zone is Eastern Standard Time
+                                                  )
+}
 #------------------------------------------------------------------------------
 # STORAGE OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
 #   - read daily flow data from file residing in /input/ts/current/
