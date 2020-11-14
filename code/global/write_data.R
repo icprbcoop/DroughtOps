@@ -24,9 +24,9 @@
 # *****************************************************************************
 
 # Set path---------------------------------------------------------------------
-path_out_temp <- "input/ts/temp/"
+path_out_temp <- "input/ts/current/"
 
-# Write backup ts input files--------------------------------------------------
+# Write downloaded ts input files to local directory---------------------------
 flows_daily_temp.df0 <- flows.daily.cfs.df0 %>%
   dplyr::rename(date = date_time)
 write_csv(flows_daily_temp.df0, paste(path_out_temp, "flows_daily_cfs.csv",
@@ -41,7 +41,9 @@ withdrawals_hourly_temp.df0 <- withdrawals.hourly.mgd.df0
 write_csv(withdrawals_hourly_temp.df0, paste(path_out_temp, 
                                              "wma_withdrawals.csv", sep=""))
 
-storage_temp.df0 <- storage.daily.bg.df0
-write_csv(storage_temp.df0, paste(path_out_temp, 
-                                             "storage_daily_bg.csv", sep=""))
+lffs_hourly
+
+# storage_temp.df0 <- storage.daily.bg.df0
+# write_csv(storage_temp.df0, paste(path_out_temp,
+#                                              "storage_daily_bg.csv", sep=""))
 

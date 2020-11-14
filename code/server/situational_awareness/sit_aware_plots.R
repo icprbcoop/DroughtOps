@@ -71,8 +71,7 @@ output$sit_aware_jrr_stor <- renderPlot({
   jrr.graph <- ts$jrr %>%
     select(Date = date_time,
            "WS stor" = storage_ws,
-           "WQ stor" = storage_wq
-           ,
+           "WQ stor" = storage_wq,
            "WS rel" = outflow_ws,
            "WQ rel" = outflow_wq
     ) %>%
@@ -98,22 +97,19 @@ output$sit_aware_jrr_stor <- renderPlot({
 
 # Create graph of L Seneca storage --------------------------------------------  
   output$sit_aware_sen_stor <- renderPlot({
-    sen.graph <- storage.daily.bg.df0
-    graph_title <- "Little Seneca"
+    sen.graph <- storage.daily.bg.df0 %>%
+      mutate(stor_sen = as.numeric(stor_sen)) %>%
+      select(date_time, stor_sen)
+    
     res.graph <- sen.graph %>%
-      select(date_time, stor_sen) %>%
-      gather(key = "Legend",
-             value = "MG", -date_time) %>%
       filter(date_time >= input$plot_range[1],
              date_time <= input$plot_range[2])
-    ggplot(data = res.graph,
-           aes(x = date_time, y = MG, group = Legend)) +
-      geom_line(aes(color = Legend, size = Legend)) +
-      scale_color_manual(values = c("blue")) +
-      scale_size_manual(values = c(1)) +
-      scale_y_continuous(name = "Storage, BG", limits = c(0.0, 4.0), 
-                         breaks = c(0, 1, 2, 3, 4)) + 
-      ggtitle(graph_title) +
+    
+    ggplot(data = res.graph, aes(x = date_time, y = stor_sen)) +
+      geom_line(colour="blue", size=1) +
+      scale_y_discrete(name = "Storage, BG", limits = c(0.0, 4.0),
+                         breaks = c(0, 1, 2, 3, 4)) +
+      ggtitle("Little Seneca") +
       theme(plot.title = element_text(size = 18)) +
       theme(axis.title.x = element_blank(),
             axis.title.y = element_blank()) +
@@ -122,22 +118,19 @@ output$sit_aware_jrr_stor <- renderPlot({
 #
 # Create graph of Patuxent storage --------------------------------------------
 output$sit_aware_pat_stor <- renderPlot({
-  pat.graph <- storage.daily.bg.df0
-  graph_title <- "Patuxent"
+  pat.graph <- storage.daily.bg.df0 %>%
+  mutate(stor_pat = as.numeric(stor_pat)) %>%
+    select(date_time, stor_pat)
+
   res.graph <- pat.graph %>%
-    select(date_time, stor_pat) %>%
-    gather(key = "Legend",
-           value = "MG", -date_time) %>%
     filter(date_time >= input$plot_range[1],
            date_time <= input$plot_range[2])
-  ggplot(data = res.graph,
-         aes(x = date_time, y = MG, group = Legend)) +
-    geom_line(aes(color = Legend, size = Legend)) +
-    scale_color_manual(values = c("blue")) +
-    scale_size_manual(values = c(1)) +
-    scale_y_continuous(name = "Storage, BG", limits = c(0.0, 11.0), 
+  
+  ggplot(data = res.graph, aes(x = date_time, y = stor_pat)) +
+    geom_line(colour="blue", size=1) +
+    scale_y_discrete(name = "Storage, BG", limits = c(0.0, 11.0),
                        breaks = c(0, 2, 4, 6, 8, 10, 12)) +
-    ggtitle(graph_title) +
+    ggtitle("Patuxent") +
     theme(plot.title = element_text(size = 18)) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank()) +
@@ -146,22 +139,19 @@ output$sit_aware_pat_stor <- renderPlot({
 #
 # Create graph of Occoquan storage --------------------------------------------
 output$sit_aware_occ_stor <- renderPlot({
-  occ.graph <- storage.daily.bg.df0
-  graph_title <- "Occoquan"
+  occ.graph <- storage.daily.bg.df0 %>%
+    mutate(stor_occ = as.numeric(stor_occ)) %>%
+    select(date_time, stor_occ)
+
   res.graph <- occ.graph %>%
-    select(date_time, stor_occ) %>%
-    gather(key = "Legend",
-           value = "MG", -date_time) %>%
     filter(date_time >= input$plot_range[1],
            date_time <= input$plot_range[2])
-  ggplot(data = res.graph,
-         aes(x = date_time, y = MG, group = Legend)) +
-    geom_line(aes(color = Legend, size = Legend)) +
-    scale_color_manual(values = c("blue")) +
-    scale_size_manual(values = c(1)) +
-    scale_y_continuous(name = "Storage, BG", limits = c(0.0, 10.0), 
+  
+  ggplot(data = res.graph, aes(x = date_time, y = stor_occ)) +
+    geom_line(colour="blue", size=1) +
+    scale_y_discrete(name = "Storage, BG", limits = c(0.0, 10.0), 
                        breaks = c(0, 2, 4, 6, 8, 10)) +
-    ggtitle(graph_title) +
+    ggtitle("Occoquan") +
     theme(plot.title = element_text(size = 18)) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_blank()) +

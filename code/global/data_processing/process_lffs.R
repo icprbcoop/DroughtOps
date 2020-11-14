@@ -5,8 +5,7 @@
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
-# lffs.daily.cfs.df - fields are date_time, lfalls_lffs
-# lffs.hourly.cfs.df - fields are date_time, date, lfalls_lffs
+# lffs.hourly.cfs.all.df0
 # flows.daily.mgd.df
 # *****************************************************************************
 # OUTPUTS
@@ -21,6 +20,28 @@
 
 # Add corrections to lffs daily df --------------------------------------------
 print("starting process_lffs")
+
+# Do some formatting-----------------------------------------------------------
+#   - delete all data prior to current year
+lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
+  filter(year >= today_year) %>%
+  dplyr::mutate(date_time = 
+                  lubridate::make_datetime(year, month, 
+                                           day, minute, second),
+                date = lubridate:: round_date(date_time, unit = "days"),
+                date = as.Date(date)) %>%
+  select(date_time, date, lfalls_lffs)
+
+# Compute LFFS LFalls daily flows ---------------------------------------------
+lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
+  select(-date_time) %>%
+  group_by(date) %>%
+  summarise(lfalls_lffs = mean(lfalls_lffs)) %>%
+  # summarise(mean(lfalls_lffs), .groups = "keep") %>%
+  mutate(date_time = as.Date(date)) %>%
+  select(date_time, lfalls_lffs) %>%
+  ungroup()
+
 lffs.daily.mgd.df <- left_join(flows.daily.mgd.df, lffs.daily.cfs.df,
                                 by = "date_time") %>%
   dplyr::mutate(lfalls_lffs = round(lfalls_lffs/mgd_to_cfs, 0)) %>%

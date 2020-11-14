@@ -29,8 +29,9 @@
 source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
+# ts_path <- "input/ts/temp/"
 ts_path <- "input/ts/current/" # path for data in local directory
-# ts_path <- "input/ts/2019_drex/" # for 2019 DREX
+
 parameters_path <- "input/parameters/"
 ts_output <- "output/" # path of output directory
 map_path <- "data/Drought_Regions" #MD shapefiles
@@ -38,7 +39,29 @@ map_path <- "data/Drought_Regions" #MD shapefiles
 # Set "today's" date ----------------------------------------------------------
 #    - Right now this needs to match last date in flows_daily_cfs.csv
 date_today0 <- as.Date(today())
-# date_today0 <- as.Date("2019-11-21") # for 2019 DREX
+
+
+#******************************************************************************
+#******************************************************************************
+# 2020 DREX
+# 1. Set all switches (except storage) to 1 and run app to fetch real-time data
+# 2. Run write_data.R to write new data into input/ts/current/
+
+# TEMPORARY FOR DREX
+# date_today0 <- as.Date("2020-09-15") # 2020_drex_day1.1
+date_today0 <- as.Date("2020-09-17") # 2020_drex_day1.2
+# ts_path <- "input/ts/2020_drex_day1.1_Sep15/" # for 2020 DREX
+ts_path <- "input/ts/2020_drex_day1.2_Sep17/" # for 2020 DREX
+# (these data source switches are ordinarily set in import_data.R)
+#   - 1's to download online data
+#   - 0's to read from ts/path/
+autoread_dailyflows <- 0
+autoread_hourlyflows <- 0
+autoread_hourlywithdrawals <- 0
+autoread_resstorage <- 0
+autoread_lffs <- 0
+#******************************************************************************
+#******************************************************************************
 
 # Read classes and functions --------------------------------------------------
 source("code/functions/recess_daily_flows.R", local = TRUE)
@@ -82,6 +105,7 @@ print("finished processing withdrawals")
 source("code/global/data_processing/process_daily_flows.R", local = TRUE)
 print("finished processing daily flows")
 source("code/global/data_processing/process_lffs.R", local = TRUE)
+print("finished processing LFFS flows")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

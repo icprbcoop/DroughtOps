@@ -31,7 +31,7 @@ lag_por <- 1
 lag_sen <- 1 
 ops_1day_daily.df <- flows.daily.mgd.df %>%
   dplyr::select(date_time, lfalls, seneca, goose, 
-                monoc_jug, por, d_pot_total) %>%
+                monoc_jug, por, d_pot_total, w_wa_lf) %>%
   dplyr::mutate(lfalls_fc_constant_lags = 
                   lag(seneca, lag_sen) + lag(goose, lag_sen) + 
                   lag(monoc_jug, lag_por) + lag(por, lag_por) -
@@ -42,7 +42,11 @@ ops_1day_daily.df <- flows.daily.mgd.df %>%
                   lag(monoc_jug, lag_por+1) - lag(monoc_jug, lag_por) + 
                   lag(seneca, lag_sen+1) - lag(seneca, lag_sen) +
                   lag(goose, lag_sen+1) - lag(goose, lag_sen)
-                  )
+                  ) %>%
+  dplyr::mutate(gfalls = lead(lfalls, 1)*15/24 + lfalls*9/24
+                + w_wa_lf, 
+                gfalls_flowby = 300) %>%
+  select(-w_wa_lf)
                                                        
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -76,7 +80,7 @@ ops_1day_hourly.df0 <- left_join(flows.hourly.mgd.df,
 ops_1day_hourly.df <- left_join(ops_1day_hourly.df0,
                                 lffs.hourly.mgd.df, by = "date_time") %>%
   mutate(lfalls_lffs = lfalls_lffs/mgd_to_cfs,
-         lfalls_lffs_hourly_bf_correction = lfalls_lffs 
+         lfalls_lffs_hourly_bf_corrected = lfalls_lffs 
          + lfalls_bf_correction/mgd_to_cfs) %>%
   select(-date)
 
@@ -108,18 +112,20 @@ output$one_day_ops_plot1 <- renderPlot({
          date_time <= input$plot_range[2]) 
   ggplot(lfalls_1day.plot1.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c("deepskyblue1","deepskyblue3", "deepskyblue4",
+    scale_color_manual(values = c("darkorange1", "darkorange1",
+                                  "deepskyblue1",
+                                  "deepskyblue3", "deepskyblue4",
                                   "red", "plum", 
                                   "steelblue", "palegreen3")) +
-    scale_linetype_manual(values = c("solid", "dotted", "dashed",
+    scale_linetype_manual(values = c("solid", "dashed", "solid", "dashed",
                                      "dashed", "solid",
-                                     "solid","solid")) +
-    scale_size_manual(values = c(2, 1, 1, 1, 1, 1, 1)) +
+                                     "solid","solid", "solid")) +
+    scale_size_manual(values = c(1, 1, 2, 1, 1, 1, 1, 1, 1)) +
     labs(x = "", y = "MGD")
 })
 
 
-# LFall predicted from PRRISM algorithm - second graph on ui ------------------
+# LFalls predicted from LFFS - second graph on ui -----------------------------
 lfalls_1day.plot2.df <- ops_1day_hourly.df %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
  select(-lfalls_bf_correction, -goose, -lfalls_obs, 

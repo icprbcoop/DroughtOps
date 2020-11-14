@@ -56,7 +56,7 @@ output$pot_withdrawals <- renderPlot({
   
   # plot the data
   ggplot(withdrawals.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
-    geom_line(aes(colour = Legend, size = Legend)) +
+    geom_point(aes(colour = Legend, size = Legend)) +
     labs(x = "", y = "Potomac withdrawals, MGD") +
     scale_size_manual(values = c(1,1,1,2,1,1,1))
 })
@@ -78,7 +78,7 @@ output$wma_production <- renderPlot({
   
   # plot the data
   ggplot(production.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
-    geom_line(aes(colour = Legend, size = Legend)) +
+    geom_point(aes(colour = Legend, size = Legend)) +
     labs(x = "", y = "WMA production, MGD") +
     scale_size_manual(values = c(1,1,1,2,1))
 })

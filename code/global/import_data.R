@@ -58,6 +58,7 @@
 #   - used to create potomac.data.df in potomac_flows_init.R
 #   - used in sim_main_func in call to simulation_func
 #   - used in sim_add_days_func in call to simulation_func
+# lffs.hourly.cfs.df0
 # state.drought.df
 #   - used in state_status_ts_init.R
 #   - used in state_indices_update_func.R
@@ -100,7 +101,7 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+# autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 # autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -170,7 +171,7 @@ print("finished importing daily flows")
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
+# autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
 # autoread_hourlyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -185,9 +186,10 @@ if(autoread_hourlyflows == 1) {
                           "goose", "monoc_jug", "por")
   gages_hourly_nos <- c("01646500", "01645000",
                         "01644000", "01643000", "01638500")
+  n_gages_hourly <- length(gages_hourly_nos)
   
   # set desired number of past days--------------------------------------------
-  n_past_days <- 60
+  n_past_days <- 150
   start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
   start_date <- lubridate::with_tz(start_date, "EST")
   
@@ -210,7 +212,7 @@ if(autoread_hourlyflows == 1) {
   
   # Trim off a day of beginning rows to get rid of NA's------------------------
   #   (this needs to be improved - ripe for creating a bug!)
-  flows.hourly.cfs.df <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
+  flows.hourly.cfs.df0 <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
   }
 
 #------------------------------------------------------------------------------
@@ -251,7 +253,7 @@ print("finished importing hourly flows")
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
+# autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
 # autoread_hourlywithdrawals <- 0 # read data from file in local directory
 
 # a temporary need until the time series becomes available
@@ -268,11 +270,11 @@ if(autoread_hourlywithdrawals == 1) {
   # read the online table -------------------------------------------------------
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
-    skip = 12,
+    skip = 14,
     header = TRUE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-    na.strings = c("", "#N/A", -999999),
+    na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
 }
 
@@ -290,11 +292,11 @@ if(autoread_hourlywithdrawals == 1) {
 if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     paste(ts_path, "wma_withdrawals.csv", sep = ""),
-    skip = 12,
+    skip = 14,
     header = TRUE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-    na.strings = c("", "#N/A", -999999),
+    na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
 }
 print("finished importing withdrawals")
@@ -304,8 +306,19 @@ print("finished importing withdrawals")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Read LFFS LFalls hourly data ------------------------------------------------
-lffs.hourly.cfs.all.df <- data.table::fread(
+# Set switch (move this to global?)--------------------------------------------
+# autoread_lffs <- 1 # automatic data retrieval from Data Portal
+# autoread_lffs <- 0 # read data from file in local directory
+
+#------------------------------------------------------------------------------
+# LFFS OPTION 1 - AUTOMATIC DATA RETRIEVAL
+#   - read LFFS data automatically from Data Portal
+#------------------------------------------------------------------------------
+
+if(autoread_lffs == 1) {
+  
+# Read LFFS LFalls online data ------------------------------------------------
+lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
   "http://icprbcoop.org/upload01/PM7_4820_0001.flow",
   skip = 25,
@@ -316,26 +329,32 @@ lffs.hourly.cfs.all.df <- data.table::fread(
   # na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
   data.table = FALSE) 
 
-lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df %>%
-  filter(year >= today_year) %>%
-  dplyr::mutate(date_time = 
-                  lubridate::make_datetime(year, month, 
-                                           day, minute, second),
-                date = lubridate:: round_date(date_time, unit = "days"),
-                date = as.Date(date)) %>%
-  select(date_time, date, lfalls_lffs)
+}
 
-# Compute LFFS LFalls daily flows ---------------------------------------------
-lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
-  select(-date_time) %>%
-  group_by(date) %>%
-  summarise(lfalls_lffs = mean(lfalls_lffs)) %>%
-  # summarise(mean(lfalls_lffs), .groups = "keep") %>%
-  mutate(date_time = as.Date(date)) %>%
-  select(date_time, lfalls_lffs) %>%
-  ungroup()
+#------------------------------------------------------------------------------
+# LFFS OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
+#   - LFFS data file resides in /input/ts/current/
+#   - file name is PM7_4820_0001.flow
+#   - data can be downloaded from CO-OP's Data Portal
+#      - http://icprbcoop.org/upload01/PM7_4820_0001.flow"
+#      - name appropriately then save the file to /input/ts/current/
+#------------------------------------------------------------------------------
 
-print("finished creating lffs.daily.cfs.df")
+if(autoread_lffs == 0) {
+  
+# Read the local LFFS data file------------------------------------------------
+lffs.hourly.cfs.all.df0 <- data.table::fread(
+  paste(ts_path, "PM7_4820_0001.flow", sep = ""),
+  skip = 25,
+  header = FALSE,
+  stringsAsFactors = FALSE,
+  colClasses = c(rep("numeric", 6)), # force cols to numeric
+  col.names = c("year", "month", "day", "minute", "second", "lfalls_lffs"),
+  # na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+  data.table = FALSE) 
+}
+
+print("finished creating lffs.hourly.cfs.all.df0")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -364,7 +383,7 @@ state.drought.df <- data.table::fread(paste(ts_path, "state_drought_status.csv",
 #------------------------------------------------------------------------------
 # Set switch (move this to global?)--------------------------------------------
 # autoread_resstorage <- 1 # automatic data retrieval from Data Portal
-autoread_resstorage <- 0 # read data from file in local directory
+# autoread_resstorage <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
 # STORAGE OPTION 1 - AUTOMATIC DATA RETRIEVAL
@@ -436,10 +455,14 @@ if(autoread_resstorage == 0) {
     skip = 1,
     header = FALSE,
     col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
+    # colClasses = c("Date", "numeric", "numeric", "numeric"), 
     stringsAsFactors = FALSE,
     na.strings = c("", "#N/A", -999999),
     data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.Date(date_time)) %>%
+    dplyr::mutate(date_time = as.Date(date_time),
+                  stor_pat = as.numeric(stor_pat),
+                  stor_sen = as.numeric(stor_sen),
+                  stor_occ = as.numeric(stor_occ)) %>%
     filter(!is.na(date_time)) %>%
     select(date_time, everything()) %>%
     arrange(date_time)
