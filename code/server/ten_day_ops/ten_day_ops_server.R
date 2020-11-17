@@ -40,7 +40,12 @@ ops_10day.df <- left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
 
 # Prepare 9-day LFalls forecast from empirical eq. ----------------------------
 #   - still use constant 9-day lag from reservoirs to LFalls for now
-date_time_9dayshence = date_today_ops + 9                                   
+date_time_9dayshence = date_today_ops + 9 
+
+# Compute LSen/JJR "buffer" based on imbalance in fractional storage
+# Temporary placeholder:
+lsen_jrr_buffer <- 20
+
 ops_10day.df <- ops_10day.df %>%
   dplyr::mutate(res_inflow = kitzmiller + barton,
                 res_outflow = barnum + bloomington,
@@ -240,10 +245,10 @@ output$empirical_9day_deficit <- renderValueBox({
 
 # Today's Luke target 
 luke_extra1 <- if_else(deficit1_mgd <= 0, 0, deficit1_mgd)
-luke_target1_mgd <- round(luke_mgd + luke_extra1, 0)
+luke_target1_mgd <- round(luke_mgd + luke_extra1 + lsen_jrr_buffer, 0)
 luke_target1_cfs <- round(luke_target1_mgd*mgd_to_cfs, 0)
 output$luke_target1 <- renderValueBox({
-  luke_target1 <- paste("Today's Luke target: ",
+  luke_target1 <- paste("Today's Luke target plus 'buffer': ",
                        luke_target1_mgd,
                          " MGD (", 
                        luke_target1_cfs, 
@@ -294,10 +299,10 @@ output$lffs_9day_deficit <- renderValueBox({
 
 # Today's Luke target
 luke_extra2 <- if_else(deficit2_mgd <= 0, 0, deficit2_mgd)
-luke_target2_mgd <- round(luke_mgd + luke_extra2, 0)
+luke_target2_mgd <- round(luke_mgd + luke_extra2 + lsen_jrr_buffer, 0)
 luke_target2_cfs <- round(luke_target2_mgd*mgd_to_cfs, 0)
 output$luke_target2 <- renderValueBox({
-  luke_target2 <- paste("Today's Luke target: ",
+  luke_target2 <- paste("Today's Luke target plus 'buffer': ",
                        luke_target2_mgd,
                        " MGD (",
                        luke_target2_cfs,

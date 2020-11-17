@@ -300,13 +300,13 @@ output$lfalls_0day_fc2 <- renderValueBox({
 # Little Falls 0-day deficit2
 lfalls_0day_deficit2_mgd <- estimate_need_func(
   lfalls_flow = lfalls_0day_fc2_mgd,
-  mos = mos_1day0
+  mos = mos_0day0
 )
 lfalls_0day_deficit2_cfs <- round(lfalls_0day_deficit2_mgd*mgd_to_cfs, 0)
 
 output$lfalls_0day_deficit2 <- renderValueBox({
   lfalls_0day_def2 <- paste(
-    "Forecasted deficit at Little Falls in 1 day: ",
+    "Forecasted deficit at Little Falls today: ",
     lfalls_0day_deficit2_mgd, " MGD (",
     lfalls_0day_deficit2_cfs, " cfs)",
     sep = "")

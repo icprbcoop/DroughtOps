@@ -321,6 +321,7 @@ if(autoread_lffs == 1) {
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
   "http://icprbcoop.org/upload01/PM7_4820_0001.flow",
+  #"http://icprbcoop.org/upload01/PM7_4820_0001.flow_s2", from cooplinux2
   skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,

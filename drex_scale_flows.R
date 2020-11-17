@@ -17,13 +17,13 @@
 # *****************************************************************************
 
 # Paths -----------------------------------------------------------------------
-drex_path <- "input/ts/2020_drex_day1/"
+drex_path <- "input/ts/2020_drex_day3p_Sep20/"
 current_path <- "input/ts/current/"
 today_year <- substring(date_today0, first = 1, last = 4)
 
 # Key drex inputs -------------------------------------------------------------
 flow_scale_factor <- 0.28
-pot_withdr_scale_factor <- 1.3
+withdrawals_scale_factor <- 1.3
 luke_assumed_cfs <- 120
 luke_min_cfs <- 120
 pot_withdr_assumed_actual_mgd <- 350 # mgd
