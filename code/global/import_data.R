@@ -101,7 +101,7 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-# autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 # autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ print("finished importing daily flows")
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-# autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
+autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
 # autoread_hourlyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ print("finished importing hourly flows")
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-# autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
+autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
 # autoread_hourlywithdrawals <- 0 # read data from file in local directory
 
 # a temporary need until the time series becomes available
@@ -307,7 +307,7 @@ print("finished importing withdrawals")
 #------------------------------------------------------------------------------
 
 # Set switch (move this to global?)--------------------------------------------
-# autoread_lffs <- 1 # automatic data retrieval from Data Portal
+autoread_lffs <- 1 # automatic data retrieval from Data Portal
 # autoread_lffs <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -384,7 +384,7 @@ state.drought.df <- data.table::fread(paste(ts_path, "state_drought_status.csv",
 #------------------------------------------------------------------------------
 # Set switch (move this to global?)--------------------------------------------
 # autoread_resstorage <- 1 # automatic data retrieval from Data Portal
-# autoread_resstorage <- 0 # read data from file in local directory
+autoread_resstorage <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
 # STORAGE OPTION 1 - AUTOMATIC DATA RETRIEVAL

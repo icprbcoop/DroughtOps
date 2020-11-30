@@ -43,11 +43,9 @@ date_today0 <- as.Date(today())
 
 #******************************************************************************
 #******************************************************************************
-# 2020 DREX
+# Temporary for 2020 DREX
 # 1. Set all switches (except storage) to 1 and run app to fetch real-time data
 # 2. Run write_data.R to write new data into input/ts/current/
-
-# TEMPORARY FOR DREX
 
 # date_today0 <- as.Date("2020-09-15") # 2020_drex_day1
 # ts_path <- "input/ts/2020_drex_day1_Sep15/" # for 2020 DREX
@@ -55,17 +53,17 @@ date_today0 <- as.Date(today())
 # date_today0 <- as.Date("2020-09-18") # 2020_drex_day2
 # ts_path <- "input/ts/2020_drex_day2_Sep18/" # for 2020 DREX
 # #
-date_today0 <- as.Date("2020-09-20") # 2020_drex_day3
-ts_path <- "input/ts/2020_drex_day3_Sep20/" # for 2020 DREX
-
-# (these data source switches are ordinarily set in import_data.R)
-#   - 1's to download online data
-#   - 0's to read from ts/path/
-autoread_dailyflows <- 0
-autoread_hourlyflows <- 0
-autoread_hourlywithdrawals <- 0
-autoread_resstorage <- 0
-autoread_lffs <- 0
+# date_today0 <- as.Date("2020-09-20") # 2020_drex_day3
+# ts_path <- "input/ts/2020_drex_day3_Sep20/" # for 2020 DREX
+# # 
+# # (these data source switches are ordinarily set in import_data.R)
+# #   - 1's to download online data
+# #   - 0's to read from ts/path/
+# autoread_dailyflows <- 0
+# autoread_hourlyflows <- 0
+# autoread_hourlywithdrawals <- 0
+# autoread_resstorage <- 0
+# autoread_lffs <- 0
 #******************************************************************************
 #******************************************************************************
 
