@@ -2,16 +2,17 @@
 # DESCRIPTION
 # *****************************************************************************
 # This script is run by global.R
-# It processes the daily time series data
+# It adds future dates & recession flows to the daily flow time series
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
-# flows.daily.cfs.df0 - table with daily flows created by import.R
+# flows.daily.cfs.df0 - table with daily flows created by import_data.R
+# demands.daily.df - table with daily demands, production, & withdrawals
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
 # flows.daily.cfs.df
-# flows.daily.mgd.df
+# flows.daily.mgd.df (includes total Potomac demand - change to withdrawals???)
 #   - used for the plots on sit awareness & 10 day ops tabs
 #   - used to compute baseflow correction for lffs flows
 #   - DELETE? used to create inflows.df in reservoirs_make.R

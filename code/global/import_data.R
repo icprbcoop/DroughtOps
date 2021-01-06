@@ -12,32 +12,44 @@
 # 
 #------------------------------------------------------------------------------
 # DAILY FLOW DATA
-#   Can be obtained from 2 sources:
-#   (start date is Jan 1 and end date is today)
-#   OPTION 1: read file directly from Data Portal
+#   Can be obtained from 2 sources.
+#   The OPTION switch is set in global.R:
+#     OPTION 1: read file directly from Data Portal
 #             (autoread_dailyflows == 1)
-#   OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
+#     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
+#   For autoread option, if date >= June 1, start date is Jan 1;
+#       otherwise start date is Oct 1 of previous fall; end date is today.
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA
 #   Can be obtained from 2 sources:
 #   (start date is user-selected and end date is today)
-#   OPTION 1: read file directly from USGS's NWIS websites
+#
+#   The OPTION switch is set in global.R:
+#     OPTION 1: read file directly from USGS's NWIS websites
 #             (autoread_hourlyflows == 1)
-#   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
+#     OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
 #             (autoread_hourlyflows == 0)
 #------------------------------------------------------------------------------
 # WITHDRAWAL DATA
 #   Can be obtained from 2 sources:
 #   (start date is user-selected and end date is 15 days in the future)
-#   OPTION 1: read file directly from Data Portal
+#
+#   The OPTION switch is set in global.R:
+#     OPTION 1: read file directly from Data Portal
 #             (autoread_hourlywithdrawals == 1)
-#   OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
+#     OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
 #             (autoread_hourlywithdrawals == 0)
 
 #------------------------------------------------------------------------------
 # LFFS DATA
-#   From file loaded by LFFS to the Data Portal
+#   Can be read from two locations
+
+#   The OPTION switch is set in global.R:
+#     OPTION 1: read file directly from Data Portal
+#             (autoread_dailyflows == 1)
+#     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
+#             (autoread_dailyflows == 0)
 
 #------------------------------------------------------------------------------
 # STATE DROUGHT STATUS
@@ -100,8 +112,8 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Set switch (move this to global?)--------------------------------------------
-autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+# Set switch (this has been moved to global)-----------------------------------
+# autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 # autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -109,12 +121,27 @@ autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
 #   - read daily flow data automatically from Data Portal
 #   - start date is January 1 of the current year
 #------------------------------------------------------------------------------
-
+# Before June 1, data is downloaded for water year
+# After June 1, data is just downloaded for current calendar year
 if(autoread_dailyflows == 1) {
   
   # paste together the url for Data Portal's daily flow data-------------------
   url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?"
-  url_daily <- paste(url_daily0, "startdate=01%2F01%2F2020&enddate=", 
+  if(today_month > 5) {
+    year_temp <- today_year
+    month_temp <- "01"
+    start_date_string <- paste("startdate=01%2F", month_temp, "%2F",
+                               year_temp, "&enddate=", sep="")
+  }
+  # if it's before June 1, include data from past fall
+  else {
+    year_temp <- year(date_today0) - 1
+    month_temp <- "10"
+    start_date_string <- paste("startdate=", month_temp, "%2F", "01", "%2F",
+                               year_temp, "&enddate=", sep="")
+  }
+  # url_daily <- paste(url_daily0, "startdate=01%2F01%2F2020&enddate=", 
+  url_daily <- paste(url_daily0, start_date_string, 
                      today_month, "%2F", 
                      today_day, "%2F", 
                      today_year, "&format=daily&submit=Submit", 
@@ -170,8 +197,8 @@ print("finished importing daily flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Set switch (move this to global?)--------------------------------------------
-autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
+# Set switch (this has been moved to global)-----------------------------------
+# autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
 # autoread_hourlyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -186,6 +213,7 @@ if(autoread_hourlyflows == 1) {
                           "goose", "monoc_jug", "por")
   gages_hourly_nos <- c("01646500", "01645000",
                         "01644000", "01643000", "01638500")
+  
   n_gages_hourly <- length(gages_hourly_nos)
   
   # set desired number of past days--------------------------------------------
@@ -252,8 +280,8 @@ print("finished importing hourly flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Set switch (move this to global?)--------------------------------------------
-autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
+# Set switch (this has been moved to global)-----------------------------------
+# autoread_hourlywithdrawals <- 1 # automatic data retrieval from Data Portal
 # autoread_hourlywithdrawals <- 0 # read data from file in local directory
 
 # a temporary need until the time series becomes available
@@ -306,8 +334,8 @@ print("finished importing withdrawals")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Set switch (move this to global?)--------------------------------------------
-autoread_lffs <- 1 # automatic data retrieval from Data Portal
+# Set switch (this has been moved to global)-----------------------------------
+# autoread_lffs <- 1 # automatic data retrieval from Data Portal
 # autoread_lffs <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -320,8 +348,8 @@ if(autoread_lffs == 1) {
 # Read LFFS LFalls online data ------------------------------------------------
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  "http://icprbcoop.org/upload01/PM7_4820_0001.flow",
-  #"http://icprbcoop.org/upload01/PM7_4820_0001.flow_s2", from cooplinux2
+  # "http://icprbcoop.org/upload01/PM7_4820_0001.flow", # from cooplinux1
+  "http://icprbcoop.org/upload01/PM7_4820_0001.flow_s2", # from cooplinux2
   skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,

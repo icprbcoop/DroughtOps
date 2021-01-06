@@ -37,8 +37,16 @@ ts_output <- "output/" # path of output directory
 map_path <- "data/Drought_Regions" #MD shapefiles
 
 # Set "today's" date ----------------------------------------------------------
-#    - Right now this needs to match last date in flows_daily_cfs.csv
 date_today0 <- as.Date(today())
+
+# Set data source switches in import_data.R------------------------------------
+#   - 1's to download online data
+#   - 0's to read from ts/path/
+autoread_dailyflows <- 1
+autoread_hourlyflows <- 1
+autoread_hourlywithdrawals <- 1
+autoread_resstorage <- 0
+autoread_lffs <- 1
 
 
 #******************************************************************************
@@ -56,7 +64,7 @@ date_today0 <- as.Date(today())
 # date_today0 <- as.Date("2020-09-20") # 2020_drex_day3
 # ts_path <- "input/ts/2020_drex_day3_Sep20/" # for 2020 DREX
 # # 
-# # (these data source switches are ordinarily set in import_data.R)
+# # (these data source switches are ordinarily set above)
 # #   - 1's to download online data
 # #   - 0's to read from ts/path/
 # autoread_dailyflows <- 0
@@ -99,7 +107,7 @@ source("input/parameters/parameters_ops.R", local = TRUE)
 source("input/parameters/parameters_physical.R", local = TRUE)
 source("input/parameters/css_ui_values.R", local = TRUE)
 
-# Import time series data and do some processing
+# Import time series data and do some processing-------------------------------
 source("code/global/import_data.R", local = TRUE)
 print("finished all imports")
 source("code/global/data_processing/process_hourly_flows.R", local = TRUE)
