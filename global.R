@@ -42,8 +42,8 @@ date_today0 <- as.Date(today())
 # Set data source switches in import_data.R------------------------------------
 #   - 1's to download online data
 #   - 0's to read from ts/path/
-autoread_dailyflows <- 1
-autoread_hourlyflows <- 1
+autoread_dailyflows <- 0
+autoread_hourlyflows <- 0
 autoread_hourlywithdrawals <- 1
 autoread_resstorage <- 0
 autoread_lffs <- 1

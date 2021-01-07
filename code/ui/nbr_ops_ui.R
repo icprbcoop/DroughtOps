@@ -8,7 +8,7 @@
 # Content created in code/server/ten_day_ops/ten_day_ops_server.R
 # *****************************************************************************
 
-tabPanel("N Br Reservoir Ops",
+tabPanel("N Br Ops",
          fluidRow( # major row that contains whole body
            column( # major column that contains whole body
              width = 12,

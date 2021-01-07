@@ -133,10 +133,10 @@ if(autoread_dailyflows == 1) {
     start_date_string <- paste("startdate=01%2F", month_temp, "%2F",
                                year_temp, "&enddate=", sep="")
   }
-  # if it's before June 1, include data from past fall
+  # if it's before June 1, include data from past year
   else {
     year_temp <- year(date_today0) - 1
-    month_temp <- "10"
+    month_temp <- "01"
     start_date_string <- paste("startdate=", month_temp, "%2F", "01", "%2F",
                                year_temp, "&enddate=", sep="")
   }
@@ -348,8 +348,8 @@ if(autoread_lffs == 1) {
 # Read LFFS LFalls online data ------------------------------------------------
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  # "http://icprbcoop.org/upload01/PM7_4820_0001.flow", # from cooplinux1
-  "http://icprbcoop.org/upload01/PM7_4820_0001.flow_s2", # from cooplinux2
+  # "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", # from cooplinux1
+  "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow_s2", # from cooplinux2
   skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,

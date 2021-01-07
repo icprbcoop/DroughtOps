@@ -72,6 +72,7 @@ observeEvent(input$write_ts, {
   write.csv(ts$occ, paste(ts_output, "output_occ.csv"))
   write.csv(ts$pat, paste(ts_output, "output_pat.csv"))
   write.csv(ts$states, paste(ts_output, "output_states.csv"))
+  write_csv(flows.hourly.cfs.df0, paste(ts_output, "output_hourly_flows.csv"))
 })
 #------------------------------------------------------------------
 #------------------------------------------------------------------

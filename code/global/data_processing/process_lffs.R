@@ -24,7 +24,7 @@ print("starting process_lffs")
 # Do some formatting-----------------------------------------------------------
 #   - delete all data prior to current year
 lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
-  filter(year >= today_year) %>%
+  filter(year >= year(date_today0) - 1) %>%
   dplyr::mutate(date_time = 
                   lubridate::make_datetime(year, month, 
                                            day, minute, second),

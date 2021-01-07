@@ -100,7 +100,7 @@ dashboardPage(skin = "blue" ,
                    #              width = "220px"),
                    br(), br(),
                    br(), br(),
-                   actionButton("write_ts",
+                   actionButton("write_ts2",
                                 "Write output time series",
                                 icon = NULL,
                                 width = "220px")
@@ -118,9 +118,10 @@ dashboardPage(skin = "blue" ,
     navbarPage(title=NULL,
       source("code/ui/situational_awareness_ui.R", local = TRUE)$value,
       source("code/ui/one_day_ops_ui.R", local = TRUE)$value,
-      source("code/ui/ten_day_ops_ui.R", local = TRUE)$value,
+      source("code/ui/nbr_ops_ui.R", local = TRUE)$value,
       # source("code/ui/long_term_operations.R", local = TRUE)$value,
       source("code/ui/demands_ui.R", local = TRUE)$value
+      # source("code/ui/lffs_qa_ui.R", local = TRUE)$value
       # source("code/ui/simulation_ui.R", local = TRUE)$value
       # source("code/ui/download_data_ui.R", local = TRUE)$value
       )
