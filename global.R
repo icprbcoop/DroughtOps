@@ -44,7 +44,7 @@ date_today0 <- as.Date(today())
 #   - 0's to read from ts/path/
 autoread_dailyflows <- 0
 autoread_hourlyflows <- 0
-autoread_hourlywithdrawals <- 1
+autoread_hourlywithdrawals <- 0
 autoread_resstorage <- 0
 autoread_lffs <- 1
 

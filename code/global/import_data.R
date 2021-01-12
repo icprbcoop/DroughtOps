@@ -365,7 +365,7 @@ lffs.hourly.cfs.all.df0 <- data.table::fread(
 #   - LFFS data file resides in /input/ts/current/
 #   - file name is PM7_4820_0001.flow
 #   - data can be downloaded from CO-OP's Data Portal
-#      - http://icprbcoop.org/upload01/PM7_4820_0001.flow"
+#      - http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow"
 #      - name appropriately then save the file to /input/ts/current/
 #------------------------------------------------------------------------------
 

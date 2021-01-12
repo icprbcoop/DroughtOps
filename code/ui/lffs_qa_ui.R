@@ -20,7 +20,7 @@ tabPanel("LFFS QA",
                  box(
                    title = "Little Falls flows - observed and forecasted",
                    width = NULL,
-                   plotOutput("ten_day_plot", height = plot.height, width = plot.width)
+                   plotOutput("lffs_qa_plot", height = plot.height, width = plot.width)
                    # plotOutput("potomacFlows", height = "220px")
                  )
                ) #,
@@ -39,23 +39,23 @@ tabPanel("LFFS QA",
              column( # this is the 2nd main column - with values & triggers
                width = 6,
                # some general information
-               valueBoxOutput("lfalls_today", width = NULL),
-               valueBoxOutput("wma_withdr_9day_fc", width = NULL),
-               valueBoxOutput("luke", width = NULL), 
-               br(),
-               box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from empirical recession equation",
-                   width = NULL,
-                   height=60),
-               valueBoxOutput("lfalls_empirical_9day_fc", width = NULL),
-               valueBoxOutput("empirical_9day_deficit", width = NULL),
-               valueBoxOutput("luke_target1", width = NULL),
-               br(),
-               box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",
-                   width = NULL,
-                   height=60),
-               valueBoxOutput("lfalls_lffs_9day_fc", width = NULL),
-               valueBoxOutput("lffs_9day_deficit", width = NULL),
-               valueBoxOutput("luke_target2", width = NULL)
+               valueBoxOutput("lffs_today", width = NULL) #,
+               # valueBoxOutput("wma_withdr_9day_fc", width = NULL),
+               # valueBoxOutput("luke", width = NULL), 
+               # br(),
+               # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from empirical recession equation",
+               #     width = NULL,
+               #     height=60),
+               # valueBoxOutput("lfalls_empirical_9day_fc", width = NULL),
+               # valueBoxOutput("empirical_9day_deficit", width = NULL),
+               # valueBoxOutput("luke_target1", width = NULL),
+               # br(),
+               # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",
+               #     width = NULL,
+               #     height=60),
+               # valueBoxOutput("lfalls_lffs_9day_fc", width = NULL),
+               # valueBoxOutput("lffs_9day_deficit", width = NULL),
+               # valueBoxOutput("luke_target2", width = NULL)
                # valueBoxOutput("lfalls_obs", width = NULL)
              ) # end of 2nd main column
            ) # end of major column that contains whole body

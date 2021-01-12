@@ -37,31 +37,32 @@ withdrawals_yesterday.df <- withdrawals.daily.df %>%
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Graph Potomac River withdrawals
+# Create Potomac River withdrawals plot----------------------------------------
+#  prepare data
+withdrawals.plot.df <- withdrawals.daily.df %>%
+  select(Date = date_time,
+         "FW Potomac" = w_fw_pot,
+         "WSSC Water Potomac" = w_wssc_pot,
+         "WA Great Falls" = w_wa_gf,
+         "WA Little Falls" = w_wa_lf,
+         "LW Potomac" = w_lw_pot,
+         "Broad Run discharge" = w_lw_br,
+         "Net Potomac withdrawals" = w_pot_total_net) %>%
+  gather(key = "Legend", 
+         value = "MGD", -Date)
+
 output$pot_withdrawals <- renderPlot({
-  # gather the data into long format; use the dynamic plot ranges
-  withdrawals.plot.df <- withdrawals.daily.df %>%
-    select(Date = date_time,
-           "FW Potomac" = w_fw_pot,
-           "WSSC Water Potomac" = w_wssc_pot,
-           "WA Great Falls" = w_wa_gf,
-           "WA Little Falls" = w_wa_lf,
-           "LW Potomac" = w_lw_pot,
-           "Broad Run discharge" = w_lw_br,
-           "Net Potomac withdrawals" = w_pot_total_net) %>%
-    gather(key = "Legend", 
-           value = "MGD", -Date) %>%
-    filter(Date >= input$plot_range[1],
-           Date <= input$plot_range[2])
-  
-  # plot the data
+  # use the dynamic plot ranges
+  withdrawals.plot.df <- withdrawals.plot.df %>%
+  filter(Date >= input$plot_range[1],
+         Date <= input$plot_range[2])
   ggplot(withdrawals.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
     geom_point(aes(colour = Legend, size = Legend)) +
     labs(x = "", y = "Potomac withdrawals, MGD") +
     scale_size_manual(values = c(1,1,1,2,1,1,1))
 })
 
-# Graph WMA production
+# Create WMA production plot--------------------------------------------------
 output$wma_production <- renderPlot({
   # gather the data into long format; use the dynamic plot ranges
   production.plot.df <- production.daily.df %>%

@@ -6,7 +6,7 @@
 # INPUTS
 # *****************************************************************************
 # lffs.hourly.cfs.all.df0
-# flows.daily.mgd.df
+# flows.daily.mgd.df - needed to do baseflow correction
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
@@ -22,7 +22,7 @@
 print("starting process_lffs")
 
 # Do some formatting-----------------------------------------------------------
-#   - delete all data prior to current year
+#   - delete all data prior to 2020; create date_time and date columns
 lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
   filter(year >= year(date_today0) - 1) %>%
   dplyr::mutate(date_time = 
@@ -36,6 +36,7 @@ lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
 lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   select(-date_time) %>%
   group_by(date) %>%
+  # average hourlies to get dailies
   summarise(lfalls_lffs = mean(lfalls_lffs)) %>%
   # summarise(mean(lfalls_lffs), .groups = "keep") %>%
   mutate(date_time = as.Date(date)) %>%

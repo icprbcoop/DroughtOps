@@ -24,7 +24,7 @@ shinyServer(function(input, output, session) {
   source("code/server/simulation/sim_plots.R", local=TRUE)
   
   # LFFS QA "sandbox" tab
-  # source("code/server/lffs_qa_server.R", local=TRUE)
+  source("code/server/lffs_qa/lffs_qa_server.R", local=TRUE)
 
   #Data Download tab
   source("code/server/download_data/download_data_server.R", local=TRUE)
@@ -45,6 +45,23 @@ shinyServer(function(input, output, session) {
     write_csv(flows_hourly_temp, paste(ts_output, 
                                        "flows_hourly_cfs.csv",
                                        sep=""))
+    wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 %>%
+      #  write header & 14 dummy rows, to mimic file from the Data Portal
+      add_row(DateTime = "DateTime",
+              FW_POT = "FW_POT",
+              WSSC_POT = "WSSC_POT",
+              WA_GF = "WA_GF",
+              WA_LF = "WA_LF",
+              LW_POT = "LW_POT",
+              LW_FW = "LW_FW",
+              FW_OC = "FW_OC",
+              WSSC_PA = "WSSC_PA",
+              LW_BR = "LW_BR", .before=1) %>%
+      add_row(DateTime = rep("dummy-row", 14), .before=1) 
+    write_csv(wma_withdrawals_temp, paste(ts_output,
+                                       "wma_withdrawals.csv",
+                                       sep=""),
+              col_names = FALSE)
   })
   
   }) # end shinyServer
