@@ -31,14 +31,13 @@
 # Select flows of interest ----------------------------------------------------
 date_today_ops <- date_today0
 
-lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
+lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
-  dplyr::select(date_time, lfalls, lfalls_from_upstr, lfalls_lffs_bf_corrected,
-                por, monoc_jug,
+  dplyr::select(date_time, lfalls, lfalls_from_upstr, 
+                lfalls_lffs, lfalls_lffs_bfc,
+                por, monoc_jug, goose, seneca,
                 # luke, kitzmiller, barnum,
                 d_pot_total)
-
-
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -50,7 +49,8 @@ lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
 lffs.plot.df <- lffs.df %>%
   dplyr::select(date_time, lfalls,
                 por, monoc_jug, d_pot_total,
-                lfalls_from_upstr, lfalls_lffs_bf_corrected #,
+                lfalls_from_upstr, lfalls_lffs, 
+                lfalls_lffs_bfc #,
                 # lfalls_flowby
                 ) %>%
   gather(key = "site", value = "flow", -date_time)
@@ -76,34 +76,77 @@ output$lffs_qa_plot <- renderPlot({
   # Construct the graph
   ggplot(lffs.plot.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c("orange", "deepskyblue1", "red",
-                                   "deepskyblue2", "plum", "navy")) +
-    scale_size_manual(values = c(1, 2, 1, 1, 1, 1)) +
-    scale_linetype_manual(values = c("solid", "solid", "dashed", "dashed",
-                          "solid", "dotdash")) +
+    scale_color_manual(values = c("orange", "deepskyblue1", 
+                                  "steelblue4", "darkorchid3",
+                                  "plum", "navy",
+                                  "slateblue3")) +
+    scale_size_manual(values = c(1, 2, 1, 1, 1, 1, 1)) +
+    scale_linetype_manual(values = c("solid", "solid", "solid", "solid",
+                          "solid", "solid", "dotted")) +
     labs(x = "", y = "Flow, MGD") # +
-    # shape=1 is open circle, stroke is border width
-    # geom_point(data = lfalls_10day.plot2.df, aes(x = date_time, y = flow),
-    #            size = 5, colour = "deepskyblue3", shape = 1, stroke = 1.0)
 
 })
   
-# # Prepare data for N Br flows plot --------------------------------------------
-# #   - flows at Luke and flows into and out of reservoirs
-# nbr_10day.plot.df <- ops_10day.df %>%
-#   dplyr::select(date_time, kitzmiller, barnum,
-#                 bloomington, barton, luke) %>%
-#   gather(key = "site", value = "flow", -date_time)
-# 
-# # Create North Br flows plot --------------------------------------------------
-# output$nbr_ten_day_plot <- renderPlot({
-#   nbr_10day.plot.df <- nbr_10day.plot.df %>%
-#   filter(date_time >= input$plot_range[1],
-#          date_time <= input$plot_range[2])
-#   ggplot(nbr_10day.plot.df, aes(x = date_time, y = flow)) +
-#     geom_line(aes(colour = site)) +
-#     labs(x = "", y = "Flow, MGD")
-# })
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Compute stats
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
+location <- "lfalls"
+fc <- "lffs_daily"
+obs_df <- flows.daily.cfs.df %>%
+  mutate(obs = c_across(matches(location))) %>%
+  dplyr::select(date_time, obs)
+sim_df <- lffs.daily.mgd.df %>%
+  mutate(sim = c_across(matches(location))) %>%
+  dplyr::select(date_time, sim)
+
+fc_df <- left_join(obs_df, sim_df, 
+                      by = "date_time") %>%
+  mutate(location = location, fc = fc) %>%
+  drop_na()
+obs_mean <- mean(fc_df$obs)
+
+stats_df <- fc_df %>%
+  mutate(err = obs - sim,
+         ae = abs(obs - sim),
+         pae = 100*ae/obs,
+         se = (obs - sim)^2,
+         nse_denominator = (obs - obs_mean)^2 ) %>%
+  summarise(across(where(is.character), first),
+            across(where(is.numeric), mean),
+            count = n()) %>%
+  dplyr::select(-obs, -sim)
+
+nse <- 1 - stats_df$se[1]/stats_df$nse_denominator[1]
+stats_df <- stats_df %>%
+  mutate(nse = nse) %>%
+  select(-nse_denominator) %>%
+  relocate(count, .after = last_col())
+
+stats_low_flow_df <- fc_df %>%
+  filter(obs <= low_flow_threshold) %>%
+  mutate(err = obs - sim,
+         ae = abs(obs - sim),
+         pae = 100*ae/obs,
+         se = (obs - sim)^2,
+         nse_denominator = (obs - means$mean_obs[1])) %>%
+  summarise(across(2:8, mean))
+nse_value <- 1 - stats_low_flow_df$se[1]/stats_low_flow_df$nse_denominator[1]
+
+
+means <- summarise(stats_df0, mean_obs = mean(obs), mean_sim = mean(sim))
+
+stats_df <- stats_df0 %>%
+  mutate(err = obs - sim,
+                ae = abs(obs - sim),
+                pae = 100*ae/obs,
+                se = (obs - sim)^2,
+                nse1 = (obs - means$mean_obs[1])) %>%
+  summarise(across(everything(), mean))
+  
+
   
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

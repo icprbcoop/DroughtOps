@@ -91,17 +91,16 @@ gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv",
                            data.table = FALSE)
 list_gages_daily_locations <- c("date", gages_daily$location)
 
-# first get number of columns in Sarah's flow data files
+# first find number of columns in Sarah's flow data files
 n_gages_daily <- length(list_gages_daily_locations) - 1
 gages_daily_locations <- list_gages_daily_locations[2:(n_gages_daily + 1)]
 gages_daily_locations <- as.list(gages_daily_locations)
 
-# Create list of hourly 
-
 # Will make use of first and last day of current year
 date_dec31 <- lubridate::ceiling_date(date_today0, unit = "year") - 1
 date_jan1 <- lubridate::floor_date(date_today0, unit = "year")
- # Also may use
+
+# Also may use
 today_month <- substring(date_today0, first = 6, last = 7)
 today_day <- substring(date_today0, first = 9, last = 10)
 today_year <- substring(date_today0, first = 1, last = 4)
@@ -135,7 +134,7 @@ if(autoread_dailyflows == 1) {
   }
   # if it's before June 1, include data from past year
   else {
-    year_temp <- year(date_today0) - 1
+    year_temp <- year(date_today0) - 2
     month_temp <- "01"
     start_date_string <- paste("startdate=", month_temp, "%2F", "01", "%2F",
                                year_temp, "&enddate=", sep="")
@@ -168,7 +167,10 @@ if(autoread_dailyflows == 1) {
 #   - read daily flow data from file residing in /input/ts/current/
 #   - file name is flows_daily_cfs.csv
 #   - code set up so that these time series should begin on Jan 1 of current year
-#   - daily data can be downloaded from CO-OP's Data Portal
+#   - can create this file by hitting the "Write output time series" button 
+#        on the sidebar to the left, then copying from /output and pasting
+#        into /input/ts/current/.
+#   - OR, daily data can be downloaded from CO-OP's Data Portal
 #      - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
 #      - name appropriately then save the file to /input/ts/current/
 #------------------------------------------------------------------------------
@@ -209,15 +211,21 @@ print("finished importing daily flows")
 if(autoread_hourlyflows == 1) {
   
   # define the desired gages---------------------------------------------------
-  gages_hourly_names <- c("lfalls", "seneca",
-                          "goose", "monoc_jug", "por")
-  gages_hourly_nos <- c("01646500", "01645000",
-                        "01644000", "01643000", "01638500")
+  gages_hourly_names <- c("lfalls", 
+                          "seneca",
+                          "goose",
+                          "monoc_jug", 
+                          "por")
+  gages_hourly_nos <- c("01646500", 
+                        "01645000",
+                        "01644000",
+                        "01643000", 
+                        "01638500")
   
   n_gages_hourly <- length(gages_hourly_nos)
   
   # set desired number of past days--------------------------------------------
-  n_past_days <- 150
+  n_past_days <- 90
   start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
   start_date <- lubridate::with_tz(start_date, "EST")
   

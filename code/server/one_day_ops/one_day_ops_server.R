@@ -29,13 +29,13 @@
 #------------------------------------------------------------------------------
 lag_por <- 1
 lag_sen <- 1 
-ops_1day_daily.df <- flows.daily.mgd.df %>%
+ops_1day_daily.df0 <- flows.daily.mgd.df %>%
   dplyr::select(date_time, lfalls, seneca, goose, 
                 monoc_jug, por, d_pot_total, w_wa_lf) %>%
-  dplyr::mutate(lfalls_fc_constant_lags = 
-                  lag(seneca, lag_sen) + lag(goose, lag_sen) + 
-                  lag(monoc_jug, lag_por) + lag(por, lag_por) -
-                  d_pot_total) %>%
+  # dplyr::mutate(lfalls_fc_constant_lags = 
+  #                 lag(seneca, lag_sen) + lag(goose, lag_sen) + 
+  #                 lag(monoc_jug, lag_por) + lag(por, lag_por) -
+  #                 d_pot_total) %>%
   dplyr::mutate(lfalls_fc_prrism = 
                   lag(lfalls, 1) +
                   lag(por, lag_por+1) - lag(por, lag_por) +
@@ -46,7 +46,12 @@ ops_1day_daily.df <- flows.daily.mgd.df %>%
   dplyr::mutate(gfalls = lead(lfalls, 1)*15/24 + lfalls*9/24
                 + w_wa_lf, 
                 gfalls_flowby = 300) %>%
-  select(-w_wa_lf)
+  select(-w_wa_lf) # now 8
+
+# add LFFS-bflow corrected daily 
+ops_1day_daily.df <- left_join(ops_1day_daily.df0, lffs.daily.bfc.mgd.df,
+                               by = "date_time") %>%
+  select (-lfalls_obs, -lfalls_lffs, -lfalls_bf_correction) # now 9
                                                        
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -79,20 +84,13 @@ ops_1day_hourly.df0 <- left_join(flows.hourly.mgd.df,
 # Add LFFS data
 ops_1day_hourly.df <- left_join(ops_1day_hourly.df0,
                                 lffs.hourly.mgd.df, by = "date_time") %>%
-  mutate(lfalls_lffs = lfalls_lffs/mgd_to_cfs,
-         lfalls_lffs_hourly_bf_corrected = lfalls_lffs 
-         + lfalls_bf_correction/mgd_to_cfs) %>%
-  select(-date)
-
-# # Fill in missing data --------------------------------------------------------
-# #   - delete last row to avoid last hour having missing data 
-# #   - which messes up na.approx
-# ops_1day_hourly.df <- head(ops_1day_hourly.df, -1)
-# ops_1day_hourly.df$lfalls <- na.approx(ops_1day_hourly.df$lfalls)
-# ops_1day_hourly.df$seneca <- na.approx(ops_1day_hourly.df$seneca)
-# ops_1day_hourly.df$goose <- na.approx(ops_1day_hourly.df$goose)
-# ops_1day_hourly.df$monoc_jug <- na.approx(ops_1day_hourly.df$monoc_jug)
-# ops_1day_hourly.df$por <- na.approx(ops_1day_hourly.df$por)
+  # mutate(lfalls_lffs_hourly = lfalls_lffs_hourly/mgd_to_cfs,
+  #        lfalls_lffs_hourly_bf_corrected = lfalls_lffs_hourly 
+  #        + lfalls_bf_correction/mgd_to_cfs) %>%
+  # keep lfalls_lffs_hourly_bfc and lfalls_lffs_bfc
+  select(-date, -lfalls_lffs_hourly, 
+         -lfalls_lffs, -lfalls_bf_correction)
+print(str(ops_1day_hourly.df))
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -112,13 +110,13 @@ output$one_day_ops_plot1 <- renderPlot({
          date_time <= input$plot_range[2]) 
   ggplot(lfalls_1day.plot1.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c("darkorange1", "darkorange1",
-                                  "deepskyblue1",
-                                  "deepskyblue3", "deepskyblue4",
-                                  "red", "plum", 
+    scale_color_manual(values = c("darkorange1", "darkorange3",
+                                  "deepskyblue1", "deepskyblue4",
+                                  "red",
+                                  "purple", "plum", 
                                   "steelblue", "palegreen3")) +
-    scale_linetype_manual(values = c("solid", "dashed", "solid", "dashed",
-                                     "dashed", "solid",
+    scale_linetype_manual(values = c("solid", "dashed", "solid",
+                                     "dotted", "dashed", "solid",
                                      "solid","solid", "solid")) +
     scale_size_manual(values = c(1, 1, 2, 1, 1, 1, 1, 1, 1)) +
     labs(x = "", y = "MGD")
@@ -128,8 +126,7 @@ output$one_day_ops_plot1 <- renderPlot({
 # LFalls predicted from LFFS - second graph on ui -----------------------------
 lfalls_1day.plot2.df <- ops_1day_hourly.df %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
- select(-lfalls_bf_correction, -goose, -lfalls_obs, 
-        -lfalls_lffs_daily, -lfalls_lffs) %>%
+  dplyr::select(-seneca, -goose) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot2 <- renderPlot({
@@ -140,7 +137,7 @@ output$one_day_ops_plot2 <- renderPlot({
     geom_line(aes(colour = site, size = site, linetype = site)) +
     scale_color_manual(values = c("orange", "deepskyblue1","red", 
                                   "purple", "deepskyblue2",
-                                  "deepskyblue3", "steelblue", "palegreen3")) +
+                                  "plum", "steelblue", "palegreen3")) +
     scale_linetype_manual(values = c("solid", "solid", "dashed",
                                      "solid", "dotted",
                                      "solid", "solid", "solid")) +
@@ -197,10 +194,10 @@ output$lfalls_1day_deficit1 <- renderValueBox({
 })
 
 # LFalls 1-day fc2 - LFFS with "baseflow correction" --------------------------
-lfalls_1day_fc2_mgd <- lffs.daily.mgd.df %>%
+lfalls_1day_fc2_mgd <- lffs.daily.bfc.mgd.df %>%
   filter(date_time == date_time_1dayhence)
 lfalls_1day_fc2_mgd <- round(
-  lfalls_1day_fc2_mgd$lfalls_lffs_bf_corrected[1], 0)
+  lfalls_1day_fc2_mgd$lfalls_lffs_bfc[1], 0)
 lfalls_1day_fc2_cfs <- round(lfalls_1day_fc2_mgd*mgd_to_cfs, 0)
 output$lfalls_1day_fc2 <- renderValueBox({
   lfalls_1day_fc2 <- paste(
@@ -279,10 +276,10 @@ output$lfalls_0day_deficit1 <- renderValueBox({
 })
 
 # LFalls 0-day fc2 - LFFS with "baseflow correction" --------------------------
-lfalls_0day_fc2_mgd <- lffs.daily.mgd.df %>%
+lfalls_0day_fc2_mgd <- lffs.daily.bfc.mgd.df %>%
   filter(date_time == date_today0)
 lfalls_0day_fc2_mgd <- round(
-  lfalls_0day_fc2_mgd$lfalls_lffs_bf_corrected[1], 0)
+  lfalls_0day_fc2_mgd$lfalls_lffs_bfc[1], 0)
 lfalls_0day_fc2_cfs <- round(lfalls_0day_fc2_mgd*mgd_to_cfs, 0)
 output$lfalls_0day_fc2 <- renderValueBox({
   lfalls_0day_fc2 <- paste(

@@ -31,9 +31,9 @@
 # Select flows of interest ----------------------------------------------------
 date_today_ops <- date_today0
 
-ops_10day.df <- left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
+ops_10day.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
-  dplyr::select(date_time, lfalls, lfalls_from_upstr, lfalls_lffs_bf_corrected,
+  dplyr::select(date_time, lfalls, lfalls_from_upstr, lfalls_lffs_bfc,
                 por, monoc_jug,
                 luke, kitzmiller, barnum,
                 bloomington, barton, d_pot_total)
@@ -78,7 +78,7 @@ ops_10day.df <- ops_10day.df %>%
 # Grab the 9-day forecasts
 fc_9day <- ops_10day.df %>%
   filter(date_time == date_time_9dayshence)
-fc_9day_lffs <- fc_9day$lfalls_lffs_bf_corrected[1]
+fc_9day_lffs <- fc_9day$lfalls_lffs_bfc[1]
 
 fc_9day_emp_eq <- fc_9day$lfalls_empirical_fc[1]
 
@@ -93,7 +93,7 @@ fc_9day_emp_eq <- fc_9day$lfalls_empirical_fc[1]
 lfalls_10day.plot.df <- ops_10day.df %>%
   dplyr::select(date_time, lfalls,
                 por, monoc_jug, d_pot_total,
-                lfalls_from_upstr, lfalls_lffs_bf_corrected,
+                lfalls_from_upstr, lfalls_lffs_bfc,
                 lfalls_flowby
                 ) %>%
   gather(key = "site", value = "flow", -date_time)

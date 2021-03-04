@@ -15,7 +15,7 @@ tabPanel("LFFS QA",
              #
              # now add the content
              column(  # this is the 1st main column - with the graphs
-               width = 6,
+               width = 8,
                fluidRow( # row with graph
                  box(
                    title = "Little Falls flows - observed and forecasted",
@@ -37,7 +37,7 @@ tabPanel("LFFS QA",
                # ) # end of 2nd fluid row
              ), # end of 1st main column - with graphs
              column( # this is the 2nd main column - with values & triggers
-               width = 6,
+               width = 4,
                # some general information
                valueBoxOutput("lffs_today", width = NULL) #,
                # valueBoxOutput("wma_withdr_9day_fc", width = NULL),
