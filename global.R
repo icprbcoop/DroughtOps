@@ -42,6 +42,9 @@ date_today0 <- as.Date(today())
 # Set data source switches in import_data.R------------------------------------
 #   - 1's to download online data
 #   - 0's to read from ts/path/
+#   - to improve speed, change first 3 switches to 0 
+#      - after first pressing "Write... to /output" on LHS panel
+#      - and then copying 3 ts files in /output to /input/ts/current
 autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
 autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
 autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
