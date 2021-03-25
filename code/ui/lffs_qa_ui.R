@@ -23,18 +23,39 @@ tabPanel("LFFS QA",
                    plotOutput("lffs_qa_plot", height = plot.height, width = plot.width)
                    # plotOutput("potomacFlows", height = "220px")
                  )
-               ) #,
-               # fluidRow( # row with N Br flow graph
-               #   # h3("North Branch flows"),
-               #   column(
-               #     width = 12,
-               #     box(
-               #       title = "North Branch flows",
-               #       width = NULL,
-               #       plotOutput("nbr_ten_day_plot", height = "220px")
-               #     )
-               #   )
-               # ) # end of 2nd fluid row
+               ) ,
+               fluidRow( # row stats tables
+                 h3("LFFS"),
+                 column(
+                   width = 12,
+                   box(
+                     title = "Forecast stats",
+                     width = NULL,
+                     tableOutput("lffs_stats")
+                   ),
+                   box(
+                     title = "Low-flow forecast stats",
+                     width = NULL,
+                     tableOutput("lffs_lf_stats"),
+                   )
+                 )
+               ), # end of 2nd fluid row
+               fluidRow( # row stats tables
+                 h3("LFFS - baseflow-corrected"),
+                 column(
+                   width = 12,
+                   box(
+                     title = "Forecast stats",
+                     width = NULL,
+                     tableOutput("lffs_bfc_stats")
+                   ),
+                   box(
+                     title = "Low-flow forecast stats",
+                     width = NULL,
+                     tableOutput("lffs_bfc_lf_stats"),
+                   )
+                 )
+               ) # end of 3rd fluid row
              ), # end of 1st main column - with graphs
              column( # this is the 2nd main column - with values & triggers
                width = 4,

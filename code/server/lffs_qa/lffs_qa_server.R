@@ -89,14 +89,17 @@ output$lffs_qa_plot <- renderPlot({
   
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Compute stats
+# Compute stats for lffs forecast
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
+
+# Create df with obs and sim for selected location and forecast----------------
 location <- "lfalls"
 fc <- "lffs_daily"
-obs_df <- flows.daily.cfs.df %>%
-  mutate(obs = c_across(matches(location))) %>%
+obs_df <- flows.daily.mgd.df %>%
+  # this worked with flows.daily.cfs.df but not here:
+  # mutate(obs = c_across(matches(location))) %>%
+  mutate(obs = lfalls) %>%
   dplyr::select(date_time, obs)
 sim_df <- lffs.daily.mgd.df %>%
   mutate(sim = c_across(matches(location))) %>%
@@ -106,47 +109,142 @@ fc_df <- left_join(obs_df, sim_df,
                       by = "date_time") %>%
   mutate(location = location, fc = fc) %>%
   drop_na()
+
+# Compute stats of interest for full time series-------------------------------
+
+# Need mean of obs - need for Nash-Sutcliffe (NSE)
 obs_mean <- mean(fc_df$obs)
 
-stats_df <- fc_df %>%
+fc_df <- fc_df %>%
   mutate(err = obs - sim,
          ae = abs(obs - sim),
          pae = 100*ae/obs,
          se = (obs - sim)^2,
-         nse_denominator = (obs - obs_mean)^2 ) %>%
-  summarise(across(where(is.character), first),
-            across(where(is.numeric), mean),
-            count = n()) %>%
+         nse_denominator = (obs - obs_mean)^2 )
+stats_df <- fc_df %>%
+  summarise(across(where(is.character), first), # this grabs location name
+            across(where(is.numeric), mean), # this computes means
+            count = n()) %>% # this provides count of no. of records
   dplyr::select(-obs, -sim)
 
+# Add Nash-Sutcliffe efficiency value
 nse <- 1 - stats_df$se[1]/stats_df$nse_denominator[1]
 stats_df <- stats_df %>%
   mutate(nse = nse) %>%
   select(-nse_denominator) %>%
   relocate(count, .after = last_col())
 
-stats_low_flow_df <- fc_df %>%
-  filter(obs <= low_flow_threshold) %>%
+# Compute stats of interest for low flow records only--------------------------
+low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
+
+fc_lf_df <- fc_df %>%
+  filter(obs <= low_flow_threshold) 
+
+obs_lf_mean <- mean(fc_lf_df$obs)
+
+stats_lf_df <- fc_lf_df %>%
   mutate(err = obs - sim,
          ae = abs(obs - sim),
          pae = 100*ae/obs,
          se = (obs - sim)^2,
-         nse_denominator = (obs - means$mean_obs[1])) %>%
-  summarise(across(2:8, mean))
-nse_value <- 1 - stats_low_flow_df$se[1]/stats_low_flow_df$nse_denominator[1]
+         nse_denominator = (obs - obs_lf_mean)^2 ) %>%
+  summarise(across(where(is.character), first), # this grabs location name
+            across(where(is.numeric), mean), # this computes means
+            count = n()) %>% # this provides count of no. of records
+  dplyr::select(-obs, -sim)
 
+# Add Nash-Sutcliffe efficiency value
+nse <- 1 - stats_lf_df$se[1]/stats_lf_df$nse_denominator[1]
+stats_lf_df <- stats_lf_df %>%
+  mutate(nse = nse) %>%
+  select(-nse_denominator) %>%
+  relocate(count, .after = last_col())
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Compute stats for lffs baseflow corrected forecast
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
-means <- summarise(stats_df0, mean_obs = mean(obs), mean_sim = mean(sim))
+# Create df with obs and sim for selected location and forecast----------------
+location <- "lfalls"
+fc <- "lffs_bfc_daily"
+obs_df <- flows.daily.mgd.df %>%
+  # mutate(obs = c_across(matches(location))) %>%
+  mutate(obs = lfalls) %>%
+  dplyr::select(date_time, obs)
+sim_df <- lffs.daily.bfc.mgd.df %>%
+  mutate(lfalls = lfalls_lffs) %>%
+  select(date_time, lfalls) %>%
+  mutate(sim = c_across(matches(location))) %>%
+  dplyr::select(date_time, sim)
 
-stats_df <- stats_df0 %>%
+fc_df <- left_join(obs_df, sim_df, 
+                   by = "date_time") %>%
+  mutate(location = location, fc = fc) %>%
+  drop_na()
+
+# Compute stats of interest for full time series-------------------------------
+
+# Need mean of obs - need for Nash-Sutcliffe (NSE)
+obs_mean <- mean(fc_df$obs)
+
+fc_df <- fc_df %>%
   mutate(err = obs - sim,
-                ae = abs(obs - sim),
-                pae = 100*ae/obs,
-                se = (obs - sim)^2,
-                nse1 = (obs - means$mean_obs[1])) %>%
-  summarise(across(everything(), mean))
-  
+         ae = abs(obs - sim),
+         pae = 100*ae/obs,
+         se = (obs - sim)^2,
+         nse_denominator = (obs - obs_mean)^2 )
+stats_bfc_df <- fc_df %>%
+  summarise(across(where(is.character), first), # this grabs location name
+            across(where(is.numeric), mean), # this computes means
+            count = n()) %>% # this provides count of no. of records
+  dplyr::select(-obs, -sim)
 
+# Add Nash-Sutcliffe efficiency value
+nse <- 1 - stats_bfc_df$se[1]/stats_bfc_df$nse_denominator[1]
+stats_bfc_df <- stats_bfc_df %>%
+  mutate(nse = nse) %>%
+  select(-nse_denominator) %>%
+  relocate(count, .after = last_col())
+
+# Compute stats of interest for low flow records only--------------------------
+low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
+
+fc_lf_df <- fc_df %>%
+  filter(obs <= low_flow_threshold) 
+
+obs_lf_mean <- mean(fc_lf_df$obs)
+
+stats_bfc_lf_df <- fc_lf_df %>%
+  mutate(err = obs - sim,
+         ae = abs(obs - sim),
+         pae = 100*ae/obs,
+         se = (obs - sim)^2,
+         nse_denominator = (obs - obs_lf_mean)^2 ) %>%
+  summarise(across(where(is.character), first), # this grabs location name
+            across(where(is.numeric), mean), # this computes means
+            count = n()) %>% # this provides count of no. of records
+  dplyr::select(-obs, -sim)
+
+# Add Nash-Sutcliffe efficiency value
+nse <- 1 - stats_bfc_lf_df$se[1]/stats_bfc_lf_df$nse_denominator[1]
+stats_bfc_lf_df <- stats_bfc_lf_df %>%
+  mutate(nse = nse) %>%
+  select(-nse_denominator) %>%
+  relocate(count, .after = last_col())
+
+
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Construct table content
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+output$lffs_stats <- renderTable(stats_df)
+output$lffs_lf_stats <- renderTable(stats_lf_df)
+output$lffs_bfc_stats <- renderTable(stats_bfc_df)
+output$lffs_bfc_lf_stats <- renderTable(stats_bfc_lf_df)
   
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
