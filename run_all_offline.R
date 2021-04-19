@@ -1,7 +1,8 @@
 #******************************************************************
 # run_all_offline runs the model outside of Shiny, for QAing purposes
 #******************************************************************
-# First run global.R, which loads all data, paths, functions
+# First run global.R, which loads packages, paths, functions
+# It also runs import_data.R 
 source("global.R", local = TRUE)
 
 #******************************************************************
@@ -11,18 +12,6 @@ source("code/global/load_packages.R", local = TRUE)
 # Use this one when publishing, can comment out otherwise:
 #source("code/global/import_packages.R", local = TRUE)
 
-# Set paths -------------------------------------------------------------------
-
-ts_path <- "input/ts/current/" # use for actual operations
-# ts_path <- "input/ts/2019_drex/" # use for 2019 drought exercise
-
-# Other paths -----------------------------------------------------------------
-parameters_path <- "input/parameters/"
-ts_output <- "output/" # path of output directory
-map_path <- "data/Drought_Regions" #MD shapefiles
-# Set "today's" date ----------------------------------------------------------
-#    - Right now this needs to match last date in flows_daily_cfs.csv
-date_today0 <- as.Date(today())
 
 # For 2019 DREX
 # date_today0 <- as.Date("2019-11-21")
