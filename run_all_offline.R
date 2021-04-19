@@ -2,7 +2,7 @@
 # run_all_offline runs the model outside of Shiny, for QAing purposes
 #******************************************************************
 # First run global.R, which loads all data, paths, functions
-# source("global.R", local = TRUE)
+source("global.R", local = TRUE)
 
 #******************************************************************
 # Load packages ---------------------------------------------------------------  

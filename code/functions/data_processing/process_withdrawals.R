@@ -54,8 +54,17 @@ withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
 lw_ts0 <- withdrawals.hourly.df %>%
   dplyr::select(date_time, disch_lw_pot)
 lw_ts <- drop_na(lw_ts0, disch_lw_pot) # drop all NA's
-lw_ts_last <- tail(lw_ts$disch_lw_pot,1) # paste values into 1st & last rows
-lw_ts_first <- head(lw_ts$disch_lw_pot,1)
+
+# Use available LW disch. data, or defaults
+lw_ts_default <- 6.0
+lw_ts_first <- lw_ts_default
+lw_ts_last <- lw_ts_default
+
+if(is.numeric(tail(lw_ts$disch_lw_pot,1))) 
+   {lw_ts_last <- tail(lw_ts$disch_lw_pot,1)} 
+
+if(is.numeric(head(lw_ts$disch_lw_pot,1))) 
+{lw_ts_first <- head(lw_ts$disch_lw_pot,1)} 
 
 # Fill in last disch_lw_pot NA with last available value
 ltemp <- length(withdrawals.hourly.df$disch_lw_pot)

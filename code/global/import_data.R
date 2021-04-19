@@ -33,7 +33,7 @@
 #------------------------------------------------------------------------------
 # WITHDRAWAL DATA
 #   Can be obtained from 2 sources:
-#   (start date is user-selected and end date is 15 days in the future)
+#   (start date is user-selected and end date is 15 days into the future)
 #
 #   The OPTION switch is set in global.R:
 #     OPTION 1: read file directly from Data Portal
@@ -306,12 +306,22 @@ if(autoread_hourlywithdrawals == 1) {
   # read the online table -------------------------------------------------------
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
-    skip = 14,
-    header = TRUE,
+    skip = 16,
+    header = FALSE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
+  names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+                                         "FW_POT",
+                                         "WSSC_POT",
+                                         "WA_GF",
+                                         "WA_LF",
+                                         "LW_POT",
+                                         "LW_FW",
+                                         "FW_OC",
+                                         "WSSC_PA",
+                                         "LW_BR")
 }
 
 #------------------------------------------------------------------------------

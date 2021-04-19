@@ -24,9 +24,9 @@
 
 # Load packages ---------------------------------------------------------------  
 # Use this one when not publishing to shinyapp.io, comment out when publishing:
-#source("code/global/load_packages.R", local = TRUE)
+source("code/global/load_packages.R", local = TRUE)
 # Use this one when publishing, can comment out otherwise:
-source("code/global/import_packages.R", local = TRUE)
+# source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
 # ts_path <- "input/ts/temp/"
@@ -45,8 +45,8 @@ date_today0 <- as.Date(today())
 #   - to improve speed, change first 3 switches to 0 
 #      - after first pressing "Write... to /output" on LHS panel
 #      - and then copying 3 ts files in /output to /input/ts/current
-autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
+autoread_dailyflows <- 0 # change to 0 after 1st run to improve speed
+autoread_hourlyflows <- 0 # change to 0 after 1st run to improve speed
 autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
 autoread_lffs <- 1
 #

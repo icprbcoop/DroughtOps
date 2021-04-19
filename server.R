@@ -27,9 +27,9 @@ shinyServer(function(input, output, session) {
   source("code/server/lffs_qa/lffs_qa_server.R", local=TRUE)
 
   #Data Download tab
-  source("code/server/download_data/download_data_server.R", local=TRUE)
+  # source("code/server/download_data/download_data_server.R", local=TRUE)
   
-  # To save time can generate input ts files for input/ts/current/
+  # To save time can generate input ts files for input/ts/current/-------------
   observeEvent(input$write_ts2, {
     flows_daily_temp <- flows.daily.cfs.df0 %>%
       dplyr::mutate(date = date_time) %>%
@@ -47,17 +47,18 @@ shinyServer(function(input, output, session) {
                                        sep=""))
     wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 %>%
       #  write header & 14 dummy rows, to mimic file from the Data Portal
-      add_row(DateTime = "DateTime",
-              FW_POT = "FW_POT",
-              WSSC_POT = "WSSC_POT",
-              WA_GF = "WA_GF",
-              WA_LF = "WA_LF",
-              LW_POT = "LW_POT",
-              LW_FW = "LW_FW",
-              FW_OC = "FW_OC",
-              WSSC_PA = "WSSC_PA",
-              LW_BR = "LW_BR", .before=1) %>%
-      add_row(DateTime = rep("dummy-row", 14), .before=1) 
+      # add_row(DateTime = "DateTime",
+      #         FW_POT = "FW_POT",
+      #         WSSC_POT = "WSSC_POT",
+      #         WA_GF = "WA_GF",
+      #         WA_LF = "WA_LF",
+      #         LW_POT = "LW_POT",
+      #         LW_FW = "LW_FW",
+      #         FW_OC = "FW_OC",
+      #         WSSC_PA = "WSSC_PA",
+      #         LW_BR = "LW_BR", .before=1) %>%
+      # add_row(DateTime = rep("dummy-row", 14), .before=1) 
+    add_row(FW_POT = rep(-99999.9, 16), .before=1)
     write_csv(wma_withdrawals_temp, paste(ts_output,
                                        "wma_withdrawals.csv",
                                        sep=""),
