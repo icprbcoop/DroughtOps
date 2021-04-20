@@ -1,17 +1,11 @@
 #******************************************************************
-# run_all_offline runs the model outside of Shiny, for QAing purposes
+# run_all_offline runs the model outside of Shiny, for QAing
+# by running in this way, the data dataframes appear in Environment
 #******************************************************************
 # First run global.R, which loads packages, paths, functions
-# It also runs import_data.R 
+# It also runs import_data.R and scripts in /global/data_processing
+# Thus, you can inspect most dataframes of interest
 source("global.R", local = TRUE)
-
-#******************************************************************
-# Load packages ---------------------------------------------------------------  
-# Use this one when not publishing to shinyapp.io, comment out when publishing:
-source("code/global/load_packages.R", local = TRUE)
-# Use this one when publishing, can comment out otherwise:
-#source("code/global/import_packages.R", local = TRUE)
-
 
 # For 2019 DREX
 # date_today0 <- as.Date("2019-11-21")

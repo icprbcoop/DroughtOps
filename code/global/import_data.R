@@ -303,7 +303,8 @@ d_fw_c <- 10 # MGD
 #------------------------------------------------------------------------------
 
 if(autoread_hourlywithdrawals == 1) {
-  # read the online table -------------------------------------------------------
+  # read the online table -----------------------------------------------------
+  # Apr-2021: col names on line 16, data begins line 17
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
     skip = 16,
@@ -338,12 +339,22 @@ if(autoread_hourlywithdrawals == 1) {
 if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     paste(ts_path, "wma_withdrawals.csv", sep = ""),
-    skip = 14,
+    skip = 16,
     header = TRUE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
+  names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+                                         "FW_POT",
+                                         "WSSC_POT",
+                                         "WA_GF",
+                                         "WA_LF",
+                                         "LW_POT",
+                                         "LW_FW",
+                                         "FW_OC",
+                                         "WSSC_PA",
+                                         "LW_BR")
 }
 print("finished importing withdrawals")
 #------------------------------------------------------------------------------
@@ -366,8 +377,10 @@ if(autoread_lffs == 1) {
 # Read LFFS LFalls online data ------------------------------------------------
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  # "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", # from cooplinux1
-  "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow_s2", # from cooplinux2
+  # from cooplinux1:
+  "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", 
+  # from cooplinux2 - a backup source if FEWS Live is not working
+  # "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow_s2", 
   skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,

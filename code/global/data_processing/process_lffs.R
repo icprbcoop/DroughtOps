@@ -12,16 +12,28 @@
 # *****************************************************************************
 # lffs.daily.mgd.df - with new field, lfalls_lffs_bfc
 # lffs.hourly.cfs.df - with new field, lfalls_lffs_bfc
+# lffs.daily.bfc.mgd.df - with the fields:
+#    - lfalls_obs
+#    - lfalls_lffs
+#    - lfalls_lffs_bfc
+#    - lfalls_lffs_bf_correction
+# lffs.hourly.mgd.df - includes the fields:
+#    - lfalls_lffs_hourly
+#    - lfalls_lffs_hourly_bfc
 # *****************************************************************************
 
-# Estimate LFalls baseflow as past 30-day minimum of daily average flows
+print("starting process_lffs")
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Compute LFFS baseflow-corrected and apply to daily & hourly data
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#   - estimate is past 30-day minimum of daily average flows
 #   - rollapply computes running stats (align = "right" for past aves)
 #   - work in MGD
 
-# Add corrections to lffs daily df --------------------------------------------
-print("starting process_lffs")
-
-# Do some formatting-----------------------------------------------------------
+# First do some formatting-----------------------------------------------------
 #   - delete all data prior to 2019; create date_time and date columns
 lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
   filter(year >= year(date_today0) - 2) %>%
@@ -39,28 +51,27 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   group_by(date) %>%
   # average hourlies to get dailies
   summarise(lfalls_lffs = mean(lfalls_lffs_hourly)) %>%
-  # summarise(mean(lfalls_lffs), .groups = "keep") %>%
   mutate(date_time = as.Date(date)) %>%
   select(date_time, lfalls_lffs) %>%
   ungroup()
 
-# convert units to MGD
+# convert units to MGD---------------------------------------------------------
 lffs.daily.mgd.df <- lffs.daily.cfs.df %>%
-  dplyr::mutate(lfalls = round(lfalls_lffs/mgd_to_cfs, 0)) %>%
-  dplyr::select(date_time, lfalls)
+  dplyr::mutate(lfalls_lffs = round(lfalls_lffs/mgd_to_cfs, 0)) %>%
+  dplyr::select(date_time, lfalls_lffs)
 
 # Create df with baseflow corrected flows--------------------------------------
 lffs.daily.bfc.mgd.df0 <- 
   left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
                                          by = "date_time") %>%
-  # dplyr::select(date_time, lfalls_lffs, lfalls) %>%
-  dplyr::select(date_time, lfalls.y, lfalls.x) %>%
+  dplyr::select(date_time, lfalls, lfalls_lffs) %>%
   # compute 30-day trailing mins
+  # lfalls.y is from lffs; lfalls.x is from USGS
   dplyr::mutate(min_30day_lffs = 
-                  zoo::rollapply(lfalls.y, 30, min,
+                  zoo::rollapply(lfalls_lffs, 30, min,
                                  align = "right", fill = NA),
                 min_30day_usgs = 
-                  zoo::rollapply(lfalls.x, 30, min,
+                  zoo::rollapply(lfalls, 30, min,
                                  align = "right", fill = NA),
                 # compute "baseflow corrections"
                 lfalls_bf_correction = min_30day_usgs - min_30day_lffs)
@@ -68,22 +79,18 @@ lffs.daily.bfc.mgd.df0 <-
 # save today's correction - to apply to forecasts
 lffs_today <- lffs.daily.bfc.mgd.df0 %>%
   filter(date_time == date_today0)
-correction_today <- lffs_today$lfalls_bf_correction
+correction_today <- lffs_today$lfalls_bf_correction[1]
 
 lffs.daily.bfc.mgd.df <- lffs.daily.bfc.mgd.df0 %>%
   mutate(lfalls_bf_correction = case_when(
     date_time <= date_today0 ~ lfalls_bf_correction,
     date_time > date_today0 ~ correction_today,
     TRUE ~ -9999),
-    lfalls_lffs_bfc = round(lfalls.y + 
+    lfalls_lffs_bfc = round(lfalls_lffs + 
                   lfalls_bf_correction, 0),
-    lfalls_obs = lfalls.x,
-    lfalls_lffs = lfalls.y) %>%
+    lfalls_obs = lfalls) %>%
   dplyr::select(date_time, lfalls_obs, lfalls_lffs,
                 lfalls_lffs_bfc, lfalls_bf_correction)
-
-# Compute lfalls stats------------------------------------------------------------
-# lfalls.daily.mgd.df <- 
   
 # Create hourly df with daily lffs corrections -----------------------------------
 lffs.daily.corrections.df <- lffs.daily.bfc.mgd.df %>%

@@ -5,31 +5,38 @@
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
-# flows_daily_cfs.csv - current daily streamflow data
-# demands.daily.df - WMA supplier daily withdrawal data
+# flows.daily.mgd.df - current daily streamflow data
+#    - lfalls
+# lffs.daily.mgd.df - lffs simulated daily flows - with the field
+#    - lfalls
+# lffs.daily.bfc.mgd.df - with the fields:
+#    - lfalls_obs
+#    - lfalls_lffs
+#    - lfalls_lffs_bfc
+#    - lfalls_lffs_bf_correction
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# All for display on 10-Day Ops page
-#   Plots:
-#   - output$ten_day_plot - graph of LFalls observed & forecasted flows
-#   - output$nbr_ten_day_plot - graph of NBr res. inflows & outflows; & Luke
-#   Value boxes:
-#   - output$lfalls_empirical_9day_fc - LFalls forecast from our empirical eq.
-#   - output$wma_withdr_9day_fc - WMA Potomac withdrawal 9-day forecast
-#   - output$luke - today's flow at Luke before water supply release request
-#   - output$deficit - estimated need at LFalls 9 days hence
-#   - output$luke_target - today's target
+# 
 # *****************************************************************************
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Preliminaries
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+# Select flows of interest ----------------------------------------------------
+date_today_ops <- date_today0
+
+# Define "low flow" for computing low flow stats-------------------------------
+lfalls_low_flow <- 2000 # low-flow threshold - maybe 5th percentile value
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Construct time series
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-
-# Select flows of interest ----------------------------------------------------
-date_today_ops <- date_today0
 
 lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
@@ -89,28 +96,28 @@ output$lffs_qa_plot <- renderPlot({
   
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Compute stats for lffs forecast
+# Compute stats for lffs fc
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Create df with obs and sim for selected location and forecast----------------
+# Start with stats for lffs_daily, full ts-------------------------------------
+# Create df with obs and sim for selected location and forecast
+# (trying to design a structure that can be generalized using location & fc)
 location <- "lfalls"
-fc <- "lffs_daily"
+fc <- "lffs"
 obs_df <- flows.daily.mgd.df %>%
   # this worked with flows.daily.cfs.df but not here:
   # mutate(obs = c_across(matches(location))) %>%
   mutate(obs = lfalls) %>%
   dplyr::select(date_time, obs)
 sim_df <- lffs.daily.mgd.df %>%
-  mutate(sim = c_across(matches(location))) %>%
+  mutate(sim = c_across(matches(location))) %>% # matches lfalls
   dplyr::select(date_time, sim)
 
 fc_df <- left_join(obs_df, sim_df, 
                       by = "date_time") %>%
-  mutate(location = location, fc = fc) %>%
+  mutate(location = location, fc = fc) %>% # the name of the fc
   drop_na()
-
-# Compute stats of interest for full time series-------------------------------
 
 # Need mean of obs - need for Nash-Sutcliffe (NSE)
 obs_mean <- mean(fc_df$obs)
@@ -134,11 +141,10 @@ stats_df <- stats_df %>%
   select(-nse_denominator) %>%
   relocate(count, .after = last_col())
 
-# Compute stats of interest for low flow records only--------------------------
-low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
+# Next do stats for lffs_daily, low-flow records only--------------------------
 
 fc_lf_df <- fc_df %>%
-  filter(obs <= low_flow_threshold) 
+  filter(obs <= lfalls_low_flow) 
 
 obs_lf_mean <- mean(fc_lf_df$obs)
 
@@ -161,21 +167,21 @@ stats_lf_df <- stats_lf_df %>%
   relocate(count, .after = last_col())
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Compute stats for lffs baseflow corrected forecast
+# Compute stats for lffs baseflow-corrected fc
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Create df with obs and sim for selected location and forecast----------------
+# First stats for lffs_daily, bfc, full ts-------------------------------------
+# Create df with obs and sim for selected location and forecast
 location <- "lfalls"
-fc <- "lffs_bfc_daily"
+fc <- "lffs_bfc"
+
 obs_df <- flows.daily.mgd.df %>%
   # mutate(obs = c_across(matches(location))) %>%
   mutate(obs = lfalls) %>%
   dplyr::select(date_time, obs)
 sim_df <- lffs.daily.bfc.mgd.df %>%
-  mutate(lfalls = lfalls_lffs) %>%
-  select(date_time, lfalls) %>%
-  mutate(sim = c_across(matches(location))) %>%
+  mutate(sim = c_across(matches(paste(location, "_", fc, sep="")))) %>%
   dplyr::select(date_time, sim)
 
 fc_df <- left_join(obs_df, sim_df, 
@@ -183,9 +189,7 @@ fc_df <- left_join(obs_df, sim_df,
   mutate(location = location, fc = fc) %>%
   drop_na()
 
-# Compute stats of interest for full time series-------------------------------
-
-# Need mean of obs - need for Nash-Sutcliffe (NSE)
+# Need mean of obs - for computing Nash-Sutcliffe efficiency (NSE)
 obs_mean <- mean(fc_df$obs)
 
 fc_df <- fc_df %>%
@@ -207,11 +211,9 @@ stats_bfc_df <- stats_bfc_df %>%
   select(-nse_denominator) %>%
   relocate(count, .after = last_col())
 
-# Compute stats of interest for low flow records only--------------------------
-low_flow_threshold <- 2000 # low-flow threshold - maybe 5th percentile value
-
+# Next compute stats for the lffs daily fc, bf-corrected-----------------------
 fc_lf_df <- fc_df %>%
-  filter(obs <= low_flow_threshold) 
+  filter(obs <= lfalls_low_flow) 
 
 obs_lf_mean <- mean(fc_lf_df$obs)
 
@@ -232,8 +234,6 @@ stats_bfc_lf_df <- stats_bfc_lf_df %>%
   mutate(nse = nse) %>%
   select(-nse_denominator) %>%
   relocate(count, .after = last_col())
-
-
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

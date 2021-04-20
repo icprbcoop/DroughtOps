@@ -10,9 +10,10 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# withdrawals.hourly.df - WMA hourly withdrawals in MGD
-# demands.daily.df - WMA daily demands in MGD
+# withdrawals.hourly.df - WMA hourly withdrawals, MGD, cleaned up
+# withdrawals.daily.df - WMA daily withdrawals, MGD
 # production.daily.df - WMA daily production in MGD
+# demands.daily.df - WMA daily demands, MGD, FOR SIM CODE - NOT CURRENTLY USED
 # *****************************************************************************
 
 #------------------------------------------------------------------------------
@@ -45,7 +46,7 @@ withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Solve PROBLEM: LW values can be spotty and end today
+# Solve PROBLEM: LW values can be spotty and/or end today
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -66,7 +67,7 @@ if(is.numeric(tail(lw_ts$disch_lw_pot,1)))
 if(is.numeric(head(lw_ts$disch_lw_pot,1))) 
 {lw_ts_first <- head(lw_ts$disch_lw_pot,1)} 
 
-# Fill in last disch_lw_pot NA with last available value
+# Fill in first and last disch_lw_pot NA with available values
 ltemp <- length(withdrawals.hourly.df$disch_lw_pot)
 withdrawals.hourly.df$disch_lw_pot[ltemp] <- lw_ts_last
 withdrawals.hourly.df$disch_lw_pot[1] <- lw_ts_first
@@ -105,7 +106,7 @@ ltemp <- length(withdrawals.hourly.df$lw_fw)
 withdrawals.hourly.df$lw_fw[ltemp] <- lw_ts_last
 withdrawals.hourly.df$lw_fw[1] <- lw_ts_first
 
-# Now interpolate Broad Run discharge data column
+# Now interpolate LW purchased from FW data column
 withdrawals.hourly.df$lw_fw <- 
   zoo::na.approx.default(withdrawals.hourly.df$lw_fw)
 
