@@ -17,7 +17,9 @@ library(png)
 library(leaflet)
 library(rgdal)
 library(RCurl)
-library(tidyverse)
+library(tidyr)
+library(readr)
+# library(tidyverse)
 library(curl)
 
 

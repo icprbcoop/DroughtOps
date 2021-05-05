@@ -101,7 +101,11 @@ dashboardPage(skin = "blue" ,
                    br(), br(),
                    br(), br(),
                    actionButton("write_ts2",
-                                "Write input time series to /output",
+                                "Write imported data to input dir",
+                                icon = NULL,
+                                width = "220px"),
+                   actionButton("write_fcs",
+                                "Archive today's forecasts to /data/",
                                 icon = NULL,
                                 width = "220px")
                    ), # end dashboardSidebar

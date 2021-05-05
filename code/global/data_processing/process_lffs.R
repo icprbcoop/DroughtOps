@@ -20,6 +20,16 @@
 # lffs.hourly.mgd.df - includes the fields:
 #    - lfalls_lffs_hourly
 #    - lfalls_lffs_hourly_bfc
+# lffs.daily.fc.mgd.df - for archiving, with the fields
+#    - date
+#    - lfalls, ... (mgd)
+#    - date_fc
+#    - length_fc (days)
+# lffs.daily.bfc.fc.mgd.df - for archiving, with the fields
+#    - date
+#    - lfalls, ... (mgd)
+#    - date_fc
+#    - length_fc (days)
 # *****************************************************************************
 
 print("starting process_lffs")
@@ -55,7 +65,7 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   select(date_time, lfalls_lffs) %>%
   ungroup()
 
-# convert units to MGD---------------------------------------------------------
+# convert units to MGD
 lffs.daily.mgd.df <- lffs.daily.cfs.df %>%
   dplyr::mutate(lfalls_lffs = round(lfalls_lffs/mgd_to_cfs, 0)) %>%
   dplyr::select(date_time, lfalls_lffs)
@@ -103,3 +113,19 @@ lffs.hourly.mgd.df <- left_join(lffs.hourly.cfs.df,
                                  lffs.daily.corrections.df, by = "date") %>%
   mutate(lfalls_lffs_hourly_bfc = lfalls_lffs_hourly/mgd_to_cfs
          + lfalls_bf_correction)
+
+# Create today's recent and forecasted daily flows for archiving---------------
+lffs.daily.fc.mgd.df <- lffs.daily.mgd.df %>%
+  dplyr::filter(date_time>=date_today0 - 30) %>%
+  dplyr::rename(date = date_time,
+                lfalls = lfalls_lffs) %>%
+  dplyr::mutate(date_fc = date_today0,
+                length_fc = as.integer(date - date_fc))
+
+lffs.daily.bfc.fc.mgd.df <- lffs.daily.bfc.mgd.df %>%
+  dplyr::filter(date_time>=date_today0 - 30) %>%
+  dplyr::rename(date = date_time,
+                lfalls = lfalls_lffs_bfc) %>%
+  dplyr::mutate(date_fc = date_today0,
+                length_fc = as.integer(date - date_fc)) %>%
+  dplyr::select(date, lfalls, date_fc, length_fc)

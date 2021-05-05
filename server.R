@@ -35,23 +35,45 @@ shinyServer(function(input, output, session) {
       dplyr::mutate(date = date_time) %>%
       select(-date_time) %>%
       relocate(date)
-    write_csv(flows_daily_temp, paste(ts_output, 
+    write_csv(flows_daily_temp, paste(ts_path, 
                                        "flows_daily_cfs.csv",
                                        sep=""))
     flows_hourly_temp <- flows.hourly.cfs.df0 %>%
       dplyr::mutate(date = date_time) %>%
       select(-date_time) %>%
       relocate(date)
-    write_csv(flows_hourly_temp, paste(ts_output, 
+    write_csv(flows_hourly_temp, paste(ts_path, 
                                        "flows_hourly_cfs.csv",
                                        sep=""))
     wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 %>%
       #  add 16 dummy rows, to mimic file from the Data Portal
     add_row(FW_POT = rep(-99999.9, 16), .before=1)
-    write_csv(wma_withdrawals_temp, paste(ts_output,
+    write_csv(wma_withdrawals_temp, paste(ts_path,
                                        "wma_withdrawals.csv",
                                        sep=""),
               col_names = FALSE)
+  })
+  
+  # Write today's forecasts to /data/forecasts---------------------------------
+  observeEvent(input$write_fcs, {
+    write_csv(lffs.daily.fc.mgd.df, 
+              paste("data/forecasts/lffs_daily/",
+                    "flows_mgd_",
+                    date_today0,
+                    ".csv",
+                    sep=""))
+    write_csv(lffs.daily.bfc.fc.mgd.df, 
+              paste("data/forecasts/lffs_bfc_daily/",
+                    "flows_mgd_",
+                    date_today0,
+                    ".csv",
+                    sep=""))
+    write_csv(withdrawals.daily.df,
+              paste("data/forecasts/coop1_withdrawals_daily/",
+                    "withdrawals_mgd_",
+                    date_today0,
+                    ".csv",
+                    sep=""))
   })
   
   }) # end shinyServer

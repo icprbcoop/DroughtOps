@@ -25,7 +25,9 @@ need <- c("shiny",
           "curl",
           "rvest",
           "dataRetrieval",
-          "tidyverse") 
+          "readr",
+          "tidyr")
+          # "tidyverse") 
 # find out which packages are installed
 ins <- installed.packages()[, 1] 
 # check if the needed packages are installed
