@@ -107,11 +107,14 @@ location <- "lfalls"
 simtype <- "lffs"
 obs_df <- flows.daily.mgd.df %>%
   # this worked with flows.daily.cfs.df but not here:
-  # mutate(obs = c_across(matches(location))) %>%
-  mutate(obs = lfalls) %>%
+  # mutate(obs = across(matches(location))) %>%
+  # mutate(obs = lfalls) %>%
+  dplyr::mutate(obs = .data[[location]]) %>% # this works here
   dplyr::select(date_time, obs)
 sim_df0 <- lffs.daily.mgd.df %>%
-  mutate(sim = c_across(matches(location))) %>% # matches lfalls
+  # mutate(sim = c_across(starts_with(location))) %>% 
+  mutate(sim = c_across(matches(paste(location, "_", simtype, sep="")))) %>%
+  # dplyr::mutate(sim = .data[[location]]) %>% # this doesn't work here
   dplyr::select(date_time, sim)
 
 sim_df <- left_join(obs_df, sim_df0, 
@@ -180,6 +183,7 @@ simtype <- "lffs_bfc"
 
 obs_df <- flows.daily.mgd.df %>%
   # mutate(obs = c_across(matches(location))) %>%
+  dplyr::mutate(obs = .data[[location]]) %>% # this works here
   mutate(obs = lfalls) %>%
   dplyr::select(date_time, obs)
 sim_df0 <- lffs.daily.bfc.mgd.df %>%
