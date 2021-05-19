@@ -80,6 +80,7 @@ autoread_resstorage <- 0 # has to be 0 right now - no online storages
 
 # Read classes and functions --------------------------------------------------
 source("code/functions/data_processing/recess_daily_flows.R", local = TRUE)
+source("code/functions/data_processing/compute_verification_metrics.R", local = TRUE)
 source("code/classes/reservoir_class.R", local = TRUE)
 source("code/functions/reservoir_ops/reservoir_ops_init_func.R", local = TRUE)
 source("code/functions/reservoir_ops/reservoir_ops_today_func.R", local = TRUE)

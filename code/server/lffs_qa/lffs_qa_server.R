@@ -30,7 +30,7 @@
 date_today_ops <- date_today0
 
 # Define "low flow" for computing low flow stats-------------------------------
-lfalls_low_flow <- 2000 # low-flow threshold - maybe 5th percentile value
+lfalls_lowflow <- 2000 # low-flow threshold - maybe 5th percentile value
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -105,143 +105,191 @@ output$lffs_qa_plot <- renderPlot({
 # (trying to design a structure that can be generalized using location & fc)
 location <- "lfalls"
 simtype <- "lffs"
-obs_df <- flows.daily.mgd.df %>%
-  # this worked with flows.daily.cfs.df but not here:
-  # mutate(obs = across(matches(location))) %>%
-  # mutate(obs = lfalls) %>%
-  dplyr::mutate(obs = .data[[location]]) %>% # this works here
-  dplyr::select(date_time, obs)
-sim_df0 <- lffs.daily.mgd.df %>%
-  # mutate(sim = c_across(starts_with(location))) %>% 
-  mutate(sim = c_across(matches(paste(location, "_", simtype, sep="")))) %>%
-  # dplyr::mutate(sim = .data[[location]]) %>% # this doesn't work here
-  dplyr::select(date_time, sim)
 
-sim_df <- left_join(obs_df, sim_df0, 
-                      by = "date_time") %>%
-  mutate(location = location, simtype = simtype) %>% # the name of the fc
-  drop_na()
-
-# Need mean of obs - need for Nash-Sutcliffe (NSE)
-obs_mean <- mean(sim_df$obs)
-
-sim_df <- sim_df %>%
-  mutate(err = obs - sim,
-         ae = abs(obs - sim),
-         ape = 100*ae/obs,
-         se = (obs - sim)^2,
-         nse_denominator = (obs - obs_mean)^2 )
-stats_df <- sim_df %>%
-  summarise(across(where(is.character), first), # this grabs location name
-            across(where(is.numeric), mean), # this computes means
-            count = n()) %>% # this provides count of no. of records
-  dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
-  dplyr::select(-obs, -sim)
-
-# Add Nash-Sutcliffe efficiency value
-nse <- 1 - stats_df$sse[1]/stats_df$nse_denominator[1]
-stats_df <- stats_df %>%
-  mutate(nse = nse) %>%
-  select(-nse_denominator) %>%
-  relocate(count, .after = last_col())
-
-# Next do stats for lffs_daily, low-flow records only--------------------------
-
-sim_lf_df <- sim_df %>%
-  filter(obs <= lfalls_low_flow) 
-
-obs_lf_mean <- mean(sim_lf_df$obs)
-
-stats_lf_df <- sim_lf_df %>%
-  mutate(err = obs - sim,
-         ae = abs(obs - sim),
-         ape = 100*ae/obs,
-         se = (obs - sim)^2,
-         nse_denominator = (obs - obs_lf_mean)^2 ) %>%
-  summarise(across(where(is.character), first), # this grabs location name
-            across(where(is.numeric), mean), # this computes means
-            count = n()) %>% # this provides count of no. of records
-  dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
-  dplyr::select(-obs, -sim)
-
-# Add Nash-Sutcliffe efficiency value
-nse <- 1 - stats_lf_df$sse[1]/stats_lf_df$nse_denominator[1]
-stats_lf_df <- stats_lf_df %>%
-  mutate(nse = nse) %>%
-  select(-nse_denominator) %>%
-  relocate(count, .after = last_col())
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# Compute stats for lffs baseflow-corrected fc
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-
-# First stats for lffs_daily, bfc, full ts-------------------------------------
-# Create df with obs and sim for selected location and forecast
+obs_df0 <- flows.daily.cfs.df
+sim_df0 <- lffs.daily.mgd.df
+date_first <- date_today0 - 870
+date_last <- date_today0 - 130
 location <- "lfalls"
-simtype <- "lffs_bfc"
 
-obs_df <- flows.daily.mgd.df %>%
-  # mutate(obs = c_across(matches(location))) %>%
-  dplyr::mutate(obs = .data[[location]]) %>% # this works here
-  mutate(obs = lfalls) %>%
-  dplyr::select(date_time, obs)
-sim_df0 <- lffs.daily.bfc.mgd.df %>%
-  mutate(sim = c_across(matches(paste(location, "_", simtype, sep="")))) %>%
-  dplyr::select(date_time, sim)
+# First do stats for lffs_daily, all records-----------------------------------
+stats_df <- verification_metrics_daily_func(
+  obs_df0, 
+  sim_df0 = lffs.daily.mgd.df,
+  date_first,
+  date_last,
+  location,
+  simtype = "lffs",
+  lowflow_threshold = 200000)
+  
+stats_lf_df <- verification_metrics_daily_func(
+  obs_df0, 
+  sim_df0 = lffs.daily.mgd.df,
+  date_first,
+  date_last,
+  location,
+  simtype = "lffs",
+  lowflow_threshold = 3000)
 
-sim_df <- left_join(obs_df, sim_df0, 
-                   by = "date_time") %>%
-  mutate(location = location, simtype = simtype) %>%
-  drop_na()
+# Compute stats for lffs_daily, bfc, full record-------------------------------
+stats_bfc_df <- verification_metrics_daily_func(
+  obs_df0, 
+  sim_df0 = lffs.daily.bfc.mgd.df,
+  date_first,
+  date_last,
+  location,
+  simtype = "lffs_bfc",
+  lowflow_threshold = 200000)
 
-# Need mean of obs - for computing Nash-Sutcliffe efficiency (NSE)
-obs_mean <- mean(sim_df$obs)
+stats_bfc_lf_df <- verification_metrics_daily_func(
+  obs_df0, 
+  sim_df0 = lffs.daily.bfc.mgd.df,
+  date_first,
+  date_last,
+  location,
+  simtype = "lffs_bfc",
+  lowflow_threshold = 3000)
 
-sim_df <- sim_df %>%
-  mutate(err = obs - sim,
-         ae = abs(obs - sim),
-         ape = 100*ae/obs,
-         se = (obs - sim)^2,
-         nse_denominator = (obs - obs_mean)^2 )
-stats_bfc_df <- sim_df %>%
-  summarise(across(where(is.character), first), # this grabs location name
-            across(where(is.numeric), mean), # this computes means
-            count = n()) %>% # this provides count of no. of records
-  dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
-  dplyr::select(-obs, -sim)
+  
+# Next do stats for lffs_daily, bfc, low-flow records only---------------------
 
-# Add Nash-Sutcliffe efficiency value
-nse <- 1 - stats_bfc_df$sse[1]/stats_bfc_df$nse_denominator[1]
-stats_bfc_df <- stats_bfc_df %>%
-  mutate(nse = nse) %>%
-  select(-nse_denominator) %>%
-  relocate(count, .after = last_col())
+# obs_df <- flows.daily.mgd.df %>%
+#   # this worked with flows.daily.cfs.df but not here:
+#   # mutate(obs = across(matches(location))) %>%
+#   # mutate(obs = lfalls) %>%
+#   dplyr::mutate(obs = .data[[location]]) %>% # this works here
+#   dplyr::select(date_time, obs)
+# sim_df0 <- lffs.daily.mgd.df %>%
+#   # mutate(sim = c_across(starts_with(location))) %>% 
+#   mutate(sim = c_across(matches(paste(location, "_", simtype, sep="")))) %>%
+#   # dplyr::mutate(sim = .data[[location]]) %>% # this doesn't work here
+#   dplyr::select(date_time, sim)
+# 
+# sim_df <- left_join(obs_df, sim_df0, 
+#                       by = "date_time") %>%
+#   mutate(location = location, simtype = simtype) %>% # the name of the fc
+#   drop_na()
+# 
+# # Need mean of obs - need for Nash-Sutcliffe (NSE)
+# obs_mean <- mean(sim_df$obs)
+# 
+# sim_df <- sim_df %>%
+#   mutate(err = obs - sim,
+#          ae = abs(obs - sim),
+#          ape = 100*ae/obs,
+#          se = (obs - sim)^2,
+#          nse_denominator = (obs - obs_mean)^2 )
+# stats_df <- sim_df %>%
+#   summarise(across(where(is.character), first), # this grabs location name
+#             across(where(is.numeric), mean), # this computes means
+#             count = n()) %>% # this provides count of no. of records
+#   dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
+#   dplyr::select(-obs, -sim)
+# 
+# # Add Nash-Sutcliffe efficiency value
+# nse <- 1 - stats_df$sse[1]/stats_df$nse_denominator[1]
+# stats_df <- stats_df %>%
+#   mutate(nse = nse) %>%
+#   select(-nse_denominator) %>%
+#   relocate(count, .after = last_col())
 
-# Next compute stats for the lffs sim, bfc, lowflow records only---------------
-sim_lf_df <- sim_df %>%
-  filter(obs <= lfalls_low_flow) 
-
-obs_lf_mean <- mean(sim_lf_df$obs)
-
-stats_bfc_lf_df <- sim_lf_df %>%
-  mutate(err = obs - sim,
-         ae = abs(obs - sim),
-         ape = 100*ae/obs,
-         se = (obs - sim)^2,
-         nse_denominator = (obs - obs_lf_mean)^2 ) %>%
-  summarise(across(where(is.character), first), # this grabs location name
-            across(where(is.numeric), mean), # this computes means
-            count = n()) %>% # this provides count of no. of records
-  dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
-  dplyr::select(-obs, -sim)
-
-# Add Nash-Sutcliffe efficiency value
-nse <- 1 - stats_bfc_lf_df$sse[1]/stats_bfc_lf_df$nse_denominator[1]
-stats_bfc_lf_df <- stats_bfc_lf_df %>%
-  mutate(nse = nse) %>%
-  select(-nse_denominator) %>%
-  relocate(count, .after = last_col())
+# # Next do stats for lffs_daily, low-flow records only--------------------------
+# 
+# sim_lf_df <- sim_df %>%
+#   filter(obs <= lfalls_lowflow) 
+# 
+# obs_lf_mean <- mean(sim_lf_df$obs)
+# 
+# stats_lf_df <- sim_lf_df %>%
+#   mutate(err = obs - sim,
+#          ae = abs(obs - sim),
+#          ape = 100*ae/obs,
+#          se = (obs - sim)^2,
+#          nse_denominator = (obs - obs_lf_mean)^2 ) %>%
+#   summarise(across(where(is.character), first), # this grabs location name
+#             across(where(is.numeric), mean), # this computes means
+#             count = n()) %>% # this provides count of no. of records
+#   dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
+#   dplyr::select(-obs, -sim)
+# 
+# # Add Nash-Sutcliffe efficiency value
+# nse <- 1 - stats_lf_df$sse[1]/stats_lf_df$nse_denominator[1]
+# stats_lf_df <- stats_lf_df %>%
+#   mutate(nse = nse) %>%
+#   select(-nse_denominator) %>%
+#   relocate(count, .after = last_col())
+# #------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------
+# # Compute stats for lffs baseflow-corrected fc
+# #------------------------------------------------------------------------------
+# #------------------------------------------------------------------------------
+# 
+# # First stats for lffs_daily, bfc, full ts-------------------------------------
+# # Create df with obs and sim for selected location and forecast
+# location <- "lfalls"
+# simtype <- "lffs_bfc"
+# 
+# obs_df <- flows.daily.mgd.df %>%
+#   # mutate(obs = c_across(matches(location))) %>%
+#   dplyr::mutate(obs = .data[[location]]) %>% # this works here
+#   mutate(obs = lfalls) %>%
+#   dplyr::select(date_time, obs)
+# sim_df0 <- lffs.daily.bfc.mgd.df %>%
+#   mutate(sim = c_across(matches(paste(location, "_", simtype, sep="")))) %>%
+#   dplyr::select(date_time, sim)
+# 
+# sim_df <- left_join(obs_df, sim_df0, 
+#                    by = "date_time") %>%
+#   mutate(location = location, simtype = simtype) %>%
+#   drop_na()
+# 
+# # Need mean of obs - for computing Nash-Sutcliffe efficiency (NSE)
+# obs_mean <- mean(sim_df$obs)
+# 
+# sim_df <- sim_df %>%
+#   mutate(err = obs - sim,
+#          ae = abs(obs - sim),
+#          ape = 100*ae/obs,
+#          se = (obs - sim)^2,
+#          nse_denominator = (obs - obs_mean)^2 )
+# stats_bfc_df <- sim_df %>%
+#   summarise(across(where(is.character), first), # this grabs location name
+#             across(where(is.numeric), mean), # this computes means
+#             count = n()) %>% # this provides count of no. of records
+#   dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
+#   dplyr::select(-obs, -sim)
+# 
+# # Add Nash-Sutcliffe efficiency value
+# nse <- 1 - stats_bfc_df$sse[1]/stats_bfc_df$nse_denominator[1]
+# stats_bfc_df <- stats_bfc_df %>%
+#   mutate(nse = nse) %>%
+#   select(-nse_denominator) %>%
+#   relocate(count, .after = last_col())
+# 
+# # Next compute stats for the lffs sim, bfc, lowflow records only---------------
+# sim_lf_df <- sim_df %>%
+#   filter(obs <= lfalls_lowflow) 
+# 
+# obs_lf_mean <- mean(sim_lf_df$obs)
+# 
+# stats_bfc_lf_df <- sim_lf_df %>%
+#   mutate(err = obs - sim,
+#          ae = abs(obs - sim),
+#          ape = 100*ae/obs,
+#          se = (obs - sim)^2,
+#          nse_denominator = (obs - obs_lf_mean)^2 ) %>%
+#   summarise(across(where(is.character), first), # this grabs location name
+#             across(where(is.numeric), mean), # this computes means
+#             count = n()) %>% # this provides count of no. of records
+#   dplyr::rename(mape = ape, mae = ae, sse = se, bias = err) %>%
+#   dplyr::select(-obs, -sim)
+# 
+# # Add Nash-Sutcliffe efficiency value
+# nse <- 1 - stats_bfc_lf_df$sse[1]/stats_bfc_lf_df$nse_denominator[1]
+# stats_bfc_lf_df <- stats_bfc_lf_df %>%
+#   mutate(nse = nse) %>%
+#   select(-nse_denominator) %>%
+#   relocate(count, .after = last_col())
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
