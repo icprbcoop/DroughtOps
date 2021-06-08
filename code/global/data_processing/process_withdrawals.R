@@ -10,7 +10,7 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# withdrawals.hourly.df - WMA hourly withdrawals, MGD, cleaned up
+# withdrawals_hourly_mgd_df - WMA hourly withdrawals, MGD, cleaned up
 # withdrawals.daily.df - WMA daily withdrawals, MGD
 # production.daily.df - WMA daily production in MGD
 # demands.daily.df - WMA daily demands, MGD, FOR SIM CODE - NOT CURRENTLY USED
@@ -29,7 +29,7 @@ d_fw_c <- 10 # MGD
 withdrawal_to_production <- 0.97 # consistent with PRRISM "production loss" rates
 
 # Get df in necessary format --------------------------------------------------
-withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
+withdrawals_hourly_mgd_df <- withdrawals.hourly.mgd.df0 %>%
   dplyr::rename_with(tolower) %>% # switch to lowercase col names
   dplyr::rename(date_time = datetime,
                 w_wssc_pot = wssc_pot,
@@ -42,7 +42,8 @@ withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
                 disch_lw_pot = lw_br) %>%
   filter(!is.na(date_time)) %>% # sometime these are sneaking in
   dplyr::mutate(date_time = as.POSIXct(date_time, tz = "EST"),
-                date = round_date(date_time, unit = "days"))
+                date = round_date(date_time, unit = "days")
+                )
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -52,7 +53,7 @@ withdrawals.hourly.df <- withdrawals.hourly.mgd.df0 %>%
 
 # LS Broad Run discharge-------------------------------------------------------
 # First find last and first available values
-lw_ts0 <- withdrawals.hourly.df %>%
+lw_ts0 <- withdrawals_hourly_mgd_df %>%
   dplyr::select(date_time, disch_lw_pot)
 lw_ts <- drop_na(lw_ts0, disch_lw_pot) # drop all NA's
 
@@ -68,47 +69,52 @@ if(is.numeric(head(lw_ts$disch_lw_pot,1)))
 {lw_ts_first <- head(lw_ts$disch_lw_pot,1)} 
 
 # Fill in first and last disch_lw_pot NA with available values
-ltemp <- length(withdrawals.hourly.df$disch_lw_pot)
-withdrawals.hourly.df$disch_lw_pot[ltemp] <- lw_ts_last
-withdrawals.hourly.df$disch_lw_pot[1] <- lw_ts_first
+ltemp <- length(withdrawals_hourly_mgd_df$disch_lw_pot)
+withdrawals_hourly_mgd_df$disch_lw_pot[ltemp] <- lw_ts_last
+withdrawals_hourly_mgd_df$disch_lw_pot[1] <- lw_ts_first
 
 # Now interpolate Broad Run discharge data column
-withdrawals.hourly.df$disch_lw_pot <- 
-  zoo::na.approx.default(withdrawals.hourly.df$disch_lw_pot)
+withdrawals_hourly_mgd_df$disch_lw_pot <- 
+  zoo::na.approx.default(withdrawals_hourly_mgd_df$disch_lw_pot)
 
 # LW Potomac withdrawal--------------------------------------------------------
 # First find last and first available values
-lw_ts0 <- withdrawals.hourly.df %>%
+lw_ts0 <- withdrawals_hourly_mgd_df %>%
   dplyr::select(date_time, w_lw_pot)
 lw_ts <- drop_na(lw_ts0, w_lw_pot) # drop all NA's
 lw_ts_last <- tail(lw_ts$w_lw_pot,1) # paste values into 1st & last rows
 lw_ts_first <- head(lw_ts$w_lw_pot,1)
 
 # Fill in last disch_lw_pot NA with last available value
-ltemp <- length(withdrawals.hourly.df$w_lw_pot)
-withdrawals.hourly.df$w_lw_pot[ltemp] <- lw_ts_last
-withdrawals.hourly.df$w_lw_pot[1] <- lw_ts_first
+ltemp <- length(withdrawals_hourly_mgd_df$w_lw_pot)
+withdrawals_hourly_mgd_df$w_lw_pot[ltemp] <- lw_ts_last
+withdrawals_hourly_mgd_df$w_lw_pot[1] <- lw_ts_first
 
 # Now interpolate Broad Run discharge data column
-withdrawals.hourly.df$w_lw_pot <- 
-  zoo::na.approx.default(withdrawals.hourly.df$w_lw_pot)
+withdrawals_hourly_mgd_df$w_lw_pot <- 
+  zoo::na.approx.default(withdrawals_hourly_mgd_df$w_lw_pot)
 
 # LW FW purchase--------------------------------------------------------
 # First find last and first available values
-lw_ts0 <- withdrawals.hourly.df %>%
+lw_ts0 <- withdrawals_hourly_mgd_df %>%
   dplyr::select(date_time, lw_fw)
 lw_ts <- drop_na(lw_ts0, lw_fw) # drop all NA's
 lw_ts_last <- tail(lw_ts$lw_fw,1) # paste values into 1st & last rows
 lw_ts_first <- head(lw_ts$lw_fw,1)
 
 # Fill in last disch_lw_pot NA with last available value
-ltemp <- length(withdrawals.hourly.df$lw_fw)
-withdrawals.hourly.df$lw_fw[ltemp] <- lw_ts_last
-withdrawals.hourly.df$lw_fw[1] <- lw_ts_first
+ltemp <- length(withdrawals_hourly_mgd_df$lw_fw)
+withdrawals_hourly_mgd_df$lw_fw[ltemp] <- lw_ts_last
+withdrawals_hourly_mgd_df$lw_fw[1] <- lw_ts_first
 
 # Now interpolate LW purchased from FW data column
-withdrawals.hourly.df$lw_fw <- 
-  zoo::na.approx.default(withdrawals.hourly.df$lw_fw)
+withdrawals_hourly_mgd_df$lw_fw <- 
+  zoo::na.approx.default(withdrawals_hourly_mgd_df$lw_fw)
+
+# Add total net Potomac withdrawal
+withdrawals_hourly_mgd_df <- withdrawals_hourly_mgd_df %>%
+  dplyr::mutate(wnet_wma_pot = w_wssc_pot + w_fw_pot + w_wa_lf
+                + w_wa_gf + w_lw_pot - disch_lw_pot)
 
 
 #-------------------------------------------------------------------------------
@@ -117,7 +123,7 @@ withdrawals.hourly.df$lw_fw <-
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-withdrawals.daily.df <- withdrawals.hourly.df %>%
+withdrawals.daily.df <- withdrawals_hourly_mgd_df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # summarise_all(mean) %>%

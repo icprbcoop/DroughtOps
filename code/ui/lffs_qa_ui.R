@@ -14,36 +14,26 @@ tabPanel("LFFS QA",
              width = 12,
              #
              # now add the content
-             column(  # this is the 1st main column - with the graphs
-               width = 8,
-               fluidRow( # row with graph
+             fluidRow( # row with graph on LHS and value boxes on RHS
+               column(  # first column of first row - with the graphs
+                 width = 8,
                  box(
                    title = "Little Falls flows - observed and forecasted",
                    width = NULL,
-                   plotOutput("lffs_qa_plot", height = plot.height, width = plot.width)
-                   # plotOutput("potomacFlows", height = "220px")
-                 )
-               ) ,
-               fluidRow( # row stats tables
-                 h3("LFFS"),
-                 column(
-                   width = 12,
-                   box(
-                     title = "Forecast stats",
-                     width = NULL,
-                     tableOutput("lffs_stats")
-                   ),
-                   box(
-                     title = "Low-flow forecast stats",
-                     width = NULL,
-                     tableOutput("lffs_lf_stats"),
-                   )
-                 )
-               ), # end of 2nd fluid row
-               fluidRow( # row stats tables
-                 h3("LFFS - baseflow-corrected"),
-                 column(
-                   width = 12,
+                   plotOutput("lffs_qa_plot", height = plot.height, 
+                              width = plot.width)
+                 # plotOutput("potomacFlows", height = "220px")
+                 ) # end of box with graph
+                 ), # end of column with graph
+               column( # second column of first row - with some values
+                 width = 4,
+                 # some general information
+                 valueBoxOutput("lffs_today", width = NULL) #,
+                 ) # end of column with values
+             ), # end of first row
+
+               fluidRow( # full-length row with stats tables
+                 h3("LFFS, baseflow-corrected - long-term stats"),
                    box(
                      title = "Forecast stats",
                      width = NULL,
@@ -53,32 +43,19 @@ tabPanel("LFFS QA",
                      title = "Low-flow forecast stats",
                      width = NULL,
                      tableOutput("lffs_bfc_lf_stats"),
-                   )
+                   ),
+                 h3("LFFS - long-term stats"),
+                 box(
+                   title = "Forecast stats",
+                   width = NULL,
+                   tableOutput("lffs_stats")
+                 ),
+                 box(
+                   title = "Low-flow forecast stats",
+                   width = NULL,
+                   tableOutput("lffs_lf_stats"),
                  )
-               ) # end of 3rd fluid row
-             ), # end of 1st main column - with graphs
-             column( # this is the 2nd main column - with values & triggers
-               width = 4,
-               # some general information
-               valueBoxOutput("lffs_today", width = NULL) #,
-               # valueBoxOutput("wma_withdr_9day_fc", width = NULL),
-               # valueBoxOutput("luke", width = NULL), 
-               # br(),
-               # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from empirical recession equation",
-               #     width = NULL,
-               #     height=60),
-               # valueBoxOutput("lfalls_empirical_9day_fc", width = NULL),
-               # valueBoxOutput("empirical_9day_deficit", width = NULL),
-               # valueBoxOutput("luke_target1", width = NULL),
-               # br(),
-               # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",
-               #     width = NULL,
-               #     height=60),
-               # valueBoxOutput("lfalls_lffs_9day_fc", width = NULL),
-               # valueBoxOutput("lffs_9day_deficit", width = NULL),
-               # valueBoxOutput("luke_target2", width = NULL)
-               # valueBoxOutput("lfalls_obs", width = NULL)
-             ) # end of 2nd main column
+                 ) # end of second fluid row
            ) # end of major column that contains whole body
          ) # end of major row that contains whole body
 

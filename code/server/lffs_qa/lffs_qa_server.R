@@ -41,7 +41,7 @@ lfalls_lowflow <- 2000 # low-flow threshold - maybe 5th percentile value
 lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
   dplyr::select(date_time, lfalls, lfalls_from_upstr, 
-                lfalls_lffs, lfalls_lffs_bfc,
+                lfalls_lffs_daily, lfalls_lffs_bfc,
                 por, monoc_jug, goose, seneca,
                 # luke, kitzmiller, barnum,
                 d_pot_total)
@@ -56,7 +56,7 @@ lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
 lffs.plot.df <- lffs.df %>%
   dplyr::select(date_time, lfalls,
                 por, monoc_jug, d_pot_total,
-                lfalls_from_upstr, lfalls_lffs, 
+                lfalls_from_upstr, lfalls_lffs_daily, 
                 lfalls_lffs_bfc #,
                 # lfalls_flowby
                 ) %>%
@@ -100,7 +100,7 @@ output$lffs_qa_plot <- renderPlot({
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Start with stats for lffs_daily, full ts-------------------------------------
+# Long-term stats for lffs_daily, 2014-02-01 to 2020-12-15---------------------
 # Create df with obs and sim for selected location and forecast
 # (trying to design a structure that can be generalized using location & fc)
 location <- "lfalls"
@@ -108,8 +108,8 @@ simtype <- "lffs"
 
 obs_df0 <- flows.daily.cfs.df
 sim_df0 <- lffs.daily.mgd.df
-date_first <- date_today0 - 870
-date_last <- date_today0 - 130
+date_first <- as.Date("2014-04-01")
+date_last <- as.Date("2020-12-16")
 location <- "lfalls"
 
 # First do stats for lffs_daily, all records-----------------------------------

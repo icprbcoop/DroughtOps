@@ -8,10 +8,11 @@
 # *****************************************************************************
 # flows.daily.cfs.df0 - table with daily flows created by import_data.R
 # demands.daily.df - table with daily demands, production, & withdrawals
+# data/flow_data_daily_from2014thru2020.csv - historical data
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.cfs.df
+# flows.daily.cfs.df - currently from 2014-01-01 thru yesterday
 # flows.daily.mgd.df (includes total Potomac demand - change to withdrawals???)
 #   - used for the plots on sit awareness & 10 day ops tabs
 #   - used to compute baseflow correction for lffs flows
@@ -20,15 +21,40 @@
 # *****************************************************************************
 
 #------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Create daily flow df from 2014-01-01 to end of current year
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+# First read the historical data-----------------------------------------------
+historical_flows_daily_cfs_df <- data.table::fread(
+  paste("data/", "flow_data_daily_from2014thru2020.csv", sep = ""),
+  header = TRUE,
+  stringsAsFactors = FALSE,
+  colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
+  col.names = list_gages_daily_locations, # 1st column is "date"
+  na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+  data.table = FALSE) %>%
+  dplyr::mutate(date_time = as.Date(date)) %>%
+  select(-date) %>%
+  filter(!is.na(date_time)) %>%
+  select(date_time, everything()) %>%
+  arrange(date_time)
+
+# Append historical daily data to this year's data-----------------------------
+flows.daily.cfs.df1 <- rbind(historical_flows_daily_cfs_df,
+                             flows.daily.cfs.df0)
+
+#------------------------------------------------------------------------------
 # Add rest of the year's dates to this df
 #  - this seems to make the app more robust if missing data
 #  - added flow values are set to NA
 
 # Identify the last date with daily flow data
-daily_flow_data_last_date <- tail(flows.daily.cfs.df0, 1)$date_time
+daily_flow_data_last_date <- tail(flows.daily.cfs.df1, 1)$date_time
 
 # Add future dates and dummy data to the df
-flows.daily.cfs.df <- flows.daily.cfs.df0 %>%
+flows.daily.cfs.df <- flows.daily.cfs.df1 %>%
   add_row(date_time = seq.Date(daily_flow_data_last_date + 1, 
                                date_dec31, 
                                by = "day"))

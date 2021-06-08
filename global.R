@@ -8,6 +8,7 @@
 #    pieces of code to execute the reactive independent processes,
 #    but it also has an additional capability: the objects 
 #    generated in global.R can be used both in server.R and ui.R"
+# Here global.R does all time series (ts) data importing & processing
 # *****************************************************************************
 # INPUTS - NA
 # *****************************************************************************
@@ -42,11 +43,11 @@ date_today0 <- as.Date(today())
 # Set data source switches in import_data.R------------------------------------
 #   - 1's to download online data
 #   - 0's to read from ts/path/
-#   - to improve speed, change first 3 switches to 0 
-#      - after first pressing "Write... to input dir" on LHS panel
-autoread_dailyflows <- 0 # change to 0 after 1st run to improve speed
-autoread_hourlyflows <- 0 # change to 0 after 1st run to improve speed
-autoread_hourlywithdrawals <- 0 # change to 0 after 1st run to improve speed
+#   - to improve speed, press "Write... to input dir" on LHS panel
+#      - then change first 3 autoread's below from 1 to 0
+autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
+autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
+autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
 autoread_lffs <- 1
 #
 autoread_resstorage <- 0 # has to be 0 right now - no online storages
@@ -81,6 +82,8 @@ autoread_resstorage <- 0 # has to be 0 right now - no online storages
 # Read classes and functions --------------------------------------------------
 source("code/functions/data_processing/recess_daily_flows.R", local = TRUE)
 source("code/functions/data_processing/compute_verification_metrics.R", local = TRUE)
+source("code/functions/data_processing/date_standards_func.R", local = TRUE)
+source("code/functions/data_processing/variable_lagk_func.R", local = TRUE)
 source("code/classes/reservoir_class.R", local = TRUE)
 source("code/functions/reservoir_ops/reservoir_ops_init_func.R", local = TRUE)
 source("code/functions/reservoir_ops/reservoir_ops_today_func.R", local = TRUE)
@@ -126,6 +129,7 @@ print("finished processing LFFS flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Create things that need to be accessed by simulation code
+# (Note, June 2021, sim code no longer works - needs to be redone)
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 

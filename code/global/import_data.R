@@ -108,6 +108,7 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # DAILY FLOW DATA
+# This will be appended to historical dailies, currently ending 2020-12-31
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -120,26 +121,14 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #   - read daily flow data automatically from Data Portal
 #   - start date is January 1 of the current year
 #------------------------------------------------------------------------------
-# Before June 1, data is downloaded for water year
-# After June 1, data is just downloaded for current calendar year
+
 if(autoread_dailyflows == 1) {
-  
   # paste together the url for Data Portal's daily flow data-------------------
   url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?"
-  if(today_month > 5) {
     year_temp <- today_year
     month_temp <- "01"
     start_date_string <- paste("startdate=01%2F", month_temp, "%2F",
                                year_temp, "&enddate=", sep="")
-  }
-  # if it's before June 1, include data from past year
-  else {
-    year_temp <- year(date_today0) - 2
-    month_temp <- "01"
-    start_date_string <- paste("startdate=", month_temp, "%2F", "01", "%2F",
-                               year_temp, "&enddate=", sep="")
-  }
-  # url_daily <- paste(url_daily0, "startdate=01%2F01%2F2020&enddate=", 
   url_daily <- paste(url_daily0, start_date_string, 
                      today_month, "%2F", 
                      today_day, "%2F", 
@@ -151,7 +140,7 @@ if(autoread_dailyflows == 1) {
     url_daily,
     header = TRUE,
     stringsAsFactors = FALSE,
-    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
     col.names = list_gages_daily_locations, # 1st column is "date"
     na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
     data.table = FALSE) %>%
@@ -182,7 +171,7 @@ if(autoread_dailyflows == 0) {
     paste(ts_path, "flows_daily_cfs.csv", sep = ""),
     header = TRUE,
     stringsAsFactors = FALSE,
-    colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
     col.names = list_gages_daily_locations, # 1st column is "date"
     na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
     data.table = FALSE) %>%

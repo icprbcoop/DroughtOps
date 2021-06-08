@@ -2,6 +2,7 @@
 # DESCRIPTION
 # *****************************************************************************
 # Apply baseflow correction to LFFS LFalls forecast
+# Right now LFFS output begins with 2014, but delete 3 months of "spin-up"
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
@@ -33,6 +34,7 @@
 # *****************************************************************************
 
 print("starting process_lffs")
+# Right now LFFS output begins with 2014, but delete 3 months of "spin-up"
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -43,16 +45,18 @@ print("starting process_lffs")
 #   - rollapply computes running stats (align = "right" for past aves)
 #   - work in MGD
 
+
 # First do some formatting-----------------------------------------------------
-#   - delete all data prior to 2019; create date_time and date columns
+# create date_time and date columns
 lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
-  filter(year >= year(date_today0) - 2) %>%
   dplyr::mutate(date_time = 
                   lubridate::make_datetime(year, month, 
-                                           day, minute, second),
-                date = lubridate:: round_date(date_time, unit = "days"),
+                                           day, minute, 
+                                           second, tz = Sys.timezone()),
+                date = lubridate:: floor_date(date_time, unit = "days"),
                 date = as.Date(date),
                 lfalls_lffs_hourly = lfalls_lffs) %>%
+  dplyr::filter(date_time >= as.Date("2014-04-01")) %>%
   select(date_time, date, lfalls_lffs_hourly)
 
 # Compute LFFS LFalls daily flows ---------------------------------------------
@@ -60,25 +64,25 @@ lffs.daily.cfs.df <- lffs.hourly.cfs.df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # average hourlies to get dailies
-  summarise(lfalls_lffs = mean(lfalls_lffs_hourly)) %>%
+  summarise(lfalls_lffs_daily = mean(lfalls_lffs_hourly)) %>%
   mutate(date_time = as.Date(date)) %>%
-  select(date_time, lfalls_lffs) %>%
+  select(date_time, lfalls_lffs_daily) %>%
   ungroup()
 
 # convert units to MGD
 lffs.daily.mgd.df <- lffs.daily.cfs.df %>%
-  dplyr::mutate(lfalls_lffs = round(lfalls_lffs/mgd_to_cfs, 0)) %>%
-  dplyr::select(date_time, lfalls_lffs)
+  dplyr::mutate(lfalls_lffs_daily = round(lfalls_lffs_daily/mgd_to_cfs, 0)) %>%
+  dplyr::select(date_time, lfalls_lffs_daily)
 
 # Create df with baseflow corrected flows--------------------------------------
 lffs.daily.bfc.mgd.df0 <- 
   left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
                                          by = "date_time") %>%
-  dplyr::select(date_time, lfalls, lfalls_lffs) %>%
+  dplyr::select(date_time, lfalls, lfalls_lffs_daily) %>%
   # compute 30-day trailing mins
   # lfalls.y is from lffs; lfalls.x is from USGS
   dplyr::mutate(min_30day_lffs = 
-                  zoo::rollapply(lfalls_lffs, 30, min,
+                  zoo::rollapply(lfalls_lffs_daily, 30, min,
                                  align = "right", fill = NA),
                 min_30day_usgs = 
                   zoo::rollapply(lfalls, 30, min,
@@ -96,17 +100,17 @@ lffs.daily.bfc.mgd.df <- lffs.daily.bfc.mgd.df0 %>%
     date_time <= date_today0 ~ lfalls_bf_correction,
     date_time > date_today0 ~ correction_today,
     TRUE ~ -9999),
-    lfalls_lffs_bfc = round(lfalls_lffs + 
+    lfalls_lffs_bfc = round(lfalls_lffs_daily + 
                   lfalls_bf_correction, 0),
     lfalls_obs = lfalls) %>%
-  dplyr::select(date_time, lfalls_obs, lfalls_lffs,
+  dplyr::select(date_time, lfalls_obs, lfalls_lffs_daily,
                 lfalls_lffs_bfc, lfalls_bf_correction)
   
 # Create hourly df with daily lffs corrections -----------------------------------
 lffs.daily.corrections.df <- lffs.daily.bfc.mgd.df %>%
   mutate(date = as.Date(date_time)) %>%
   select(-date_time) %>%
-  select(date, lfalls_obs, lfalls_lffs,
+  select(date, lfalls_obs, lfalls_lffs_daily,
          lfalls_lffs_bfc, lfalls_bf_correction)
 
 lffs.hourly.mgd.df <- left_join(lffs.hourly.cfs.df,
@@ -118,7 +122,7 @@ lffs.hourly.mgd.df <- left_join(lffs.hourly.cfs.df,
 lffs.daily.fc.mgd.df <- lffs.daily.mgd.df %>%
   dplyr::filter(date_time>=date_today0 - 30) %>%
   dplyr::rename(date = date_time,
-                lfalls = lfalls_lffs) %>%
+                lfalls = lfalls_lffs_daily) %>%
   dplyr::mutate(date_fc = date_today0,
                 length_fc = as.integer(date - date_fc))
 
