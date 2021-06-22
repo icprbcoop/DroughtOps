@@ -216,12 +216,15 @@ if(autoread_hourlyflows == 1) {
   # set desired number of past days--------------------------------------------
   n_past_days <- 90
   start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
-  start_date <- lubridate::with_tz(start_date, "EST")
+  start_datetime <- time_now0 - lubridate::days(n_past_days)
+  # start_datetime <- lubridate::with_tz(start_datetime, "EST")
+  # round to nearest hour in order to use dataRetrieval
+  start_datetime <- lubridate::floor_date(start_datetime, unit = "hours")
   
   # Create dummy df of dates and hours-----------------------------------------
-  temp0 <- start_date - lubridate::hours(1) # first step back 1 hour
+  temp0 <- start_datetime - lubridate::hours(1) # first step back 1 hour
   flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
-    add_row(date_time = seq.POSIXt(start_date,
+    add_row(date_time = seq.POSIXt(start_datetime,
                                    by = "hour",
                                    length.out = n_past_days*24))
   

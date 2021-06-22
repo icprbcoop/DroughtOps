@@ -8,7 +8,7 @@
 # *****************************************************************************
 # long.df - a df of hourly flow data in long format, with columns:
 #    - location: gage location, e.g. por (Potomac River at Point of Rocks)
-#    - date_time: POSIXct
+#    - date_time, in POSIXct date/time format
 #    - flow, in cfs
 # reach - e.g. por_to_lfalls
 # subreach - e.g. por_to_lfalls_1 - por downstream to monoc confluence
@@ -61,7 +61,6 @@ variable_lagk <- function(long.df, location_up, location_down,
                   date_time_lagged = date_time + lag * 3600) %>%
     dplyr::select(date_time_lagged, flow) %>%
     dplyr::rename(date_time = date_time_lagged)  %>%
-  #   dplyr::mutate(site = "predicted") %>% 
     dplyr::mutate(date_time = as.POSIXct(round(date_time, units = "hours"))) %>%
     dplyr::group_by(date_time, flow) %>%
     dplyr::summarise(flow = mean(flow))
@@ -73,8 +72,8 @@ variable_lagk <- function(long.df, location_up, location_down,
     # mutate(flow = c(rep(NA, which.min(is.na(flow)) - 1),
     #                      zoo::na.approx(flow)),
     #        site = "predicted") %>%
-    dplyr::filter(!is.na(flow)) %>%
-    dplyr::rename(location_down = flow)
+    dplyr::filter(!is.na(flow))
+  names(final.df)[2] <- {{location_down}} 
   #------------------------------------------------------------------------------
   return(final.df)
 }
