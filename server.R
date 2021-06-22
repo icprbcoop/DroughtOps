@@ -39,7 +39,8 @@ shinyServer(function(input, output, session) {
                                        "flows_daily_cfs.csv",
                                        sep=""))
     flows_hourly_temp <- flows.hourly.cfs.df0 %>%
-      dplyr::mutate(date = date_time) %>%
+      # need to change datetime to character or will be written as UTC
+      dplyr::mutate(date = as.character(date_time)) %>%
       select(-date_time) %>%
       relocate(date)
     write_csv(flows_hourly_temp, paste(ts_path, 

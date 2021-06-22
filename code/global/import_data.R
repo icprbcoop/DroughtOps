@@ -217,7 +217,7 @@ if(autoread_hourlyflows == 1) {
   n_past_days <- 90
   start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
   start_datetime <- time_now0 - lubridate::days(n_past_days)
-  # start_datetime <- lubridate::with_tz(start_datetime, "EST")
+  start_datetime <- lubridate::with_tz(start_datetime, "EST")
   # round to nearest hour in order to use dataRetrieval
   start_datetime <- lubridate::floor_date(start_datetime, unit = "hours")
   
@@ -229,7 +229,8 @@ if(autoread_hourlyflows == 1) {
                                    length.out = n_past_days*24))
   
   # download hourly flows into a df--------------------------------------------
-  #   (the function below makes use of the USGS's package, dataRetrieval)
+  #   - the function below makes use of the USGS's package, dataRetrieval
+  #   - timezone is set as EST
   flows.hourly.cfs.df0 <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
                                                gage_names = gages_hourly_names, 
                                                flows_empty = flows.hourly.empty.df,
@@ -262,11 +263,11 @@ if(autoread_hourlyflows == 0) {
     paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
     header = TRUE,
     stringsAsFactors = FALSE,
-    # colClasses = c("character", rep("numeric", 31)), # force cols 2-32 numeric
+    colClasses = c('date' = 'character'), 
     # col.names = list_gages_daily_locations, # 1st column is "date"
     na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
     data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.POSIXct(date)) %>%
+    dplyr::mutate(date_time = as.POSIXct(date, tz = "EST")) %>%
     select(-date) %>%
     arrange(date_time) %>%
     filter(!is.na(date_time)) %>% # sometime these are sneaking in

@@ -52,7 +52,7 @@ lffs.hourly.cfs.df <- lffs.hourly.cfs.all.df0 %>%
   dplyr::mutate(date_time = 
                   lubridate::make_datetime(year, month, 
                                            day, minute, 
-                                           second, tz = Sys.timezone()),
+                                           second, tz = "EST"),
                 date = lubridate:: floor_date(date_time, unit = "days"),
                 date = as.Date(date),
                 lfalls_lffs_hourly = lfalls_lffs) %>%
