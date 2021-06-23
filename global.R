@@ -46,9 +46,9 @@ time_now0 <- Sys.time()
 #   - 0's to read from ts/path/
 #   - to improve speed, press "Write... to input dir" on LHS panel
 #      - then change first 3 autoread's below from 1 to 0
-autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
+autoread_dailyflows <- 0 # change to 0 after 1st run to improve speed
+autoread_hourlyflows <- 0 # change to 0 after 1st run to improve speed
+autoread_hourlywithdrawals <- 0 # change to 0 after 1st run to improve speed
 autoread_lffs <- 1
 #
 autoread_resstorage <- 0 # has to be 0 right now - no online storages

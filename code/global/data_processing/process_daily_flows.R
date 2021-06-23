@@ -71,8 +71,10 @@ flows.daily.mgd.df <- flows.daily.cfs.df %>%
   dplyr::mutate_at(2:(n_gages_daily + 1), func_cfs_to_mgd)
 
 # Add Potomac withdrawals -----------------------------------------------------
-flows.daily.mgd.df <- left_join(flows.daily.mgd.df, demands.daily.df,
-                                by = "date_time")
+flows.daily.mgd.df <- left_join(flows.daily.mgd.df, withdrawals.daily.df,
+                                by = "date_time") %>%
+  # temporary fix - need to eliminate d_pot_total
+  dplyr::mutate(d_pot_total = w_pot_total_net)
 
 # Predict LFalls from upstream gages using constant lags ----------------------
 flows.daily.mgd.df <- flows.daily.mgd.df %>%

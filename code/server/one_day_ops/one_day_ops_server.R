@@ -51,7 +51,7 @@ ops_1day_daily.df0 <- flows.daily.mgd.df %>%
                   lag(monoc_jug, lag_daily_por+1) - lag(monoc_jug, lag_daily_por) + 
                   lag(seneca, lag_daily_sen+1) - lag(seneca, lag_daily_sen) +
                   lag(goose, lag_daily_sen+1) - lag(goose, lag_daily_sen)
-                  ) %>%
+                  - d_pot_total) %>%
   dplyr::mutate(gfalls = lead(lfalls, 1)*15/24 + lfalls*9/24
                 + w_wa_lf, 
                 gfalls_flowby = 300) %>%
@@ -187,6 +187,13 @@ klag.daily.fc.mgd.df <- por_klag_daily_mgd_df %>%
                 length_fc = as.integer(date - date_fc))  %>%
   dplyr::select(-lfalls_daily)
 
+prrism.daily.fc.mgd.df <- ops_1day_daily.df %>%
+  dplyr::select(date_time, lfalls_fc_prrism) %>%
+  dplyr::rename(date = date_time,
+                lfalls = lfalls_fc_prrism) %>%
+  dplyr::mutate(date_fc = date_today0,
+                length_fc = as.integer(date - date_fc)) 
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Construct graphs
@@ -197,7 +204,7 @@ klag.daily.fc.mgd.df <- por_klag_daily_mgd_df %>%
 lfalls_1day.plot1.df <- left_join(ops_1day_daily.df, por_klag_daily_mgd_df,
                                   by = "date_time") %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
-  select(-d_pot_total, -goose, -lfalls_fc_prrism, -por, -lfalls_daily) %>%
+  select(-d_pot_total, -goose, -por, -lfalls_daily) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot1 <- renderPlot({
@@ -207,17 +214,17 @@ output$one_day_ops_plot1 <- renderPlot({
   ggplot(lfalls_1day.plot1.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
     scale_color_manual(values = c( "steelblue", "darkorange1",
-                                  "deepskyblue1",
+                                  "deepskyblue1", "deepskyblue4",
                                    "red",
                                   "magenta1",
                                   "purple", "plum", 
                                   "palegreen3",
                                   "blue4")) +
     scale_linetype_manual(values = c("solid", "dashed", 
-                                     "solid", "dotted",
+                                     "solid", "dotted", "dashed",
                                      "solid", "solid", "solid",
                                      "solid", "solid")) +
-    scale_size_manual(values = c(0.5, 1, 2, 1, 0.5, 0.5, 1, 1, 1)) +
+    scale_size_manual(values = c(0.5, 1, 2, 1, 1, 0.5, 0.5, 1, 1, 1)) +
     labs(x = "", y = "MGD")
 })
 
