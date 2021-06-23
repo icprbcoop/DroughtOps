@@ -69,6 +69,13 @@ shinyServer(function(input, output, session) {
                     date_today0,
                     ".csv",
                     sep=""))
+    klag.daily.fc.mgd.df
+    write_csv(klag.daily.fc.mgd.df, 
+              paste("data/forecasts/klag_corrected_daily/",
+                    "flows_mgd_",
+                    date_today0,
+                    ".csv",
+                    sep=""))
     write_csv(withdrawals.daily.df,
               paste("data/forecasts/coop1_withdrawals_daily/",
                     "withdrawals_mgd_",

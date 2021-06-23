@@ -27,7 +27,7 @@
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Prepare 1-day LFalls fc, constant lags, daily data, in mgd
+# Prepare 1-day LFalls fc's, constant lags, daily data, in mgd
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # ops_1day_daily.df columns include:
@@ -85,8 +85,9 @@ ops_1day_daily.df <- left_join(ops_1day_daily.df0, lffs.daily.bfc.mgd.df,
 #   - lfalls_por_constant_lag, cfs (but remember different from PRRISM)
 #   - lfalls_fc_prrism (constant lag), mgd
 #   - lfalls_lffs_hourly_bfc (LFFS base flow corrected), cfs
+#------------------------------------------------------------------------------
 
-# Prepare the hourly data -----------------------------------------------------
+# Gather the hourly data into ops_1day_hourly.df00-----------------------------
 
 # Function to convert flows to mgd - applied just before graphing & value boxes 
 func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
@@ -106,6 +107,7 @@ lag_hourly_por <- 54
 # demands.df <- demands.daily.df %>%
 #   dplyr::mutate(date = date_time) %>%
 #   dplyr::select(-date_time)
+
 ops_1day_hourly.df00 <- left_join(flows.hourly.cfs.df, 
                                  withdrawals_hourly_mgd_df, 
                                  by = "date_time") %>%
@@ -115,23 +117,27 @@ ops_1day_hourly.df00 <- left_join(flows.hourly.cfs.df,
   # # Don't subtract withdr's while testing - ts too short
   # dplyr::mutate(lfalls_accum = lfalls_accum 
   #               - wnet_wma_pot*mgd_to_cfs) %>%
+  
   # For comparison, add constant lag = 2.33 days = 54 hours
-  dplyr::mutate(lfalls_por_constant_lag = lag(upstr_lfalls_accum, 
+  dplyr::mutate(lfalls_accum_constant_lag = lag(upstr_lfalls_accum, 
                                               lag_hourly_por)) %>%
   # Select the gages of interest 
-  dplyr::select(date_time, lfalls, lfalls_por_constant_lag, 
+  dplyr::select(date_time, lfalls, lfalls_accum_constant_lag, 
                 seneca, goose, monoc_jug, 
                 por, upstr_lfalls_accum, wnet_wma_pot)
 
-# Add LFFS data
+# Add LFFS fc------------------------------------------------------------------
 ops_1day_hourly.df0 <- left_join(ops_1day_hourly.df00,
                                 lffs.hourly.mgd.df, by = "date_time") %>%
   mutate(lfalls_lffs_hourly_bfc = lfalls_lffs_hourly_bfc*mgd_to_cfs) %>%
-  select(-lfalls_lffs_hourly, lfalls_por_constant_lag,
+  select(-lfalls_lffs_hourly, lfalls_accum_constant_lag,
          -lfalls_lffs_daily, -lfalls_bf_correction,
          -lfalls_obs, -lfalls_lffs_bfc) # these last 2 were daily - for QAing
 
-# Add lagk from POR hourly
+# Add lagk hourly fc from upstr_lfalls_accum-----------------------------------
+
+# I'm keeping the function, variable_lagk, fairly general so that in the future
+#    we could apply to successive reaches
 klags.df <- fread("input/parameters/klags.csv")
 location_up <- "upstr_lfalls_accum"
 # location_up <- "por"
@@ -140,8 +146,7 @@ por_lagk_df <- variable_lagk(ops_1day_hourly.df0, location_up, location_down,
                       "por_to_lfalls", "por_to_lfalls_1", klags.df) %>%
   dplyr::rename(lfalls_flow_accum_klag = lfalls)
 
-# For comparison, also do constant lag = 2.3 days = 54 hours
-
+# For comparison, also compute fc from constant lag = 2.3 days = 54 hrs--------
 ops_1day_hourly.df <- left_join(ops_1day_hourly.df0,
                                 por_lagk_df, by = "date_time") %>%
   dplyr::select(-upstr_lfalls_accum)
@@ -149,16 +154,50 @@ ops_1day_hourly.df <- left_join(ops_1day_hourly.df0,
 ops_1day_hourly.df$lfalls_flow_accum_klag <- 
   na.approx(ops_1day_hourly.df$lfalls_flow_accum_klag, na.rm = FALSE)
 
+# Compute lagk DAILY fc from upstr_lfalls_accum--------------------------------
+# This includes subtraction of withdrawals
+#    for verification data and calculations of deficits in value boxes
+# It also includes "LFalls correction" like PRRISM, because 
+#    when flows are very low POR+tribs overpredicts LFalls
+# For means, na.rm = FALSE is default, so get NA when not a whole day of data
+por_klag_daily_mgd_df <- ops_1day_hourly.df %>%
+  dplyr::filter(date > date_today0 - 30) %>%
+  dplyr::select(date, lfalls, lfalls_accum_constant_lag, 
+         wnet_wma_pot, lfalls_flow_accum_klag) %>%
+  dplyr::mutate(wnet_wma_pot = wnet_wma_pot*mgd_to_cfs) %>%
+  # change to mgd for daily graph & value boxes
+  dplyr::mutate(across(where(is.numeric), func_cfs_to_mgd)) %>%
+  dplyr::mutate(lfalls_daily_accum_klag = lfalls_flow_accum_klag 
+                - wnet_wma_pot) %>%
+  group_by(date) %>%
+  summarize(across(where(is.numeric), mean)) %>%
+              ungroup() %>%
+  dplyr::mutate(date_time = as.Date(date),
+                lfalls_klag_corrected = lag(lfalls, n=1) 
+                + lfalls_daily_accum_klag 
+                - lag(lfalls_daily_accum_klag, n=1),
+                lfalls_daily = lfalls) %>%
+  dplyr::select(date_time, lfalls_daily, lfalls_klag_corrected)
+ 
+# Create today's recent and forecasted daily flows for archiving---------------
+klag.daily.fc.mgd.df <- por_klag_daily_mgd_df %>%
+  dplyr::rename(date = date_time,
+                lfalls = lfalls_klag_corrected) %>%
+  dplyr::mutate(date_fc = date_today0,
+                length_fc = as.integer(date - date_fc))  %>%
+  dplyr::select(-lfalls_daily)
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Construct graphs
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# LFall daily predicted from constant lags - first graph on ui ----------------
-lfalls_1day.plot1.df <- ops_1day_daily.df %>%
+# DAILY LFalls predicted from constant lags - first graph on ui ---------------
+lfalls_1day.plot1.df <- left_join(ops_1day_daily.df, por_klag_daily_mgd_df,
+                                  by = "date_time") %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
-  select(-d_pot_total, -goose) %>%
+  select(-d_pot_total, -goose, -lfalls_fc_prrism, -por, -lfalls_daily) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot1 <- renderPlot({
@@ -167,23 +206,26 @@ output$one_day_ops_plot1 <- renderPlot({
          date_time <= input$plot_range[2]) 
   ggplot(lfalls_1day.plot1.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c("darkorange1", "darkorange3",
-                                  "deepskyblue1", "deepskyblue4",
-                                  "red",
+    scale_color_manual(values = c( "steelblue", "darkorange1",
+                                  "deepskyblue1",
+                                   "red",
+                                  "magenta1",
                                   "purple", "plum", 
-                                  "steelblue", "palegreen3")) +
-    scale_linetype_manual(values = c("solid", "dashed", "solid",
-                                     "dotted", "dashed", "solid",
-                                     "solid","solid", "solid")) +
-    scale_size_manual(values = c(1, 1, 2, 1, 1, 1, 1, 1, 1)) +
+                                  "palegreen3",
+                                  "blue4")) +
+    scale_linetype_manual(values = c("solid", "dashed", 
+                                     "solid", "dotted",
+                                     "solid", "solid", "solid",
+                                     "solid", "solid")) +
+    scale_size_manual(values = c(0.5, 1, 2, 1, 0.5, 0.5, 1, 1, 1)) +
     labs(x = "", y = "MGD")
 })
 
 
-# LFalls hourly predicted from LFFS - second graph on ui ----------------------
+# HOURLY LFalls predicted from LFFS - second graph on ui ----------------------
 lfalls_1day.plot2.df <- ops_1day_hourly.df %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
-  dplyr::select(-date, -seneca, -goose) %>%
+  dplyr::select(-date, -goose, -por) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot2 <- renderPlot({
@@ -192,15 +234,15 @@ output$one_day_ops_plot2 <- renderPlot({
            date_time <= input$plot_range[2]) 
   ggplot(lfalls_1day.plot2.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c( "deepskyblue1", "tomato2", "red",
-                                   "purple", "deepskyblue2",
-                                  "plum",  "steelblue", "palegreen3",
+    scale_color_manual(values = c( "deepskyblue1", "darkorange1", "magenta1",
+                                   "red", "purple",
+                                  "plum",  "palegreen3", "red", 
                                   "palegreen4")) +
-    scale_linetype_manual(values = c("solid", "solid", "dashed",
-                                     "solid", "dotted",
-                                     "solid", "dotted", "dashed", 
+    scale_linetype_manual(values = c("solid", "dotted", "solid",
+                                     "dashed", "solid",
+                                     "solid", "solid", "solid", 
                                      "solid")) +
-    scale_size_manual(values = c(2, 0.5, 1, 1, 1, 1, 1, 1, 1)) +
+    scale_size_manual(values = c(2, 0.5, 0.5, 1, 0.5, 1, 1, 1, 1)) +
   labs(x = "", y = "MGD")
 })
 
