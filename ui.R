@@ -125,7 +125,7 @@ dashboardPage(skin = "blue" ,
       source("code/ui/nbr_ops_ui.R", local = TRUE)$value,
       # source("code/ui/long_term_operations.R", local = TRUE)$value,
       source("code/ui/demands_ui.R", local = TRUE)$value,
-      source("code/ui/lffs_qa_ui.R", local = TRUE)$value
+      source("code/ui/qa_ui.R", local = TRUE)$value
       # source("code/ui/simulation_ui.R", local = TRUE)$value
       # source("code/ui/download_data_ui.R", local = TRUE)$value
       )

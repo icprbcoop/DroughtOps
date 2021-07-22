@@ -172,9 +172,10 @@ por_klag_daily_mgd_df <- ops_1day_hourly.df %>%
   group_by(date) %>%
   summarize(across(where(is.numeric), mean)) %>%
               ungroup() %>%
+  # the following does a PRRISM-type LFalls correction:
   dplyr::mutate(date_time = as.Date(date),
-                lfalls_klag_corrected = lag(lfalls, n=1) 
-                + lfalls_daily_accum_klag 
+                lfalls_klag_corrected = lag(lfalls, n=1) # lfalls yesterday
+                + lfalls_daily_accum_klag # diff btwn today & yesterday's lagk
                 - lag(lfalls_daily_accum_klag, n=1),
                 lfalls_daily = lfalls) %>%
   dplyr::select(date_time, lfalls_daily, lfalls_klag_corrected)

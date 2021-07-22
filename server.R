@@ -24,12 +24,13 @@ shinyServer(function(input, output, session) {
   source("code/server/simulation/sim_plots.R", local=TRUE)
   
   # LFFS QA "sandbox" tab
-  source("code/server/lffs_qa/lffs_qa_server.R", local=TRUE)
+  # source("code/server/lffs_qa/lffs_qa_server.R", local=TRUE)
+  source("code/server/qa/qa_server.R", local=TRUE)
 
   #Data Download tab
   # source("code/server/download_data/download_data_server.R", local=TRUE)
   
-  # To save time can generate input ts files for input/ts/current/-------------
+  # Code for sidebar button to write input ts files in input/ts/current/-------
   observeEvent(input$write_ts2, {
     flows_daily_temp <- flows.daily.cfs.df0 %>%
       dplyr::mutate(date = date_time) %>%
@@ -55,7 +56,7 @@ shinyServer(function(input, output, session) {
               col_names = FALSE)
   })
   
-  # Write today's forecasts to /data/forecasts---------------------------------
+  # Code to write today's forecasts to /data/forecasts-------------------------
   observeEvent(input$write_fcs, {
     write_csv(lffs.daily.fc.mgd.df, 
               paste("data/forecasts/lffs_daily/",
