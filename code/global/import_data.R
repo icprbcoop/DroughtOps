@@ -42,6 +42,16 @@
 #             (autoread_hourlywithdrawals == 0)
 
 #------------------------------------------------------------------------------
+# RESERVOIR STORAGE DATA
+#   Can be obtained from 2 sources:
+#   (start date is user-selected and end date is current day)
+#
+#   The OPTION switch is set in global.R:
+#     OPTION 1: read file directly from Data Portal
+#             (autoread_dailystorage == 1)
+#     OPTION 2: read local file, /input/ts/current/flows_hourly_cfs.csv
+#             (autoread_dailystorage == 0)
+#------------------------------------------------------------------------------
 # LFFS DATA
 #   Can be read from two locations
 
@@ -50,7 +60,6 @@
 #             (autoread_dailyflows == 1)
 #     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
-
 #------------------------------------------------------------------------------
 # STATE DROUGHT STATUS
 #   - time series of gw, precip, etc indices for MD, VA
@@ -297,6 +306,7 @@ d_fw_c <- 10 # MGD
 
 if(autoread_hourlywithdrawals == 1) {
   # read the online table -----------------------------------------------------
+  
   # Apr-2021: col names on line 16, data begins line 17
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
@@ -352,7 +362,96 @@ if(autoread_hourlywithdrawals == 0) {
 print("finished importing withdrawals")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# LFFS DATA
+# DAILY RESERVOIR STORAGE DATA
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+# Set switch (this has been moved to global)-----------------------------------
+# autoread_dailystorage <- 1 # automatic data retrieval from Data Portal
+# autoread_dailystorage <- 0 # read data from file in local directory
+
+#------------------------------------------------------------------------------
+# DAILY STORAGE OPTION 1 - AUTOMATIC DATA RETRIEVAL
+#   - read daily storage data automatically from Data Portal
+#------------------------------------------------------------------------------
+# &startdate=07%2F12%2F2021&enddate=07%2F19%2F2021&format=csv&submit=Submit
+
+
+if(autoread_dailystorage == 1) {
+  # read the online data ------------------------------------------------------
+  
+  # paste together the url for Data Portal's daily storage data 
+  url_dailystor0 <- paste("https://icprbcoop.org/drupal4/icprb/data-view?",
+  "patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc",
+  "&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc",
+  "&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage",
+  "&jrr_current_usable_storage=jrr_current_usable_storage",
+  "&jrr_current_usable_ws_storage=jrr_current_usable_ws_storage",
+  "&sr_current_usable_storage=sr_current_usable_storage", sep = "")
+  
+  year_temp <- today_year
+  day_first <- "01"
+  month_first <- "06"
+  start_date_string <- paste("&startdate=", month_first, "%2F", 
+                             day_first, "%2F",
+                             year_temp, "&enddate=", sep="")
+  url_dailystor <- paste(url_dailystor0, start_date_string, 
+                     today_month, "%2F", 
+                     today_day, "%2F", 
+                     today_year, "&format=csv&submit=Submit", 
+                     sep="")
+  
+  # the name storage.daily.bg.df0 is used in the legacy sim code (line 566)
+
+  storage_daily_bg_df0 <- data.table::fread(
+    url_dailystor,
+    skip = 3,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    na.strings = c("", "#N/A", "NA", -999999),
+    data.table = FALSE)
+  names(storage_daily_bg_df0) <- c("date_time",
+                                         "patuxent",
+                                         "seneca",
+                                         "occoquan",
+                                         "jrr_total",
+                                         "jrr_ws",
+                                         "savage")
+}
+
+#------------------------------------------------------------------------------
+# DAILY STORAGE OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
+#   - daily storage data file resides in /input/ts/current/
+#   - file name is wma_storage.csv
+#   - data can be downloaded from CO-OP's Data Portal via the "Products" tab
+#      - data is expressed as daily
+#      - data extends from June 1 through the current day
+#      - name appropriately then save the file to /input/ts/current/
+#      - can create a longer time series by pasting new data into existing file
+#------------------------------------------------------------------------------
+
+if(autoread_dailystorage == 0) {
+  storage_daily_bg_df0 <- data.table::fread(
+    paste(ts_path, "wma_storage.csv", sep = ""),
+    skip = 3,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    na.strings = c("", "#N/A", "NA", -999999),
+    data.table = FALSE)
+  names(storage_daily_bg_df0) <- c("date_time",
+                                   "patuxent",
+                                   "seneca",
+                                   "occoquan",
+                                   "jrr_total",
+                                   "jrr_ws",
+                                   "savage")
+}
+print("finished importing reservoir storages")
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# DAILY STORAGE DATA
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 

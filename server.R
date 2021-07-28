@@ -39,6 +39,7 @@ shinyServer(function(input, output, session) {
     write_csv(flows_daily_temp, paste(ts_path, 
                                        "flows_daily_cfs.csv",
                                        sep=""))
+    
     flows_hourly_temp <- flows.hourly.cfs.df0 %>%
       # need to change datetime to character or will be written as UTC
       dplyr::mutate(date = as.character(date_time)) %>%
@@ -47,12 +48,21 @@ shinyServer(function(input, output, session) {
     write_csv(flows_hourly_temp, paste(ts_path, 
                                        "flows_hourly_cfs.csv",
                                        sep=""))
+    
     wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 %>%
       #  add 16 dummy rows, to mimic file from the Data Portal
     add_row(FW_POT = rep(-99999.9, 16), .before=1)
     write_csv(wma_withdrawals_temp, paste(ts_path,
                                        "wma_withdrawals.csv",
                                        sep=""),
+              col_names = FALSE)
+    
+    wma_storage_temp <- storage_daily_bg_df0 %>%
+      #  add 3 dummy rows, to mimic file from the Data Portal
+      add_row(patuxent = rep(-99999.9, 3), .before=1)
+    write_csv(wma_storage_temp, paste(ts_path,
+                                          "wma_storage.csv",
+                                          sep=""),
               col_names = FALSE)
   })
   

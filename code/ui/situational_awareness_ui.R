@@ -13,7 +13,7 @@ tabPanel("Situational Awareness",
           )
         ),
         fluidRow( # row with 2 reservoir graphs
-          h3("Reservoir storage (million gallons)"),
+          h3("Reservoir storage (billion gallons)"),
           column(
             width = 6,
             box(

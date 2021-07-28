@@ -1,7 +1,8 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# Compile archived forecasts so they can be analyzed
+# This script is run by global.R, so df's are globally accessible
+# Compiles archived forecasts so they can be analyzed
 #   - maybe will move these scripts elsewhere at some point
 # *****************************************************************************
 # INPUTS

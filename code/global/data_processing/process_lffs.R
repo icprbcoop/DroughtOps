@@ -1,7 +1,8 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# Apply baseflow correction to LFFS LFalls forecast
+# This script is run by global.R, so df's are globally accessible
+# Applies baseflow correction to LFFS LFalls forecast
 # Right now LFFS output begins with 2014, but delete 3 months of "spin-up"
 # *****************************************************************************
 # INPUTS

@@ -1,7 +1,7 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# This script is run by global.R
+# This script is run by global.R, so df's are globally accessible
 # It processes the WMA withdrawal time series data
 # *****************************************************************************
 # INPUTS

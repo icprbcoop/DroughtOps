@@ -49,11 +49,10 @@ time_now0 <- Sys.time()
 autoread_dailyflows <- 0 # change to 0 after 1st run to improve speed
 autoread_hourlyflows <- 0 # change to 0 after 1st run to improve speed
 autoread_hourlywithdrawals <- 0 # change to 0 after 1st run to improve speed
+autoread_dailystorage <- 0 # change to 0 after 1st run to improve speed
 autoread_lffs <- 1
-#
-autoread_resstorage <- 0 # has to be 0 right now - no online storages
 
-
+ 
 #******************************************************************************
 #******************************************************************************
 # Temporary for 2020 DREX

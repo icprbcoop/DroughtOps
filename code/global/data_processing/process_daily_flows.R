@@ -1,13 +1,14 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# This script is run by global.R
+# This script is run by global.R, so df's are globally accessible
 # It adds future dates & recession flows to the daily flow time series
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
-# flows.daily.cfs.df0 - table with daily flows created by import_data.R
-# demands.daily.df - table with daily demands, production, & withdrawals
+# historical_flows_daily_cfs_df - 2014 thru 2020 daily flows, archived
+# flows.daily.cfs.df0 - daily flows created by import_data.R
+# withdrawals.daily.df - daily withdrawals created by process_withdrawals.R
 # data/flow_data_daily_from2014thru2020.csv - historical data
 # *****************************************************************************
 # OUTPUTS
@@ -73,7 +74,7 @@ flows.daily.mgd.df <- flows.daily.cfs.df %>%
 # Add Potomac withdrawals -----------------------------------------------------
 flows.daily.mgd.df <- left_join(flows.daily.mgd.df, withdrawals.daily.df,
                                 by = "date_time") %>%
-  # temporary fix - need to eliminate d_pot_total
+  # temporary fix - at some point need to eliminate d_pot_total
   dplyr::mutate(d_pot_total = w_pot_total_net)
 
 # Predict LFalls from upstream gages using constant lags ----------------------
