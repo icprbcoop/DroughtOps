@@ -448,6 +448,7 @@ if(autoread_dailystorage == 0) {
                                    "jrr_ws",
                                    "savage")
 }
+
 print("finished importing reservoir storages")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -566,7 +567,7 @@ if(autoread_resstorage == 1) {
     header = FALSE,
     col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
     stringsAsFactors = FALSE,
-    na.strings = c("", "#N/A", -999999),
+    na.strings = c("", "#N/A", -999999, "NA"),
     data.table = FALSE) %>%
     dplyr::mutate(date_time = as.Date(date_time)) %>%
     filter(!is.na(date_time)) %>%
@@ -685,8 +686,10 @@ md_drought_map <- 'https://mde.maryland.gov/programs/Water/droughtinformation/Cu
 #---toggle
 ##for day to day
 
-va_drought_map = va_drought_map_func()
+# va_drought_map = va_drought_map_func()
 #va_drought_map = readPNG("input/VA_droughtmap_temp.png")
+# this works in Aug 2021 - CS:
+va_drought_map <-'https://deq1.bse.vt.edu/drought/state/images/maps/virginia_drought.png'
 ##to publish
 # project.dir <- rprojroot::find_rstudio_root_file()
 # va_drought_map = file.path(project.dir,'/global/images/va_drought_placeholder.png')

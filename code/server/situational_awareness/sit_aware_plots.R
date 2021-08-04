@@ -92,7 +92,7 @@ output$sit_aware_jrr_stor <- renderPlot({
   
   ggplot(data = jrr.graph,
          aes(x = Date, y = BG, group = Legend)) +
-    geom_line(aes(color = Legend, size = Legend)) +
+    geom_point(aes(color = Legend, size = Legend)) +
     scale_color_manual(values = c("blue", "green",
                                    "deepskyblue3")) +
     scale_size_manual(values = c(1.0,  0.5, 0.5)) +
@@ -119,7 +119,7 @@ output$sit_aware_jrr_stor <- renderPlot({
              Date <= input$plot_range[2])
     
     ggplot(data = sen.graph, aes(x = Date, y = Storage)) +
-      geom_line(colour="blue", size=1) +
+      geom_point(colour="blue", size=1) +
       scale_y_continuous(name = "Storage, BG", limits = c(0.0, 4.0),
                          breaks = c(0, 1, 2, 3, 4)) +
       ggtitle("Little Seneca") +
@@ -142,7 +142,7 @@ output$sit_aware_pat_stor <- renderPlot({
            Date <= input$plot_range[2])
   
   ggplot(data = pat.graph, aes(x = Date, y = Storage)) +
-    geom_line(colour="blue", size=1) +
+    geom_point(colour="blue", size=1) +
     scale_y_continuous(name = "Storage, BG", limits = c(0.0, 11.0),
                        breaks = c(0, 2, 4, 6, 8, 10, 12)) +
     ggtitle("Patuxent") +
@@ -165,7 +165,7 @@ output$sit_aware_occ_stor <- renderPlot({
            Date <= input$plot_range[2])
   
   ggplot(data = occ.graph, aes(x = Date, y = Storage)) +
-    geom_line(colour="blue", size=1) +
+    geom_point(colour="blue", size=1) +
     scale_y_continuous(name = "Storage, BG", limits = c(0.0, 10.0), 
                        breaks = c(0, 2, 4, 6, 8, 10)) +
     ggtitle("Occoquan") +
