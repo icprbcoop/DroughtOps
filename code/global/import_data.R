@@ -14,7 +14,7 @@
 # DAILY FLOW DATA
 #   Can be obtained from 2 sources.
 #   The OPTION switch is set in global.R:
-#     OPTION 1: read file directly from Data Portal
+#     OPTION 1: read file directly from NWIS
 #             (autoread_dailyflows == 1)
 #     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
@@ -97,8 +97,15 @@
 gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv", 
                                        sep = ""),
                            header = TRUE,
-                           data.table = FALSE)
+                           colClasses = c('gage_id' = 'character',
+                                          'location' = 'character',
+                                          'area_mi2' = 'numeric',
+                                          'k' = 'numeric',
+                                          'description' = 'character'), 
+                           data.table = FALSE) %>%
+  mutate(gage_id = paste("0", gage_id, sep=""))
 list_gages_daily_locations <- c("date", gages_daily$location)
+list_gages_daily_ids <- c(gages_daily$gage_id)
 
 # first find number of columns in Sarah's flow data files
 n_gages_daily <- length(list_gages_daily_locations) - 1
@@ -122,7 +129,7 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 
 # Set switch (this has been moved to global)-----------------------------------
-# autoread_dailyflows <- 1 # automatic data retrieval from Data Portal
+# autoread_dailyflows <- 1 # automatic data retrieval from NWIS
 # autoread_dailyflows <- 0 # read data from file in local directory
 
 #------------------------------------------------------------------------------
@@ -132,32 +139,23 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 
 if(autoread_dailyflows == 1) {
-  # paste together the url for Data Portal's daily flow data-------------------
-  url_daily0 <- "https://icprbcoop.org/drupal4/icprb/flow-data?"
-    year_temp <- today_year
-    month_temp <- "01"
-    start_date_string <- paste("startdate=01%2F", month_temp, "%2F",
-                               year_temp, "&enddate=", sep="")
-  url_daily <- paste(url_daily0, start_date_string, 
-                     today_month, "%2F", 
-                     today_day, "%2F", 
-                     today_year, "&format=daily&submit=Submit", 
-                     sep="")
-  
-  # read the online data table-------------------------------------------------
-  flows.daily.cfs.df0 <- data.table::fread(
-    url_daily,
-    header = TRUE,
-    stringsAsFactors = FALSE,
-    colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
-    col.names = list_gages_daily_locations, # 1st column is "date"
-    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-    data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.Date(date)) %>%
-    select(-date) %>%
-    filter(!is.na(date_time)) %>%
-    select(date_time, everything()) %>%
-    arrange(date_time)
+    start_date_string <- paste(year(date_today0), "-01-01", sep="")
+    end_date_string <- paste(date_today0 - 1)
+    # the relevant fields are: site_no, Date, X00060_00003:
+    flows_daily_long_cfs_df0 <- dataRetrieval::readNWISdv(
+      siteNumbers = list_gages_daily_ids,
+      parameterCd = "00060",
+      startDate = start_date_string,
+      endDate = end_date_string,
+      statCd = "00003") %>%
+      mutate(date_time = as.Date(Date), flow_cfs = X_00060_00003) %>%
+      select(date_time, site_no, flow_cfs)
+    flows_daily_long_cfs_df <- left_join(flows_daily_long_cfs_df0, 
+                                     gages_daily, 
+                                     by = c("site_no" = "gage_id")) %>%
+      select(date_time, location, flow_cfs)
+    flows.daily.cfs.df0 <- flows_daily_long_cfs_df %>%
+      pivot_wider(names_from = location, values_from = flow_cfs)
 }
 
 #------------------------------------------------------------------------------

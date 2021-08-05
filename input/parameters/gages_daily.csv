@@ -22,9 +22,6 @@ gage_id,location,area_mi2,k,description
 1597500,bloomington,106,0.04,Savage River below Savage dam near Bloomington
 1595500,kitzmiller,255,0.04,N Br Potomac River at Kitzmiller
 1596500,barton,49,0.04,Savage River near Barton
-1595790,jrr_level,NA,NA,Jennings Randolph Reservoir (water level)
-1597490,sav_level,NA,NA,Savage Reservoir (water level)
-1644148,edwards_level,11130,0.04,Potomac River at Edwards Ferry (water level)
 1643500,bennett,63,0.04,Bennett Cr at Park Mills
 1591000,unity,35,0.04,Patuxent River near Unity
 1591400,cattail,23,0.04,Cattail Cr near Glenwood
