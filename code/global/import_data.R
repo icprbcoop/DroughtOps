@@ -19,7 +19,7 @@
 #     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
 #   For autoread option, if date >= June 1, start date is Jan 1;
-#       otherwise start date is Oct 1 of previous fall; end date is today.
+#             end date is yesterday.
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA
 #   Can be obtained from 2 sources:
@@ -212,43 +212,74 @@ if(autoread_hourlyflows == 1) {
                           "goose",
                           "monoc_jug", 
                           "por")
-  gages_hourly_nos <- c("01646500", 
+  gages_hourly_ids <- c("01646500", 
                         "01645000",
                         "01644000",
                         "01643000", 
                         "01638500")
+  gages_hourly <- data.frame(gage_id = gages_hourly_ids,
+                             location = gages_hourly_names)
   
-  n_gages_hourly <- length(gages_hourly_nos)
+  # n_gages_hourly <- length(gages_hourly_ids)
   
   # set desired number of past days--------------------------------------------
   n_past_days <- 90
-  start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
-  start_datetime <- time_now0 - lubridate::days(n_past_days)
-  start_datetime <- lubridate::with_tz(start_datetime, "EST")
-  # round to nearest hour in order to use dataRetrieval
-  start_datetime <- lubridate::floor_date(start_datetime, unit = "hours")
-  
-  # Create dummy df of dates and hours-----------------------------------------
-  temp0 <- start_datetime - lubridate::hours(1) # first step back 1 hour
-  flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
-    add_row(date_time = seq.POSIXt(start_datetime,
-                                   by = "hour",
-                                   length.out = n_past_days*24))
+  # start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
+  # start_datetime <- time_now0 - lubridate::days(n_past_days)
+  # start_datetime <- lubridate::with_tz(start_datetime, "EST")
+  # # round to nearest hour in order to use dataRetrieval
+  # start_datetime <- lubridate::floor_date(start_datetime, unit = "hours")
+  # 
+  # # Create dummy df of dates and hours-----------------------------------------
+  # temp0 <- start_datetime - lubridate::hours(1) # first step back 1 hour
+  # flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
+  #   add_row(date_time = seq.POSIXt(start_datetime,
+  #                                  by = "hour",
+  #                                  length.out = n_past_days*24))
   
   # download hourly flows into a df--------------------------------------------
   #   - the function below makes use of the USGS's package, dataRetrieval
   #   - timezone is set as EST
-  flows.hourly.cfs.df0 <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
-                                               gage_names = gages_hourly_names, 
-                                               flows_empty = flows.hourly.empty.df,
-                                               start_date = date_today0 - 
-                                                 lubridate::days(n_past_days),
-                                               end_date = date_today0,
-                                               usgs_param = "00060")
+  
+  # the relevant fields are: site_no, Date, X00060_00003:
+  flows_rt_long_cfs_df0 <- dataRetrieval::readNWISuv(
+    # siteNumbers = gages_hourly_ids,
+    siteNumbers = gages_hourly_ids,
+    parameterCd = "00060",
+    # startDate = start_date,
+    startDate = date_today0 - n_past_days,
+    endDate = date_today0,
+    tz = "America/New_York"
+  ) %>%
+    mutate(date_time = dateTime, flow_cfs = X_00060_00000) %>%
+    select(date_time, site_no, flow_cfs)
+  flows_rt_long_cfs_df <- left_join(flows_rt_long_cfs_df0, 
+                                       gages_hourly, 
+                                       by = c("site_no" = "gage_id")) %>%
+    select(date_time, location, flow_cfs)
+  flows_rt_cfs_df <- flows_rt_long_cfs_df %>%
+    pivot_wider(names_from = location, values_from = flow_cfs)
+  
+  flows.hourly.cfs.df0 <- flows_rt_cfs_df %>%
+    mutate(date_hour = lubridate::round_date(date_time,
+                                             unit = "hour")) %>%
+    select(-date_time) %>%
+    group_by(date_hour) %>%
+    summarise(across(where(is.numeric), ~mean(.x, na.rm = TRUE))) %>%
+    rename(date_time = date_hour) %>%
+    ungroup()
+  
+  # flows.hourly.cfs.df0 <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
+  #                                              gage_names = gages_hourly_names, 
+  #                                              flows_empty = flows.hourly.empty.df,
+  #                                              start_date = date_today0 - 
+  #                                                lubridate::days(n_past_days),
+  #                                              end_date = date_today0,
+  #                                              usgs_param = "00060")
   
   # Trim off a day of beginning rows to get rid of NA's------------------------
   #   (this needs to be improved - ripe for creating a bug!)
-  flows.hourly.cfs.df0 <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
+  # flows.hourly.cfs.df0 <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
   }
 
 #------------------------------------------------------------------------------

@@ -48,8 +48,8 @@ time_now0 <- Sys.time()
 #      - then change first 3 autoread's below from 1 to 0
 autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
 autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
-autoread_dailystorage <- 1 # change to 0 after 1st run to improve speed
+autoread_hourlywithdrawals <- 0 # change to 0 after 1st run to improve speed
+autoread_dailystorage <- 0 # change to 0 after 1st run to improve speed
 autoread_lffs <- 1
 
  
