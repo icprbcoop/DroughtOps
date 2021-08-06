@@ -79,7 +79,7 @@ output$sit_aware_jrr_stor <- renderPlot({
   #          value = "MG", -Date) %>%
   #   filter(Date >= input$plot_range[1],
   #          Date <= input$plot_range[2])
-  jrr.graph <- storage_daily_bg_df0 %>%
+  jrr.graph <- storage_nbr_daily_df %>%
     mutate(jrr_wq = jrr_total - jrr_ws) %>%
     select(Date = date_time, 
            "WS storage" = jrr_ws, 
@@ -96,7 +96,7 @@ output$sit_aware_jrr_stor <- renderPlot({
     scale_color_manual(values = c("blue", "green",
                                    "deepskyblue3")) +
     scale_size_manual(values = c(1.0,  0.5, 0.5)) +
-    scale_y_continuous(limits = c(0.0, 30.0),
+    scale_y_continuous(limits = c(0.0, 32.0),
                        breaks = c(0.0, 10.0, 20.0, 30.0)) +
     ggtitle(graph_title) +
     theme(plot.title = element_text(size = 16)) +
@@ -112,7 +112,7 @@ output$sit_aware_jrr_stor <- renderPlot({
     # sen.graph <- storage.daily.bg.df0 %>%
     #   mutate(stor_sen = as.numeric(stor_sen)) %>%
     #   select(date_time, stor_sen)
-    sen.graph <- storage_daily_bg_df0 %>%
+    sen.graph <- storage_local_daily_bg_df %>%
       select(Date = date_time, 
                Storage = seneca) %>%
       filter(Date >= input$plot_range[1],
@@ -135,7 +135,7 @@ output$sit_aware_pat_stor <- renderPlot({
   # mutate(stor_pat = as.numeric(stor_pat)) %>%
   #   select(date_time, stor_pat)
 
-  pat.graph <- storage_daily_bg_df0 %>%
+  pat.graph <- storage_local_daily_bg_df %>%
     select(Date = date_time, 
            Storage = patuxent) %>%
     filter(Date >= input$plot_range[1],
@@ -158,7 +158,7 @@ output$sit_aware_occ_stor <- renderPlot({
   #   mutate(stor_occ = as.numeric(stor_occ)) %>%
   #   select(date_time, stor_occ)
 
-  occ.graph <- storage_daily_bg_df0 %>%
+  occ.graph <- storage_local_daily_bg_df %>%
     select(Date = date_time, 
            Storage = occoquan) %>%
     filter(Date >= input$plot_range[1],

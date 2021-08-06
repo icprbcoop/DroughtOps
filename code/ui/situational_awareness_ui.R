@@ -55,8 +55,12 @@ tabPanel("Situational Awareness",
       # Value boxes that appear on the right ----------------------------------
       column( # c3: this is the 2nd main column - with values & triggers
         width = 6,
-        valueBoxOutput("lfalls_obs", width = NULL),
-        valueBoxOutput("por_flow", width = NULL),
+        h3("Potomac River flow"),
+        valueBoxOutput("lfalls_flow_yesterday_text", width = NULL),
+        valueBoxOutput("lfalls_flow_today_text", width = NULL),
+        valueBoxOutput("por_flow_yesterday_text", width = NULL),
+        valueBoxOutput("por_flow_today_text", width = NULL),
+        h3("Status and Stages"),
         box(
           title=NULL,
           width=NULL,

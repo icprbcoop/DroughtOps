@@ -56,71 +56,71 @@ recess_daily_flows_func <- function(flows.daily.cfs.df,
     
     # recess por:
     dplyr::mutate(por = case_when(
-      date_time <= date_today0 ~ por,
-      date_time > date_today0 ~ recess_mins$por
+      date_time < date_today0 ~ por,
+      date_time >= date_today0 ~ recess_mins$por
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Goose
     dplyr::mutate(goose = case_when(
-      date_time <= date_today0 ~ goose,
-      date_time > date_today0 ~ recess_mins$goose
+      date_time < date_today0 ~ goose,
+      date_time >= date_today0 ~ recess_mins$goose
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Seneca Cr (later should take into acc. wwtps, releases)
     dplyr::mutate(seneca = case_when(
-      date_time <= date_today0 ~ seneca,
-      date_time > date_today0 ~ recess_mins$seneca
+      date_time < date_today0 ~ seneca,
+      date_time >= date_today0 ~ recess_mins$seneca
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Monocacy, Jug Br
     dplyr::mutate(monoc_jug = case_when(
-      date_time <= date_today0 ~ monoc_jug,
-      date_time > date_today0 ~ recess_mins$monoc_jug
+      date_time < date_today0 ~ monoc_jug,
+      date_time >= date_today0 ~ recess_mins$monoc_jug
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Kitzmiller
     dplyr::mutate(kitzmiller = case_when(
-      date_time <= date_today0 ~ kitzmiller,
-      date_time > date_today0 ~ recess_mins$kitzmiller
+      date_time < date_today0 ~ kitzmiller,
+      date_time >= date_today0 ~ recess_mins$kitzmiller
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Bennett
     dplyr::mutate(bennett = case_when(
-      date_time <= date_today0 ~ bennett,
-      date_time > date_today0 ~ recess_mins$bennett
+      date_time < date_today0 ~ bennett,
+      date_time >= date_today0 ~ recess_mins$bennett
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Cedar
     dplyr::mutate(cedar = case_when(
-      date_time <= date_today0 ~ cedar,
-      date_time > date_today0 ~ recess_mins$cedar
+      date_time < date_today0 ~ cedar,
+      date_time >= date_today0 ~ recess_mins$cedar
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Unity
     dplyr::mutate(unity = case_when(
-      date_time <= date_today0 ~ unity,
-      date_time > date_today0 ~ recess_mins$unity
+      date_time < date_today0 ~ unity,
+      date_time >= date_today0 ~ recess_mins$unity
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Cattail
     dplyr::mutate(cattail = case_when(
-      date_time <= date_today0 ~ cattail,
-      date_time > date_today0 ~ recess_mins$cattail
+      date_time < date_today0 ~ cattail,
+      date_time >= date_today0 ~ recess_mins$cattail
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9)) %>%
     
     # recess Hawlings
     dplyr::mutate(hawlings = case_when(
-      date_time <= date_today0 ~ hawlings,
-      date_time > date_today0 ~ recess_mins$hawlings
+      date_time < date_today0 ~ hawlings,
+      date_time >= date_today0 ~ recess_mins$hawlings
       *exp(-0.04*as.numeric((date_time - date_today0))),
       TRUE ~ -9999.9))
   

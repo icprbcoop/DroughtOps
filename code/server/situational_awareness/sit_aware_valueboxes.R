@@ -1,82 +1,146 @@
 # Finally, create boxes with values and triggers
-#------------------------------------------------------------------
-#------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 #
-#------------------------------------------------------------------
-# Create value for Potomac River flow at Point of Rocks yesterday
-#------------------------------------------------------------------
-  flows_yesterday.df <- flows.daily.mgd.df %>%
-    filter(date_time == date_today0 - 1)
+#------------------------------------------------------------------------------
+# Create values for use in boxes
+#------------------------------------------------------------------------------
+# First grab Point of Rocks & Little Falls daily mean yesterday
+  flows_yesterday.df <- flows.daily.cfs.df0 %>%
+    select(date_time, lfalls, por) %>%
+    tail(1)
   
-  output$por_flow <- renderValueBox({
-  por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting
+  # Error trapping: make sure last day is yesterday
+  daily_flows_last_date <- flows_yesterday.df$date_time[1]
+       if(daily_flows_last_date == date_today0 - 1) yesterday_available <- 1 else
+         yesterday_available <- 0
   
-  # potomac.ts.df <- ts$flows # trying to get rid of sim code in main ops tabs
-  por_mgd <- flows_yesterday.df$por[1]
+  if(yesterday_available == 1) {por_yesterday_cfs <- flows_yesterday.df$por[1]
+  por_yesterday_mgd <- round(por_yesterday_cfs/mgd_to_cfs)
+  lfalls_yesterday_cfs <- flows_yesterday.df$lfalls[1]
+  lfalls_yesterday_mgd <- round(lfalls_yesterday_cfs/mgd_to_cfs)
+  } else {
+    por_yesterday_mgd <- "NA"
+    por_yesterday_cfs <- "NA"
+    lfalls_yesterday_mgd <- "NA"
+    lfalls_yesterday_cfs <- "NA"
+  }
   
-  # Error trapping in case there is no data available for yesterday:
-  if(flows_yesterday.df$date_time[1] <= daily_flow_data_last_date)
-     por_flow <- paste("Flow at Point of Rocks yesterday = ",
-                    round(por_mgd*mgd_to_cfs), " cfs",
-                    " (", round(por_mgd), " MGD)", sep = "") else
-                      por_flow <- "Yesterday's Point of Rocks daily flow value is not available"
+  # Next grab flow and time of most recent real-time data
+  por_rt.df <- flows_rt_cfs_df %>%
+    select(date_time, por) %>%
+    drop_na(por) %>%
+    arrange(date_time)
+  por_rt_cfs <- tail(por_rt.df, 1)$por[1]
+  por_rt_mgd <- round(por_rt_cfs/mgd_to_cfs)
+  por_rt_time <- tail(por_rt.df, 1)$date_time[1]
+  
+  lfalls_rt.df <- flows_rt_cfs_df %>%
+    select(date_time, lfalls) %>%
+    drop_na(lfalls) %>%
+    arrange(date_time)
+  lfalls_rt_cfs <- tail(lfalls_rt.df, 1)$lfalls[1] 
+  lfalls_rt_mgd <- round(lfalls_rt_cfs/mgd_to_cfs)
+  lfalls_rt_time <- tail(lfalls_rt.df, 1)$date_time[1]
+  
+  # Finally grab Potomac River withdrawals and compute LFalls adjusted flow
+  withdrawals.df <- withdrawals.daily.df %>%
+    filter(date_time >= date_today0 - 1 & date_time < date_today0 + 5)
+
+    withdr_pot_5dayfc <- max(tail(withdrawals.df, 5)$w_pot_total_net)
+    withdr_pot_yesterday <- head(withdrawals.df, 1)$w_pot_total_net
+    lfalls_adj <- lfalls_yesterday_mgd + withdr_pot_yesterday
+  
+  por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting 
+  lfalls_threshold <- 100 # MGD
+  
+  #------------------------------------------------------------------------------
+  # Create values for Potomac River flow value boxes
+  #------------------------------------------------------------------------------
+  output$por_flow_yesterday_text <- renderValueBox({
+    por_flow_yesterday_text <- paste0("Point of Rocks yesterday: ",
+                           por_yesterday_cfs,
+                           " cfs (",
+                           por_yesterday_mgd, " MGD)")
+
   valueBox(
-    value = tags$p(por_flow, style = "font-size: 50%;"),
+    value = tags$p(por_flow_yesterday_text, style = "font-size: 40%;"),
     subtitle = NULL,
-    color = if (por_flow >= por_threshold) "blue" else "yellow"
+    color = if (por_yesterday_cfs >= por_threshold) "blue" else "yellow"
     # color = "blue"
   )
-})
-
-#------------------------------------------------------------------
-# Create value for Potomac River flow at Little Falls yesterday
-#------------------------------------------------------------------
-output$lfalls_obs <- renderValueBox({
-  lfalls_mgd <- flows_yesterday.df$lfalls[1]
-  lfalls_obs <- paste("Flow at Little Falls yesterday = ",
-                      round(lfalls_mgd*mgd_to_cfs),
-                      " cfs (", round(lfalls_mgd),
-                      " MGD)", sep = "")
-  # Error trapping in case there is no data available for yesterday:
-  if(flows_yesterday.df$date_time[1] <= daily_flow_data_last_date)
-    lfalls_obs <- paste("Flow at Little Falls yesterday = ",
-                      round(lfalls_mgd*mgd_to_cfs), " cfs",
-                      " (", round(lfalls_mgd), " MGD)", sep = "") else
-                        lfalls_obs <- "Yesterday's Little Falls daily flow value is not available"
+  })
   
-  valueBox(
-    value = tags$p(lfalls_obs, style = "font-size: 50%;"),
-    subtitle = NULL,
-    color = "blue"
-  )
-})
+  output$por_flow_today_text <- renderValueBox({
+    por_flow_today_text <- paste0("Point of Rocks today: ",
+                                      por_rt_cfs,
+                                      " cfs (",
+                                      por_rt_mgd,
+                                      " MGD) at ",
+                                      por_rt_time)
+    
+    valueBox(
+      value = tags$p(por_flow_today_text, style = "font-size: 40%;"),
+      subtitle = NULL,
+      color = if (por_rt_cfs >= por_threshold) "blue" else "yellow"
+      # color = "blue"
+    )
+  })
+
+  output$lfalls_flow_yesterday_text <- renderValueBox({
+    lfalls_flow_yesterday_text <- paste0("Little Falls yesterday: ",
+                                         lfalls_yesterday_cfs,
+                                      " cfs (",
+                                      lfalls_yesterday_mgd, " MGD)")
+    
+    valueBox(
+      value = tags$p(lfalls_flow_yesterday_text, style = "font-size: 40%;"),
+      subtitle = NULL,
+      color = "blue"
+    )
+  })
+  
+  output$lfalls_flow_today_text <- renderValueBox({
+    lfalls_flow_today_text <- paste0("Little Falls today: ",
+                                     lfalls_rt_cfs,
+                                  " cfs (",
+                                  lfalls_rt_mgd,
+                                  " MGD) at ",
+                                  lfalls_rt_time)
+    
+    valueBox(
+      value = tags$p(lfalls_flow_today_text, style = "font-size: 40%;"),
+      subtitle = NULL,
+      color = "blue"
+    )
+  })
+  
 #------------------------------------------------------------------
-# Create info on CO-OP operational status
+# Create info for CO-OP operational status boxes
 #------------------------------------------------------------------
 # I think this should also be based on flows yesterday (?)
 output$coop_ops <- renderUI({
-  por_flow <- round(flows_yesterday.df$por[1]*mgd_to_cfs)
-  withdr_pot <- flows_yesterday.df$d_pot_total[1]  
-  lfalls_adj <- flows_yesterday.df$lfalls[1] + withdr_pot
-
-  #
-  # if(is.na(por_flow)) {
-  if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date) {
+  
+# According to the Operations Manual of the WSCA, drought ops
+  #  commences when adjusted flow at Little Falls, 
+  #  minus the Little Falls flowby, is less than twice
+  #  daily Potomac River withdrawals
+  if(yesterday_available == 0){
     text_stage <- "NO DATA"
     text_stage2 <- ""
     color_stage <- red} # alas there is no grey
   else {
-    if(por_flow > 2000) {
+    if(por_yesterday_cfs >= por_threshold) {
       text_stage <- "NORMAL"
       text_stage2 <- ""
       color_stage <- green}
-    if(por_flow <= 2000) {
+    if(por_yesterday_cfs < por_threshold) {
       text_stage <- "DAILY OPS" 
       text_stage2 <- "Daily monitoring & reporting"
       color_stage <- yellow}
-    if(lfalls_adj <= 100 + 2*withdr_pot) {
-      text_stage <- "HOURLY OPS" 
-      text_stage2 <- "Hourly monitoring & reporting"
+    if(lfalls_adj < lfalls_threshold + 2*withdr_pot_5dayfc) {
+      text_stage <- "ENHANCED OPS" 
+      text_stage2 <- "Drought operations"
       color_stage <- orange}
   }
 
@@ -102,40 +166,40 @@ output$coop_ops <- renderUI({
 #------------------------------------------------------------------
 #
 output$lfaa_alert <- renderUI({
-  withdr_pot <- flows_yesterday.df$d_pot_total[1]  
-  lfalls_adj <- flows_yesterday.df$lfalls[1] + withdr_pot 
+
   #
-  sen.last <- last(ts$sen)
-  jrr.last <- last(ts$jrr)
-  sen_stor <- sen.last$stor[1]
-  jrr_ws_stor <- jrr.last$storage_ws[1]
-  jrr_ws_cap_cp <- jrr_cap*jrr_ws_frac
-  shared_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap + jrr_ws_cap_cp)
+  # sen.last <- last(ts$sen)
+  # jrr.last <- last(ts$jrr)
+  # sen_stor <- sen.last$stor[1]
+  # jrr_ws_stor <- jrr.last$storage_ws[1]
+  # jrr_ws_cap_cp <- jrr_cap*jrr_ws_frac
+  # shared_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap + jrr_ws_cap_cp)
   #
-  if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date) {
+  if(yesterday_available == 0) {
     text_stage <- "NO DATA"
     text_stage2 <- ""
     color_stage <- red} # alas there is no grey
   else {
-    if(lfalls_adj > withdr_pot/0.5) {
+    if(lfalls_adj > withdr_pot_yesterday/0.5) {
       text_stage <- "NORMAL"
       color_stage <- green
       text_stage2 <- ""}
   
-    if(lfalls_adj <= withdr_pot/0.5 & lfalls_adj > (withdr_pot + 100)/0.8){
+    if(lfalls_adj <= withdr_pot_yesterday/0.5 & lfalls_adj > 
+       (withdr_pot_yesterday + lfalls_threshold)/0.8){
       text_stage <- "ALERT"
       color_stage <- yellow
       text_stage2 <- " (eligible)"}
   
-    if(lfalls_adj <= (withdr_pot + 100)/0.8) {
+    if(lfalls_adj <= (withdr_pot_yesterday + lfalls_threshold)/0.8) {
       text_stage <- "RESTRICTION"
       color_stage <- orange
       text_stage2 <- " (eligible)"}
   
-    if(shared_ws_frac <= 0.02){
-      text_stage <- "EMERGENCY"
-      color_stage <- red
-      text_stage2 <- " (eligible)"}
+    # if(shared_ws_frac <= 0.02){
+    #   text_stage <- "EMERGENCY"
+    #   color_stage <- red
+    #   text_stage2 <- " (eligible)"}
     }
   
   # Below is Luke's code because I asked for changes in box sizes

@@ -414,9 +414,10 @@ if(autoread_dailystorage == 1) {
   "patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc",
   "&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc",
   "&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage",
-  "&jrr_current_usable_storage=jrr_current_usable_storage",
-  "&jrr_current_usable_ws_storage=jrr_current_usable_ws_storage",
-  "&sr_current_usable_storage=sr_current_usable_storage", sep = "")
+  # "&jrr_current_usable_storage=jrr_current_usable_storage",
+  # "&jrr_current_usable_ws_storage=jrr_current_usable_ws_storage",
+  # "&sr_current_usable_storage=sr_current_usable_storage", 
+  sep = "")
   
   year_temp <- today_year
   day_first <- "01"
@@ -432,7 +433,7 @@ if(autoread_dailystorage == 1) {
   
   # the name storage.daily.bg.df0 is used in the legacy sim code (line 566)
 
-  storage_daily_bg_df0 <- data.table::fread(
+  storage_local_daily_bg_df <- data.table::fread(
     url_dailystor,
     skip = 3,
     header = FALSE,
@@ -440,13 +441,32 @@ if(autoread_dailystorage == 1) {
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
-  names(storage_daily_bg_df0) <- c("date_time",
+  names(storage_local_daily_bg_df) <- c("date_time",
                                          "patuxent",
                                          "seneca",
-                                         "occoquan",
-                                         "jrr_total",
-                                         "jrr_ws",
-                                         "savage")
+                                         "occoquan")
+  
+  storage_nbr_df <- dataRetrieval::readNWISuv(
+    siteNumbers = c("01595790", "01597490"),
+    parameterCd = "00054",
+    startDate = paste0(year_temp, "-06-01"),
+    endDate = date_today0,
+    tz = "America/New_York"
+  ) %>%
+    mutate(stor_mg = X_00054_00000*0.3259/1000, date_time = dateTime) %>%
+    select(date_time, site_no, stor_mg) %>%
+    pivot_wider(names_from = site_no, names_prefix = "X", 
+                values_from = stor_mg) %>%
+    mutate(jrr_total = X01595790, jrr_ws = 13.1, savage = X01597490,
+           hour = lubridate::hour(date_time),
+           minute = lubridate::minute(date_time), 
+           date = lubridate::date(date_time))
+  
+  # just grab value at 8 AM for daily data df
+  storage_nbr_daily_df <- storage_nbr_df %>%
+    filter(hour == 8 & minute == 0) %>%
+    select(date, jrr_total, jrr_ws, savage) %>%
+    rename(date_time = date)
 }
 
 #------------------------------------------------------------------------------
