@@ -211,12 +211,22 @@ if(autoread_hourlyflows == 1) {
                           "seneca",
                           "goose",
                           "monoc_jug", 
-                          "por")
+                          "por", 
+                          "luke",
+                          "kitzmiller",
+                          "barnum",
+                          "bloomington",
+                          "barton")
   gages_hourly_ids <- c("01646500", 
                         "01645000",
                         "01644000",
                         "01643000", 
-                        "01638500")
+                        "01638500",
+                        "01598500",
+                        "01595500",
+                        "01595800",
+                        "01597500",
+                        "01596500")
   gages_hourly <- data.frame(gage_id = gages_hourly_ids,
                              location = gages_hourly_names)
   

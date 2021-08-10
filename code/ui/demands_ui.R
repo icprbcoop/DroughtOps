@@ -8,20 +8,12 @@
 # Content created in code/server/demands/demands_server.R
 # *****************************************************************************
 
-# tabPanel("Demands",
-#          fluidRow( # major row that contains whole body
-#            align = "center",
-#            plotOutput("demands", height = plot.height, width = plot.width),
-#            br()
-#          ) # End fluidRow 
-# ) # end of tab panel
-
 tabPanel("Demands",
 fluidRow( # major row that contains whole body
   column( # major column that contains whole body
     width = 12,
     #
-    # now add the content
+    # Graphs-------------------------------------------------------------------
     column(  # this is the 1st main column - with the graphs
       width = 6,
       fluidRow( # row with Potomac withdrawal graph
@@ -40,16 +32,21 @@ fluidRow( # major row that contains whole body
         )
       ) # end of 2nd fluid row
     ), # end of 1st main column - with graphs
+    
+    # Value boxes---------------------------------------------------------------
     column( # this is the 2nd main column - with values & triggers
       width = 6,
-      box(title = "Yesterday's average Potomac withdrawals",
+      box(title = "Yesterday's daily average withdrawals",
           width = NULL,
           height=60),
       valueBoxOutput("w_fw_pot_yesterday", width = NULL),
       valueBoxOutput("w_wssc_pot_yesterday", width = NULL),
       valueBoxOutput("w_wa_gf_yesterday", width = NULL),
       valueBoxOutput("w_wa_lf_yesterday", width = NULL),
-      valueBoxOutput("w_lw_pot_yesterday", width = NULL)
+      valueBoxOutput("w_lw_pot_yesterday", width = NULL),
+      valueBoxOutput("w_fw_occ_yesterday", width = NULL),
+      valueBoxOutput("w_wssc_pat_yesterday", width = NULL),
+      valueBoxOutput("w_wma_pot_yesterday", width = NULL)
 
       # br(),
       # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",

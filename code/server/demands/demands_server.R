@@ -90,10 +90,10 @@ output$wma_production <- renderPlot({
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Display yesterday's Potomac withdrawals -------------------------------------
+# Display yesterday's withdrawals ---------------------------------------------
 output$w_fw_pot_yesterday <- renderValueBox({
   w_fw_pot_yesterday <- paste(
-    "Fairfax Water: ",
+    "Fairfax Water Potomac - Corbalis: ",
     round(withdrawals_yesterday.df$w_fw_pot[1],0),
     " MGD", sep = "")
   valueBox(
@@ -105,7 +105,7 @@ output$w_fw_pot_yesterday <- renderValueBox({
 
 output$w_wssc_pot_yesterday <- renderValueBox({
   w_wssc_pot_yesterday <- paste(
-    "WSSC Water: ",
+    "WSSC Water Potomac: ",
     round(withdrawals_yesterday.df$w_wssc_pot[1],0),
     " MGD", sep = "")
   valueBox(
@@ -141,11 +141,47 @@ output$w_wa_lf_yesterday <- renderValueBox({
 
 output$w_lw_pot_yesterday <- renderValueBox({
   w_lw_pot_yesterday <- paste(
-    "Loudoun Water: ",
+    "Loudoun Water Potomac - Trap Rock: ",
     round(withdrawals_yesterday.df$w_lw_pot[1], 1),
     " MGD", sep = "")
   valueBox(
     value = tags$p(w_lw_pot_yesterday, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
+output$w_fw_occ_yesterday <- renderValueBox({
+  w_fw_occ_yesterday <- paste(
+    "Fairfax Water Occoquan - Griffith: ",
+    round(withdrawals_yesterday.df$w_fw_occ[1],0),
+    " MGD", sep = "")
+  valueBox(
+    value = tags$p(w_fw_occ_yesterday, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
+output$w_wssc_pat_yesterday <- renderValueBox({
+  w_wssc_pat_yesterday <- paste(
+    "WSSC Water Patuxent: ",
+    round(withdrawals_yesterday.df$w_wssc_pat[1],0),
+    " MGD", sep = "")
+  valueBox(
+    value = tags$p(w_wssc_pat_yesterday, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
+output$w_wma_pot_yesterday <- renderValueBox({
+  w_wma_pot_yesterday <- paste(
+    "WMA Potomac total: ",
+    round(withdrawals_yesterday.df$w_pot_total[1],0),
+    " MGD", sep = "")
+  valueBox(
+    value = tags$p(w_wma_pot_yesterday, style = "font-size: 50%;"),
     subtitle = NULL,
     color = "light-blue"
   )

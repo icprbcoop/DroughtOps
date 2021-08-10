@@ -41,8 +41,9 @@ withdrawals_hourly_mgd_df <- withdrawals.hourly.mgd.df0 %>%
                 w_lw_pot = lw_pot,
                 disch_lw_pot = lw_br) %>%
   filter(!is.na(date_time)) %>% # sometime these are sneaking in
-  dplyr::mutate(date_time = as.POSIXct(date_time, tz = "EST"),
-                date = round_date(date_time, unit = "days")
+  dplyr::mutate(date_time = as.POSIXct(date_time, tz = "America/New_York"),
+                date = lubridate::date(date_time)
+                # date = floor_date(date_time)
                 )
 
 #------------------------------------------------------------------------------
@@ -116,14 +117,13 @@ withdrawals_hourly_mgd_df <- withdrawals_hourly_mgd_df %>%
   dplyr::mutate(wnet_wma_pot = w_wssc_pot + w_fw_pot + w_wa_lf
                 + w_wa_gf + w_lw_pot - disch_lw_pot)
 
-
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 # Compute daily withdrawals for graphing
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-withdrawals.daily.df <- withdrawals_hourly_mgd_df %>%
+withdrawals.daily.df0 <- withdrawals_hourly_mgd_df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # summarise_all(mean) %>%
@@ -135,6 +135,25 @@ withdrawals.daily.df <- withdrawals_hourly_mgd_df %>%
          w_pot_total = w_wa + w_fw_pot + w_wssc_pot + w_lw_pot,
          w_pot_total_net = w_pot_total + w_lw_br) %>%
   ungroup()
+
+
+# For robustness, make sure there are at least 10 days------------------------- 
+#   of fc's for w_pot_total_net - so 9-day empirical flow fc works
+
+check_ts_df <- tail(withdrawals.daily.df0, 1)
+check_ts_lastdate <- check_ts_df$date_time[1]
+add_dates <- as.numeric(10 - (check_ts_lastdate - date_today0))
+
+withdrawals.daily.df <- withdrawals.daily.df0 %>%
+  dplyr::add_row(date_time = seq.Date(check_ts_lastdate + 1,
+                               check_ts_lastdate + add_dates,
+                               by = "day")) # %>%
+  # dplyr::mutate(w_pot_total_net = case_when(
+  #   # is.na(w_pot_total_net) == TRUE ~ 400,
+  #   is.na(w_pot_total_net) == TRUE ~ input$default_w_pot_net,
+  #   is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
+  #   TRUE ~ -9999)
+  # )
 
 # Compute daily production for graphing----------------------------------------
 production.daily.df <- withdrawals.daily.df %>%

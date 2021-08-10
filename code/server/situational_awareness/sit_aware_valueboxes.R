@@ -47,16 +47,18 @@
   withdrawals.df <- withdrawals.daily.df %>%
     filter(date_time >= date_today0 - 1 & date_time < date_today0 + 5)
 
-    withdr_pot_5dayfc <- max(tail(withdrawals.df, 5)$w_pot_total_net)
+    withdr_pot_5dayfc <- max(tail(withdrawals.df, 5)$w_pot_total_net,
+                             na.rm = TRUE)
     withdr_pot_yesterday <- head(withdrawals.df, 1)$w_pot_total_net
     lfalls_adj <- lfalls_yesterday_mgd + withdr_pot_yesterday
   
   por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting 
   lfalls_threshold <- 100 # MGD
   
-  #------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------
   # Create values for Potomac River flow value boxes
-  #------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------
+  # Point of Rocks yesterday---------------------------------------------------
   output$por_flow_yesterday_text <- renderValueBox({
     por_flow_yesterday_text <- paste0("Point of Rocks yesterday: ",
                            por_yesterday_cfs,
@@ -71,6 +73,7 @@
   )
   })
   
+  # Point of Rocks today (most recent real-time)-------------------------------
   output$por_flow_today_text <- renderValueBox({
     por_flow_today_text <- paste0("Point of Rocks today: ",
                                       por_rt_cfs,
@@ -86,7 +89,8 @@
       # color = "blue"
     )
   })
-
+  
+  # Little Falls yesterday-----------------------------------------------------
   output$lfalls_flow_yesterday_text <- renderValueBox({
     lfalls_flow_yesterday_text <- paste0("Little Falls yesterday: ",
                                          lfalls_yesterday_cfs,
@@ -100,6 +104,7 @@
     )
   })
   
+  # Little Falls today (most recent real-time)
   output$lfalls_flow_today_text <- renderValueBox({
     lfalls_flow_today_text <- paste0("Little Falls today: ",
                                      lfalls_rt_cfs,
@@ -114,6 +119,22 @@
       color = "blue"
     )
   })
+  
+  # Little Falls adjusted yesterday & drought ops trigger----------------------
+  output$lfalls_adj_yesterday_text <- renderValueBox({
+    lfalls_adj_yesterday_text <- paste0("Yesterday's LFalls adj: ",
+                                     round(lfalls_adj),
+                                     " MGD; Twice fc'd withdr + 100: ",
+                                     round(2*withdr_pot_5dayfc + 100),
+                                     " MGD")
+    
+    valueBox(
+      value = tags$p(lfalls_adj_yesterday_text, style = "font-size: 40%;"),
+      subtitle = NULL,
+      color = "blue"
+    )
+  })
+  
   
 #------------------------------------------------------------------
 # Create info for CO-OP operational status boxes

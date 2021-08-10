@@ -60,6 +60,7 @@ tabPanel("Situational Awareness",
         valueBoxOutput("lfalls_flow_today_text", width = NULL),
         valueBoxOutput("por_flow_yesterday_text", width = NULL),
         valueBoxOutput("por_flow_today_text", width = NULL),
+        valueBoxOutput("lfalls_adj_yesterday_text", width = NULL),
         h3("Status and Stages"),
         box(
           title=NULL,

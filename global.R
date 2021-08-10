@@ -38,7 +38,9 @@ ts_output <- "output/" # path of output directory
 map_path <- "data/Drought_Regions" #MD shapefiles
 
 # Set "today's" date ----------------------------------------------------------
-date_today0 <- as.Date(today())
+# date_today0 <- as.Date(today(), tz = "America/New_York")
+date_today0 <- today()
+# date_today0 <- force_tz(date_today0, tzone = "America/New_York")
 time_now0 <- Sys.time()
 
 # Set data source switches (used in import_data.R)-----------------------------
