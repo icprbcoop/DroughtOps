@@ -136,27 +136,31 @@ withdrawals.daily.df0 <- withdrawals_hourly_mgd_df %>%
          w_pot_total_net = w_pot_total + w_lw_br) %>%
   ungroup()
 
-
-# For robustness, make sure there are at least 10 days------------------------- 
-#   of fc's for w_pot_total_net - so 9-day empirical flow fc works
+# Create a REACTIVE df with 15 days of fc's for total Pot withdr's-------------
+#   - this is for robustness of the app
+#   - use input$default_w_pot_net from sidebar 
+#       to fill in missing values of w_pot_total_net
 
 check_ts_df <- tail(withdrawals.daily.df0, 1)
 check_ts_lastdate <- check_ts_df$date_time[1]
 add_dates <- as.numeric(10 - (check_ts_lastdate - date_today0))
 
-withdrawals.daily.df <- withdrawals.daily.df0 %>%
+withdrawals.daily.df <- reactive({
+  withdrawals.daily.df0 %>%
   dplyr::add_row(date_time = seq.Date(check_ts_lastdate + 1,
                                check_ts_lastdate + add_dates,
-                               by = "day")) # %>%
-  # dplyr::mutate(w_pot_total_net = case_when(
-  #   # is.na(w_pot_total_net) == TRUE ~ 400,
-  #   is.na(w_pot_total_net) == TRUE ~ input$default_w_pot_net,
-  #   is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
-  #   TRUE ~ -9999)
-  # )
+                               by = "day")) %>%
+  dplyr::mutate(w_pot_total_net = case_when(
+    # is.na(w_pot_total_net) == TRUE ~ 400,
+    is.na(w_pot_total_net) == TRUE ~ input$default_w_pot_net,
+    is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
+    TRUE ~ -9999)
+  )
+}
+)
 
 # Compute daily production for graphing----------------------------------------
-production.daily.df <- withdrawals.daily.df %>%
+production.daily.df <- withdrawals.daily.df0 %>%
   mutate(p_wa = w_wa*withdrawal_to_production,
          p_fw_w = w_fw_pot*withdrawal_to_production,
          p_fw_e = w_fw_occ*withdrawal_to_production, 

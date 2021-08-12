@@ -27,7 +27,7 @@
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Grab yesterday's values to display
-withdrawals_yesterday.df <- withdrawals.daily.df %>%
+withdrawals_yesterday.df <- withdrawals.daily.df0 %>%
   filter(date_time == date_today0 - 1)
 
 #------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ withdrawals_yesterday.df <- withdrawals.daily.df %>%
 
 # Create Potomac River withdrawals plot----------------------------------------
 #  prepare data
-withdrawals.plot.df <- withdrawals.daily.df %>%
+withdrawals.plot.df <- withdrawals.daily.df0 %>%
   select(Date = date_time,
          "FW Potomac" = w_fw_pot,
          "WSSC Water Potomac" = w_wssc_pot,

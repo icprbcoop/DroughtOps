@@ -2,19 +2,21 @@
 # DESCRIPTION
 # *****************************************************************************
 # This script is run by global.R, so df's are globally accessible
-# It adds future dates & recession flows to the daily flow time series
+# It adds historical flows, today's recent hourly, 
+#     future dates & recession flows to the daily flow time series
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
 # historical_flows_daily_cfs_df - 2014 thru 2020 daily flows, archived
 # flows.daily.cfs.df0 - daily flows created by import_data.R
+# flows.hourly.cfs.df0 - hourly flows created by import_data.R
 # withdrawals.daily.df - daily withdrawals created by process_withdrawals.R
 # data/flow_data_daily_from2014thru2020.csv - historical data
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.cfs.df - currently from 2014-01-01 thru yesterday
-# flows.daily.mgd.df (includes total Potomac demand - change to withdrawals???)
+# flows.daily.cfs.df - from 2014-01-01 thru today; w/ recession flows
+# flows.daily.mgd.df (includes Potomac demands)
 #   - used for the plots on sit awareness & 10 day ops tabs
 #   - used to compute baseflow correction for lffs flows
 #   - DELETE? used to create inflows.df in reservoirs_make.R
@@ -42,9 +44,15 @@ historical_flows_daily_cfs_df <- data.table::fread(
   select(date_time, everything()) %>%
   arrange(date_time)
 
-# Append historical daily data to this year's data-----------------------------
+# Append this year's data to historical daily data-----------------------------
 flows.daily.cfs.df1 <- rbind(historical_flows_daily_cfs_df,
                              flows.daily.cfs.df0)
+
+# Next grab flows of most recent hourlies for "today's" values
+#   actually step back an hour to avoid missing data
+today_hourly_cfs.df00 <- tail(flows.hourly.cfs.df0, 2)
+today_hourly_cfs.df0 <- head(today_hourly_cfs.df00, 1)  %>%
+  mutate(date_time = as.Date(date_time)) 
 
 #------------------------------------------------------------------------------
 # Add rest of the year's dates to this df
@@ -60,24 +68,26 @@ flows.daily.cfs.df <- flows.daily.cfs.df1 %>%
                                date_dec31, 
                                by = "day"))
 
+# Finally, update with today's recent values
+flows.daily.cfs.df <- rows_update(flows.daily.cfs.df, today_hourly_cfs.df0, 
+                              by = "date_time")
+
 # Add recession flows for selected gages---------------------------------------
 flows.daily.cfs.df <- recess_daily_flows_func(flows.daily.cfs.df, 
                                               # demands.daily.mgd.df, 
-                                              daily_flow_data_last_date,
+                                              daily_flow_data_last_date + 1,
                                               n_gages_daily + 1)
 
 # Convert from cfs to MGD------------------------------------------------------
 func_cfs_to_mgd <- function(cfs) {round(cfs/mgd_to_cfs,0)}
 flows.daily.mgd.df <- flows.daily.cfs.df %>%
-  dplyr::mutate_at(2:(n_gages_daily + 1), func_cfs_to_mgd)
+  dplyr::mutate(across(where(is.numeric), func_cfs_to_mgd))
 
-# Add Potomac withdrawals -----------------------------------------------------
-flows.daily.mgd.df <- left_join(flows.daily.mgd.df, withdrawals.daily.df,
+# Add Potomac withdrawals to satisfy legacy sim code --------------------------
+flows.daily.mgd.df <- left_join(flows.daily.mgd.df, withdrawals.daily.df0,
                                 by = "date_time") %>%
   # temporary fix - at some point need to eliminate d_pot_total
-  dplyr::mutate(d_pot_total = w_pot_total_net)
-
-# Predict LFalls from upstream gages using constant lags ----------------------
-flows.daily.mgd.df <- flows.daily.mgd.df %>%
-  dplyr::mutate(lfalls_from_upstr = lag(por, 2) + lag(monoc_jug, 2)
-                + lag(goose, 1) + lag(seneca, 1) - lag(d_pot_total, 1))
+  dplyr::mutate(d_pot_total = w_pot_total_net) # %>%
+  # # Predict LFalls from upstream gages using constant lags
+  # dplyr::mutate(lfalls_from_upstr = lag(por, 2) + lag(monoc_jug, 2)
+  #                 + lag(goose, 1) + lag(seneca, 1) - lag(d_pot_total, 1))

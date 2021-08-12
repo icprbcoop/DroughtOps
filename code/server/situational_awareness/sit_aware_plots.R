@@ -33,20 +33,18 @@
 # Select flows of interest ----------------------------------------------------
 #   - plot will be cfs
 
-sit_aware_cfs.df <- flows.daily.mgd.df %>%
-  dplyr::select(date_time, lfalls, por, monoc_jug, shen_mill,
-                seneca, d_pot_total) %>%
-  dplyr::mutate(lfalls = lfalls*mgd_to_cfs, por = por*mgd_to_cfs,
-                monoc_jug = monoc_jug*mgd_to_cfs, 
-                shen_mill = shen_mill*mgd_to_cfs, seneca = seneca*mgd_to_cfs,
-                d_pot_total = d_pot_total*mgd_to_cfs,
-                lfalls_flowby = lfalls_flowby*mgd_to_cfs,
+sit_aware_cfs.df <- flows.daily.cfs.df %>%
+  dplyr::mutate(lfalls_flowby = lfalls_flowby*mgd_to_cfs,
                 por_trigger = 2000)
 
-flows.plot.df <- sit_aware_cfs.df %>%
-  gather(key = "site", value = "flow", -date_time)
-
 output$sit_aware_flows_plot <- renderPlot({
+  
+  flows.plot.df <- left_join(sit_aware_cfs.df, withdrawals.daily.df0,
+                             by = "date_time") %>%
+    select(date_time, lfalls, por, monoc_jug, shen_mill,
+           seneca, lfalls_flowby, por_trigger, w_pot_total_net) %>%
+    gather(key = "site", value = "flow", -date_time)
+  
   flows.plot.df <- flows.plot.df %>%  
   filter(date_time >= input$plot_range[1],
          date_time <= input$plot_range[2])

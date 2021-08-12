@@ -44,7 +44,7 @@
   lfalls_rt_time <- tail(lfalls_rt.df, 1)$date_time[1]
   
   # Finally grab Potomac River withdrawals and compute LFalls adjusted flow
-  withdrawals.df <- withdrawals.daily.df %>%
+  withdrawals.df <- withdrawals.daily.df0 %>%
     filter(date_time >= date_today0 - 1 & date_time < date_today0 + 5)
 
     withdr_pot_5dayfc <- max(tail(withdrawals.df, 5)$w_pot_total_net,

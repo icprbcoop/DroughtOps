@@ -40,6 +40,8 @@ lfalls_lowflow <- 2000 # low-flow threshold - maybe 5th percentile value
 
 lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
+  dplyr::mutate(lfalls_from_upstr = lag(por, 2) + lag(monoc_jug, 2)
+                  + lag(goose, 1) + lag(seneca, 1) - lag(d_pot_total, 1)) %>%
   dplyr::select(date_time, lfalls, lfalls_from_upstr, 
                 lfalls_lffs_daily, lfalls_lffs_bfc,
                 por, monoc_jug, goose, seneca,
