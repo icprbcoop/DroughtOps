@@ -73,12 +73,17 @@ ops_10day.df0 <- ops_10day.df00 %>%
   dplyr::mutate(res_inflow = kitzmiller + barton,
                 res_outflow = barnum + bloomington,
                 res_augmentation = res_outflow - res_inflow,
+                w_pot_total_net = case_when(
+                  # seems that case_when feels input$'s are integer
+                  is.na(w_pot_total_net) == TRUE ~ 1.000001*400,
+                  is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, 
+                  TRUE ~ -9999.9),
                 res_aug_lagged8 = lag(res_augmentation, 8),
                 res_aug_lagged9 = lag(res_augmentation, 9),
                 res_aug_lagged10 = lag(res_augmentation, 10),
                 res_aug_lagged = (res_aug_lagged8 + res_aug_lagged9
                                   + res_aug_lagged10)/3,
-                lfalls_nat = lfalls + d_pot_total - res_aug_lagged,
+                lfalls_nat = lfalls + w_pot_total_net - res_aug_lagged,
                 lfalls_nat_empirical_fc = 288.79*exp(0.0009*lfalls_nat),
                 lfalls_nat_empirical_fc = case_when(
                   lfalls_nat_empirical_fc > lfalls_nat ~ lfalls_nat,
@@ -114,7 +119,7 @@ ops_10day.df <- reactive({
                 res_aug_lagged10 = lag(res_augmentation, 10),
                 res_aug_lagged = (res_aug_lagged8 + res_aug_lagged9
                                   + res_aug_lagged10)/3,
-                lfalls_nat = lfalls + d_pot_total - res_aug_lagged,
+                lfalls_nat = lfalls + w_pot_total_net - res_aug_lagged,
                 lfalls_nat_empirical_fc = 288.79*exp(0.0009*lfalls_nat),
                 lfalls_nat_empirical_fc = case_when(
                   lfalls_nat_empirical_fc > lfalls_nat ~ lfalls_nat,
