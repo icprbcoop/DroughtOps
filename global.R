@@ -44,10 +44,14 @@ date_today0 <- today()
 time_now0 <- Sys.time()
 
 # Set data source switches (used in import_data.R)-----------------------------
+# This can be useful for drought exercises - can apply factors to rt data
+#    or in case there are data problems, can edit local files by hand
+# To write downloaded input time series to ts_path, run app and then
+#    press "Write... to input dir" on LHS panel
+# Set switches to:
 #   - 1's to download online data
-#   - 0's to read from files in ts_path/
-#   - to improve speed, press "Write... to input dir" on LHS panel
-#      - then change first 3 autoread's below from 1 to 0
+#   - 0's to read from local files in ts_path/
+
 autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
 autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
 autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
