@@ -40,18 +40,18 @@ lag_daily_por <- 1
 lag_daily_sen <- 1 
 ops_1day_daily.df0 <- flows.daily.mgd.df %>%
   dplyr::select(date_time, lfalls, seneca, goose, 
-                monoc_jug, por, d_pot_total, w_wa_lf) %>%
+                monoc_jug, por, w_pot_total_net, w_wa_lf) %>%
   # dplyr::mutate(lfalls_fc_constant_lags = 
   #                 lag(seneca, lag_sen) + lag(goose, lag_sen) + 
   #                 lag(monoc_jug, lag_por) + lag(por, lag_por) -
-  #                 d_pot_total) %>%
+  #                 w_pot_total_net) %>%
   dplyr::mutate(lfalls_fc_prrism = 
                   lag(lfalls, 1) +
                   lag(por, lag_daily_por+1) - lag(por, lag_daily_por) +
                   lag(monoc_jug, lag_daily_por+1) - lag(monoc_jug, lag_daily_por) + 
                   lag(seneca, lag_daily_sen+1) - lag(seneca, lag_daily_sen) +
                   lag(goose, lag_daily_sen+1) - lag(goose, lag_daily_sen)
-                  - d_pot_total) %>%
+                  - w_pot_total_net) %>%
   dplyr::mutate(gfalls = lead(lfalls, 1)*15/24 + lfalls*9/24
                 + w_wa_lf, 
                 gfalls_flowby = 300) %>%
@@ -205,7 +205,7 @@ prrism.daily.fc.mgd.df <- ops_1day_daily.df %>%
 lfalls_1day.plot1.df <- left_join(ops_1day_daily.df, por_klag_daily_mgd_df,
                                   by = "date_time") %>%
   mutate(lfalls_flowby = lfalls_flowby) %>%
-  select(-d_pot_total, -goose, -por, -lfalls_daily) %>%
+  select(-w_pot_total_net, -goose, -por, -lfalls_daily) %>%
   gather(key = "site", value = "flow", -date_time)
 
 output$one_day_ops_plot1 <- renderPlot({

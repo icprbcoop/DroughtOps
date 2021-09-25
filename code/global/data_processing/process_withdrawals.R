@@ -123,7 +123,7 @@ withdrawals_hourly_mgd_df <- withdrawals_hourly_mgd_df %>%
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-withdrawals.daily.df0 <- withdrawals_hourly_mgd_df %>%
+withdrawals.daily.df00 <- withdrawals_hourly_mgd_df %>%
   select(-date_time) %>%
   group_by(date) %>%
   # summarise_all(mean) %>%
@@ -136,28 +136,16 @@ withdrawals.daily.df0 <- withdrawals_hourly_mgd_df %>%
          w_pot_total_net = w_pot_total + w_lw_br) %>%
   ungroup()
 
-# Create a REACTIVE df with 15 days of fc's for total Pot withdr's-------------
-#   - this is for robustness of the app
-#   - use input$default_w_pot_net from sidebar 
-#       to fill in missing values of w_pot_total_net
-
-check_ts_df <- tail(withdrawals.daily.df0, 1)
+# Add rows if necessary to ensure fc's out 15 days into the future-------------
+check_ts_df <- tail(withdrawals.daily.df00, 1)
 check_ts_lastdate <- check_ts_df$date_time[1]
-add_dates <- as.numeric(10 - (check_ts_lastdate - date_today0))
+add_dates <- if(as.numeric(check_ts_lastdate - date_today0) < 15) {
+  15 - as.numeric(check_ts_lastdate - date_today0)} else {0}
 
-withdrawals.daily.df <- reactive({
-  withdrawals.daily.df0 %>%
+withdrawals.daily.df0 <- withdrawals.daily.df00 %>%
   dplyr::add_row(date_time = seq.Date(check_ts_lastdate + 1,
-                               check_ts_lastdate + add_dates,
-                               by = "day")) %>%
-  dplyr::mutate(w_pot_total_net = case_when(
-    # is.na(w_pot_total_net) == TRUE ~ 400,
-    is.na(w_pot_total_net) == TRUE ~ input$default_w_pot_net,
-    is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
-    TRUE ~ -9999)
-  )
-}
-)
+                                      check_ts_lastdate + add_dates,
+                                      by = "day"))
 
 # Compute daily production for graphing----------------------------------------
 production.daily.df <- withdrawals.daily.df0 %>%

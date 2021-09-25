@@ -50,13 +50,15 @@ output$sit_aware_flows_plot <- renderPlot({
          date_time <= input$plot_range[2])
   ggplot(flows.plot.df, aes(x = date_time, y = flow)) + 
     geom_line(aes(colour = site, size = site, linetype = site)) +
-    scale_color_manual(values = c("orange", "deepskyblue1", "red", 
+    scale_color_manual(values = c("deepskyblue1", "red", 
                                   "plum", "steelblue",
-                                  "tomato1", "palegreen3", "plum")) +
-    scale_size_manual(values = c(1, 2, 1, 1, 1, 1, 1, 1)) +
-    scale_linetype_manual(values = c("solid", "solid", "dashed",
+                                  "tomato1", "palegreen3", 
+                                  "plum", "orange")) +
+    scale_size_manual(values = c(2, 1, 1, 1, 1, 1, 1, 1)) +
+    scale_linetype_manual(values = c("solid", "dashed",
                                      "solid", "solid",
-                                     "dotted","solid","solid")) +
+                                     "dotted","solid",
+                                     "solid", "solid")) +
     labs(x = "", y = "Flow, cfs")
 })
 

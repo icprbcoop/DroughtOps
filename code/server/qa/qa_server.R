@@ -41,12 +41,12 @@ lfalls_lowflow <- 2000 # low-flow threshold - maybe 5th percentile value
 lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
                           by = "date_time") %>%
   dplyr::mutate(lfalls_from_upstr = lag(por, 2) + lag(monoc_jug, 2)
-                  + lag(goose, 1) + lag(seneca, 1) - lag(d_pot_total, 1)) %>%
+                  + lag(goose, 1) + lag(seneca, 1) - lag(w_pot_total_net, 1)) %>%
   dplyr::select(date_time, lfalls, lfalls_from_upstr, 
                 lfalls_lffs_daily, lfalls_lffs_bfc,
                 por, monoc_jug, goose, seneca,
                 # luke, kitzmiller, barnum,
-                d_pot_total)
+                w_pot_total_net)
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ lffs.df <- left_join(flows.daily.mgd.df, lffs.daily.bfc.mgd.df,
 # Prepare for plotting LFalls & POR flows - first graph on ui -----------------
 lffs.plot.df <- lffs.df %>%
   dplyr::select(date_time, lfalls,
-                por, monoc_jug, d_pot_total,
+                por, monoc_jug, w_pot_total_net,
                 lfalls_from_upstr, lfalls_lffs_daily, 
                 lfalls_lffs_bfc #,
                 # lfalls_flowby

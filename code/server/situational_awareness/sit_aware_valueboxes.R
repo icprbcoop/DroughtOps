@@ -43,21 +43,47 @@
   lfalls_rt_mgd <- round(lfalls_rt_cfs/mgd_to_cfs)
   lfalls_rt_time <- tail(lfalls_rt.df, 1)$date_time[1]
   
-  # Finally grab Potomac River withdrawals and compute LFalls adjusted flow
-  withdrawals.df <- withdrawals.daily.df0 %>%
-    filter(date_time >= date_today0 - 1 & date_time < date_today0 + 5)
+  # The following reactive objects seem to be accessible globally
+  #   - probably should be moved to subcode of server.R
+  #********************************************************
+    withdrawals.daily.df <- reactive({
+      final.df <- withdrawals.daily.df0 %>%
+        mutate(w_pot_total_net = case_when(
+          is.na(w_pot_total_net) == TRUE ~ 1.00001*input$default_w_pot_net,
+          is.na(w_pot_total_net) == FALSE ~ w_pot_total_net,
+          TRUE ~ -9999.9))
+      return(final.df)
+    })
 
-    withdr_pot_5dayfc <- max(tail(withdrawals.df, 5)$w_pot_total_net,
-                             na.rm = TRUE)
-    withdr_pot_yesterday <- head(withdrawals.df, 1)$w_pot_total_net
-    lfalls_adj <- lfalls_yesterday_mgd + withdr_pot_yesterday
+    # Grab Potomac River withdrawals to compute LFalls adjusted flow
+    withdrawals.sub.df <- reactive({withdrawals.daily.df() %>%
+        filter(date_time >= date_today0 - 1 & date_time < date_today0 + 5)
+    })
+
+    withdr_pot_5dayfc <- reactive({
+      max(tail(withdrawals.sub.df(), 5)$w_pot_total_net,
+          na.rm = TRUE)
+    })
+
+    withdr_pot_yesterday <- reactive({
+      head(withdrawals.sub.df(), 1)$w_pot_total_net[1]
+    })
+    
+    lfalls_adj_yesterday <- reactive({
+      lfalls_yesterday_mgd +
+        withdr_pot_yesterday()
+    })
+    #********************************************************
   
   por_threshold <- 2000 # (cfs) CO-OP's trigger for daily monitoring/reporting 
   lfalls_threshold <- 100 # MGD
-  
+
+  #----------------------------------------------------------------------------  
   #----------------------------------------------------------------------------
   # Create values for Potomac River flow value boxes
   #----------------------------------------------------------------------------
+  #----------------------------------------------------------------------------
+  
   # Point of Rocks yesterday---------------------------------------------------
   output$por_flow_yesterday_text <- renderValueBox({
     por_flow_yesterday_text <- paste0("Point of Rocks yesterday: ",
@@ -104,7 +130,7 @@
     )
   })
   
-  # Little Falls today (most recent real-time)
+  # Little Falls today (most recent real-time)---------------------------------
   output$lfalls_flow_today_text <- renderValueBox({
     lfalls_flow_today_text <- paste0("Little Falls today: ",
                                      lfalls_rt_cfs,
@@ -122,10 +148,11 @@
   
   # Little Falls adjusted yesterday & drought ops trigger----------------------
   output$lfalls_adj_yesterday_text <- renderValueBox({
+    
     lfalls_adj_yesterday_text <- paste0("Yesterday's LFalls adj: ",
-                                     round(lfalls_adj),
+                                     round(lfalls_adj_yesterday()),
                                      " MGD; Twice fc'd withdr + 100: ",
-                                     round(2*withdr_pot_5dayfc + 100),
+                                     round(2*withdr_pot_5dayfc() + 100),
                                      " MGD")
     
     valueBox(
@@ -134,7 +161,6 @@
       color = "blue"
     )
   })
-  
   
 #------------------------------------------------------------------
 # Create info for CO-OP operational status boxes
@@ -159,7 +185,7 @@ output$coop_ops <- renderUI({
       text_stage <- "DAILY OPS" 
       text_stage2 <- "Daily monitoring & reporting"
       color_stage <- yellow}
-    if(lfalls_adj < lfalls_threshold + 2*withdr_pot_5dayfc) {
+    if(lfalls_adj_yesterday() < lfalls_threshold + 2*withdr_pot_5dayfc()) {
       text_stage <- "ENHANCED OPS" 
       text_stage2 <- "Drought operations"
       color_stage <- orange}
@@ -201,18 +227,21 @@ output$lfaa_alert <- renderUI({
     text_stage2 <- ""
     color_stage <- red} # alas there is no grey
   else {
-    if(lfalls_adj > withdr_pot_yesterday/0.5) {
+    if(lfalls_adj_yesterday() > withdr_pot_yesterday()/0.5) {
       text_stage <- "NORMAL"
       color_stage <- green
       text_stage2 <- ""}
   
-    if(lfalls_adj <= withdr_pot_yesterday/0.5 & lfalls_adj > 
-       (withdr_pot_yesterday + lfalls_threshold)/0.8){
+    if(lfalls_adj_yesterday() <= withdr_pot_yesterday()/0.5 
+       & lfalls_adj_yesterday() > 
+       (withdr_pot_yesterday() + lfalls_threshold)/0.8){
       text_stage <- "ALERT"
       color_stage <- yellow
       text_stage2 <- " (eligible)"}
   
-    if(lfalls_adj <= (withdr_pot_yesterday + lfalls_threshold)/0.8) {
+    if(lfalls_adj_yesterday() <= (withdr_pot_yesterday() +
+                                  lfalls_threshold)/0.8) 
+      {
       text_stage <- "RESTRICTION"
       color_stage <- orange
       text_stage2 <- " (eligible)"}
@@ -249,8 +278,6 @@ output$mwcog_stage <- renderUI({
   # flows.last <- last(ts$flows)
   # por_flow <- flows.last$por_nat[1]*mgd_to_cfs
   por_flow <- round(flows_yesterday.df$por[1]*mgd_to_cfs)
-  # withdr_pot <- flows_yesterday.df$d_pot_total[1]  
-  # lfalls_adj <- flows_yesterday.df$lfalls[1] + withdr_pot 
   
   sen.last <- last(ts$sen)
   jrr.last <- last(ts$jrr)

@@ -382,7 +382,7 @@ if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     paste(ts_path, "wma_withdrawals.csv", sep = ""),
     skip = 16,
-    header = TRUE,
+    header = FALSE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),

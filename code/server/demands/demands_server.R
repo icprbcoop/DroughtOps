@@ -38,23 +38,46 @@ withdrawals_yesterday.df <- withdrawals.daily.df0 %>%
 
 # Create Potomac River withdrawals plot----------------------------------------
 #  prepare data
-withdrawals.plot.df <- withdrawals.daily.df0 %>%
-  select(Date = date_time,
-         "FW Potomac" = w_fw_pot,
-         "WSSC Water Potomac" = w_wssc_pot,
-         "WA Great Falls" = w_wa_gf,
-         "WA Little Falls" = w_wa_lf,
-         "LW Potomac" = w_lw_pot,
-         "Broad Run discharge" = w_lw_br,
-         "Net Potomac withdrawals" = w_pot_total_net) %>%
-  gather(key = "Legend", 
-         value = "MGD", -Date)
+
+# Create a REACTIVE df with 15 days of fc's for total Pot withdr's-------------
+#   - use input$default_w_pot_net from sidebar 
+#       to fill in missing values of w_pot_total_net
+# withdrawals.daily.df <- reactive({
+#   df1 <- withdrawals.daily.df0 %>%
+#     mutate(w_pot_total_net2 = case_when(
+#       is.na(w_pot_total_net) == TRUE ~ 1.00001*input$default_w_pot_net,
+#       is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, 
+#       TRUE ~ -9999.9))
+#   df2 <- df1 %>%
+#     dplyr::select(-w_pot_total_net) %>%
+#     dplyr::rename(w_pot_total_net = w_pot_total_net2)
+#   return(df2)
+# })
 
 output$pot_withdrawals <- renderPlot({
+  # withdrawals.plot.df <- withdrawals.daily.df0 %>%
+  #   mutate(w_pot_total_net = case_when(
+  #     is.na(w_pot_total_net) == TRUE ~ 1.0001*input$default_w_pot_net,
+  #     # is.na(w_pot_total_net) == TRUE ~ 400.0,
+  #     is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
+  #     TRUE ~ -9999.9)) %>%
+  withdrawals.plot.df <- withdrawals.daily.df() %>%
+    select("Date" = date_time,
+           "FW Potomac" = w_fw_pot,
+           "WSSC Water Potomac" = w_wssc_pot,
+           "WA Great Falls" = w_wa_gf,
+           "WA Little Falls" = w_wa_lf,
+           "LW Potomac" = w_lw_pot,
+           "Broad Run discharge" = w_lw_br,
+           "Net Potomac withdrawals" = w_pot_total_net) %>%
+    gather(key = "Legend", 
+           value = "MGD", -Date)
+  
   # use the dynamic plot ranges
   withdrawals.plot.df <- withdrawals.plot.df %>%
   filter(Date >= input$plot_range[1],
          Date <= input$plot_range[2])
+  
   ggplot(withdrawals.plot.df, aes(x = Date, y = MGD, group = Legend)) + 
     geom_point(aes(colour = Legend, size = Legend)) +
     labs(x = "", y = "Potomac withdrawals, MGD") +
@@ -176,9 +199,21 @@ output$w_wssc_pat_yesterday <- renderValueBox({
 })
 
 output$w_wma_pot_yesterday <- renderValueBox({
+  
+  # withdrawals_yesterday.df <- withdrawals.daily.df0 %>%
+  #   mutate(w_pot_total_net = case_when(
+  #     is.na(w_pot_total_net) == TRUE ~ 1.0001*input$default_w_pot_net,
+  #     # is.na(w_pot_total_net) == TRUE ~ 400.0,
+  #     is.na(w_pot_total_net) == FALSE ~ w_pot_total_net, # default_w_pot_net,
+  #     TRUE ~ -9999.9)) %>%
+  #   filter(date_time == date_today0 - 1)
+  
+  withdrawals_yesterday.df <- withdrawals.daily.df() %>%
+    filter(date_time == date_today0 -1)
+    
   w_wma_pot_yesterday <- paste(
     "WMA Potomac total: ",
-    round(withdrawals_yesterday.df$w_pot_total[1],0),
+    round(withdrawals_yesterday.df$w_pot_total_net[1],0),
     " MGD", sep = "")
   valueBox(
     value = tags$p(w_wma_pot_yesterday, style = "font-size: 50%;"),
