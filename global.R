@@ -131,6 +131,8 @@ source("code/global/data_processing/process_daily_flows.R", local = TRUE)
 print("finished processing daily flows")
 source("code/global/data_processing/process_lffs.R", local = TRUE)
 print("finished processing LFFS flows")
+source("code/global/data_processing/process_rt_storages.R", local = TRUE)
+print("finished processing rt storages")
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------

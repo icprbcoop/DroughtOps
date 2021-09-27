@@ -470,13 +470,8 @@ if(autoread_dailystorage == 1) {
     mutate(jrr_total = X01595790, jrr_ws = 13.1, savage = X01597490,
            hour = lubridate::hour(date_time),
            minute = lubridate::minute(date_time), 
-           date = lubridate::date(date_time))
-  
-  # just grab value at 8 AM for daily data df
-  storage_nbr_daily_df <- storage_nbr_df %>%
-    filter(hour == 8 & minute == 0) %>%
-    select(date, jrr_total, jrr_ws, savage) %>%
-    rename(date_time = date)
+           date = lubridate::date(date_time)) %>%
+    select(-X01595790, -X01597490)
 }
 
 #------------------------------------------------------------------------------
@@ -511,7 +506,7 @@ if(autoread_dailystorage == 0) {
 print("finished importing reservoir storages")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# DAILY STORAGE DATA
+# Retrieve LFFS time series
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
@@ -587,111 +582,13 @@ state.drought.df <- data.table::fread(paste(ts_path, "state_drought_status.csv",
                 ) %>%
   dplyr:: filter(date_time <= date_end,
                  date_time >= date_start)
-
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Import reservoir storage data
+# Legacy code for storages used in simulation
+#   - temporarily just use time series from 2018drex.
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
-# Set switch (move this to global?)--------------------------------------------
-# autoread_resstorage <- 1 # automatic data retrieval from Data Portal
-autoread_resstorage <- 0 # read data from file in local directory
-
-#------------------------------------------------------------------------------
-# STORAGE OPTION 1 - AUTOMATIC DATA RETRIEVAL
-#   - read daily flow data automatically from Data Portal
-#   - start date is January 1 of the current year
-#------------------------------------------------------------------------------
-
-if(autoread_resstorage == 1) {
-  
-  # paste together the url for Data Portal's storage data-------------------
-  # https://icprbcoop.org/drupal4/icprb/data-view?patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage&startdate=01%2F01%2F2020&enddate=11%2F10%2F2020&format=csv&submit=Submit
-  url_storage0 <- "https://icprbcoop.org/drupal4/icprb/data-view?"
-  urlplus1 <- "patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc"
-  urlplus2 <- "&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc"
-  urlplus3 <- "&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage"
-    url_storagedaily <- paste(url_storage0, 
-                            urlplus1, urlplus2, urlplus3,
-                            "&startdate=01%2F01%2F2020&enddate=", 
-                     today_month, "%2F", 
-                     today_day, "%2F", 
-                     today_year, "&format=csv&submit=Submit", 
-                     sep="")
-  
-  # read the online data table-------------------------------------------------
-  storage.daily.bg.df0 <- data.table::fread(
-    url_storagedaily,
-    skip = 1,
-    header = FALSE,
-    col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
-    stringsAsFactors = FALSE,
-    na.strings = c("", "#N/A", -999999, "NA"),
-    data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.Date(date_time)) %>%
-    filter(!is.na(date_time)) %>%
-    select(date_time, everything()) %>%
-    arrange(date_time)
-
-# Now read N Br reservoir data ------------------------------------------------
-start_date_resstor <- as.POSIXct("2020-01-01")
-end_date_resstor <- as.POSIXct(date_today0)
-storage_level_jrr_rt <- dataRetrieval::readNWISuv(siteNumbers = "01595790",
-                                      parameterCd = 62615, 
-                                      startDate = start_date_resstor,
-                                      endDate = end_date_resstor,
-                                      tz = "EST" # time zone is Eastern Standard Time
-                                      )
-storage_level_sav_rt <- dataRetrieval::readNWISuv(siteNumbers = "01597490",
-                                                  parameterCd = 62615, 
-                                                  startDate = start_date_resstor,
-                                                  endDate = end_date_resstor,
-                                                  tz = "EST" # time zone is Eastern Standard Time
-                                                  )
-}
-#------------------------------------------------------------------------------
-# STORAGE OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
-#   - read daily flow data from file residing in /input/ts/current/
-#   - file name is flows_daily_cfs.csv
-#   - code set up so that these time series should begin on Jan 1 of current year
-#   - daily data can be downloaded from CO-OP's Data Portal
-#      - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
-#      - name appropriately then save the file to /input/ts/current/
-#------------------------------------------------------------------------------
-
-if(autoread_resstorage == 0) {
-  
-  # read the lacal data table--------------------------------------------------
-  storage.daily.bg.df0 <- data.table::fread(
-    paste(ts_path, "storage_daily_bg.csv", sep = ""),
-    skip = 1,
-    header = FALSE,
-    col.names = c("date_time", "stor_pat", "stor_sen", "stor_occ"),
-    # colClasses = c("Date", "numeric", "numeric", "numeric"), 
-    stringsAsFactors = FALSE,
-    na.strings = c("", "#N/A", -999999),
-    data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.Date(date_time),
-                  stor_pat = as.numeric(stor_pat),
-                  stor_sen = as.numeric(stor_sen),
-                  stor_occ = as.numeric(stor_occ)) %>%
-    filter(!is.na(date_time)) %>%
-    select(date_time, everything()) %>%
-    arrange(date_time)
-}
-print("Finished importing reservoir storages")
-
-
-
-
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# Import reservoir dfs - this is a temporary fix to get us going in 2019
-#   - just importing tables outputted by 2018drex to serve as temporary reservoir data frames
-#   - these will be used to initialize the res dfs from date_start to date_today0 (ie today())
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-# print("date_today0")
+# 
 # print(date_today0)
 sen.ts.df00 <- data.table::fread(paste(ts_path, "drex2018_output_sen.csv", sep = ""),
                                 data.table = FALSE) %>%

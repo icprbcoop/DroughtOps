@@ -161,11 +161,13 @@
       color = "blue"
     )
   })
-  
-#------------------------------------------------------------------
+#------------------------------------------------------------------------------  
+#------------------------------------------------------------------------------
 # Create info for CO-OP operational status boxes
-#------------------------------------------------------------------
-# I think this should also be based on flows yesterday (?)
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+  # I think this should also be based on flows yesterday (?)
 output$coop_ops <- renderUI({
   
 # According to the Operations Manual of the WSCA, drought ops
@@ -270,46 +272,60 @@ output$lfaa_alert <- renderUI({
   ) # end div(class="longbox"
 }) # end renderUI
 #
-#------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Create info on MWCOG Drought Plan stage
-#------------------------------------------------------------------
-# 
+#------------------------------------------------------------------------------
+
+  # Let daily monitoring trigger be based on POR flow yesterday----------------
+  por_yesterday <- round(flows_yesterday.df$por[1]*mgd_to_cfs)
+  
+  # Tentatively, use POR flow as a surrogate for NOAA's D1 stage---------------
+  noaa_d1_surrogate <- 1700 # trigger for yesterday's flow at POR
+  
+  # Need combined jrr & lsen water supply storage today------------------------
+  nbr_storage_today <- storage_nbr_daily_df %>%
+    dplyr::filter(date_time == date_today0)
+  reservoir_local_today <- storage_local_daily_bg_df %>%
+    dplyr::filter(date_time == date_today0)
+  
+  jrr_ws_stor <- nbr_storage_today$jrr_ws[1]
+  sen_stor <- reservoir_local_today$seneca[1]
+  
+  # capacity of jrr ws storage, in BG
+  jrr_ws_cap_bg <- jrr_cap*jrr_ws_frac/1000
+  
+  sen_cap_bg <- sen_cap/1000
+  
 output$mwcog_stage <- renderUI({
-  # flows.last <- last(ts$flows)
-  # por_flow <- flows.last$por_nat[1]*mgd_to_cfs
-  por_flow <- round(flows_yesterday.df$por[1]*mgd_to_cfs)
-  
-  sen.last <- last(ts$sen)
-  jrr.last <- last(ts$jrr)
-  sen_stor <- sen.last$stor[1]
-  jrr_ws_stor <- jrr.last$storage_ws[1]
-  jrr_ws_cap_cp <- jrr_cap*jrr_ws_frac
-  shared_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap + jrr_ws_cap_cp)
-  
-  # would POR at 1500 cfs work as a surrogate for NOAA's D1 stage?
-  noaa_d1_surrogate <- 1700
+
+  # sen_last <- last(ts$sen)
+  # jrr.last <- last(ts$jrr)
+  # sen_stor <- sen.last$stor[1]
+  # jrr_ws_stor <- jrr.last$storage_ws[1]
+
+  combined_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap_bg + jrr_ws_cap_bg)
   
   if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date) {
     text_stage <- "NO DATA"
     text_stage2 <- ""
     color_stage <- red} # alas there is no grey
   else {
-    if(por_flow > noaa_d1_surrogate) {
+    if(por_yesterday > noaa_d1_surrogate) {
       text_stage <- "NORMAL" 
       text_stage2 <- "- Wise Water Use"
       color_stage <- green}
-    if(por_flow <= noaa_d1_surrogate) { # surrogate
+    if(por_yesterday <= noaa_d1_surrogate) { # surrogate
       # based on NOAA drought status - D1
       # then "notifications" upon 1st release, & when jrr+sen at 75%
       text_stage <- "WATCH" 
       text_stage2 <- "- Voluntary Water Conservation"
       color_stage <- yellow}
-    if(shared_ws_frac <= 0.60){
+    if(combined_ws_frac <= 0.60){
       text_stage <- "WARNING"
       text_stage2 <- "- Voluntary Water Conservation"
       color_stage <- orange}
     # if(shared_ws_frac <= 0.05){
-    if(shared_ws_frac <= 0.05){
+    if(combined_ws_frac <= 0.05){
       text_stage <- "EMERGENCY"
       text_stage2 <- "- Voluntary Water Conservation"
       color_stage <- red}
