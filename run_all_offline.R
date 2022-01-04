@@ -7,6 +7,7 @@
 # Thus, you can inspect most dataframes of interest
 source("global.R", local = TRUE)
 
+#******************************************************************
 # For 2019 DREX
 # date_today0 <- as.Date("2019-11-21")
 
@@ -21,6 +22,7 @@ source("input/parameters/parameters_ops.R", local = TRUE)
 source("input/parameters/parameters_physical.R", local = TRUE)
 
 #******************************************************************
+# Code related to the simulation, which is currently broken:
 
 # date_today0 is set in global.R, 
 #    but might want to change it, by using date_today

@@ -15,7 +15,8 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.cfs.df - from 2014-01-01 thru today; w/ recession flows
+# flows.daily.cfs.df - from 2014-01-01 thru today; w/ some recession flows
+#   - df actually has records up to end of calendar year
 # flows.daily.mgd.df (includes Potomac demands)
 #   - used for the plots on sit awareness & 10 day ops tabs
 #   - used to compute baseflow correction for lffs flows
@@ -30,8 +31,10 @@
 #------------------------------------------------------------------------------
 
 # First read the historical data-----------------------------------------------
+# needs_turn_of_year_update
+#   - update and rename flow_data_daily_from2014thru2021.csv
 historical_flows_daily_cfs_df <- data.table::fread(
-  paste("data/", "flow_data_daily_from2014thru2020.csv", sep = ""),
+  paste("data/", "flow_data_daily_from2014thru2021.csv", sep = ""),
   header = TRUE,
   stringsAsFactors = FALSE,
   colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric

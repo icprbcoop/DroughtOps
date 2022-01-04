@@ -163,10 +163,14 @@
   })
 #------------------------------------------------------------------------------  
 #------------------------------------------------------------------------------
-# Create info for CO-OP operational status boxes
+# Create info for Status and Stages value boxes
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
+#----------------------------------------------------------------------------
+# CO-OP operational status
+#----------------------------------------------------------------------------
+  
   # I think this should also be based on flows yesterday (?)
 output$coop_ops <- renderUI({
   
@@ -210,10 +214,10 @@ output$coop_ops <- renderUI({
   ) # end div(class="longbox" 
 }) # end renderUI
   
-#------------------------------------------------------------------
-# Create info on LFAA status
-#------------------------------------------------------------------
-#
+#------------------------------------------------------------------------------
+# LFAA stage
+#------------------------------------------------------------------------------
+
 output$lfaa_alert <- renderUI({
 
   #
@@ -273,7 +277,7 @@ output$lfaa_alert <- renderUI({
 }) # end renderUI
 #
 #------------------------------------------------------------------------------
-# Create info on MWCOG Drought Plan stage
+# MWCOG drought stage
 #------------------------------------------------------------------------------
 
   # Let daily monitoring trigger be based on POR flow yesterday----------------
@@ -283,13 +287,13 @@ output$lfaa_alert <- renderUI({
   noaa_d1_surrogate <- 1700 # trigger for yesterday's flow at POR
   
   # Need combined jrr & lsen water supply storage today------------------------
-  nbr_storage_today <- storage_nbr_daily_df %>%
-    dplyr::filter(date_time == date_today0)
-  reservoir_local_today <- storage_local_daily_bg_df %>%
-    dplyr::filter(date_time == date_today0)
+  nbr_storage_yesterday <- storage_nbr_daily_df %>%
+    dplyr::filter(date_time == date_today0 - 1)
+  reservoir_local_yesterday <- storage_local_daily_bg_df %>%
+    dplyr::filter(date_time == date_today0 - 1)
   
-  jrr_ws_stor <- nbr_storage_today$jrr_ws[1]
-  sen_stor <- reservoir_local_today$seneca[1]
+  jrr_ws_stor <- nbr_storage_yesterday$jrr_ws[1]
+  sen_stor <- reservoir_local_yesterday$seneca[1]
   
   # capacity of jrr ws storage, in BG
   jrr_ws_cap_bg <- jrr_cap*jrr_ws_frac/1000

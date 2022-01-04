@@ -73,7 +73,9 @@
 # *****************************************************************************
 # OUTPUTS
 # *****************************************************************************
-# flows.daily.cfs.df0 - processed by /data_processing/process_daily_flows.R
+# flows.daily.cfs.df0 
+#   - daily flows from beginning of current calendar year up to yesterday
+#   - processed by /data_processing/process_daily_flows.R
 # flows.hourly.cfs.df0 - processed by /data_processing/process_hourly_flows.R
 # withdrawals.hourly.mgd.df0 - really withdrawals right now
 #   - used to create potomac.data.df in potomac_flows_init.R
@@ -107,7 +109,7 @@ gages_daily <- data.table::fread(paste(parameters_path, "gages_daily.csv",
 list_gages_daily_locations <- c("date", gages_daily$location)
 list_gages_daily_ids <- c(gages_daily$gage_id)
 
-# first find number of columns in Sarah's flow data files
+# First find number of gages
 n_gages_daily <- length(list_gages_daily_locations) - 1
 gages_daily_locations <- list_gages_daily_locations[2:(n_gages_daily + 1)]
 gages_daily_locations <- as.list(gages_daily_locations)
@@ -119,6 +121,8 @@ date_jan1 <- lubridate::floor_date(date_today0, unit = "year")
 # Also may use
 today_month <- substring(date_today0, first = 6, last = 7)
 today_day <- substring(date_today0, first = 9, last = 10)
+
+# Trying to patch up turn of the year problems:
 today_year <- substring(date_today0, first = 1, last = 4)
 
 #------------------------------------------------------------------------------
@@ -134,15 +138,16 @@ today_year <- substring(date_today0, first = 1, last = 4)
 
 #------------------------------------------------------------------------------
 # DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
-#   - read daily flow data automatically from Data Portal
+#   - read daily flow data automatically from NWIS
 #   - start date is January 1 of the current year
 #------------------------------------------------------------------------------
 
 if(autoread_dailyflows == 1) {
-    start_date_string <- paste(year(date_today0), "-01-01", sep="")
-    end_date_string <- paste(date_today0 - 1)
-    # the relevant fields are: site_no, Date, X00060_00003:
-    flows_daily_long_cfs_df0 <- dataRetrieval::readNWISdv(
+  start_date_string <- paste(year(date_today0), "-01-01", sep="")
+  # start_date_string <- paste(year(date_today0 - 365), "-01-01", sep="")
+  end_date_string <- paste(date_today0 - 1)
+  # the relevant fields are: site_no, Date, X00060_00003:
+  flows_daily_long_cfs_df0 <- dataRetrieval::readNWISdv(
       siteNumbers = list_gages_daily_ids,
       parameterCd = "00060",
       startDate = start_date_string,
@@ -150,11 +155,11 @@ if(autoread_dailyflows == 1) {
       statCd = "00003") %>%
       mutate(date_time = as.Date(Date), flow_cfs = X_00060_00003) %>%
       select(date_time, site_no, flow_cfs)
-    flows_daily_long_cfs_df <- left_join(flows_daily_long_cfs_df0, 
+  flows_daily_long_cfs_df <- left_join(flows_daily_long_cfs_df0, 
                                      gages_daily, 
                                      by = c("site_no" = "gage_id")) %>%
       select(date_time, location, flow_cfs)
-    flows.daily.cfs.df0 <- flows_daily_long_cfs_df %>%
+  flows.daily.cfs.df0 <- flows_daily_long_cfs_df %>%
       pivot_wider(names_from = location, values_from = flow_cfs)
 }
 
@@ -164,7 +169,7 @@ if(autoread_dailyflows == 1) {
 #   - file name is flows_daily_cfs.csv
 #   - code set up so that these time series should begin on Jan 1 of current year
 #   - can create this file by hitting the "Write output time series" button 
-#        on the sidebar to the left, then copying from /output and pasting
+#        on the sidebar on the left, then copying from /output and pasting
 #        into /input/ts/current/.
 #   - OR, daily data can be downloaded from CO-OP's Data Portal
 #      - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
@@ -233,7 +238,7 @@ if(autoread_hourlyflows == 1) {
   # n_gages_hourly <- length(gages_hourly_ids)
   
   # set desired number of past days--------------------------------------------
-  n_past_days <- 90
+  n_past_days <- 150
   # start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
   # start_datetime <- time_now0 - lubridate::days(n_past_days)
   # start_datetime <- lubridate::with_tz(start_datetime, "EST")
@@ -348,8 +353,9 @@ if(autoread_hourlywithdrawals == 1) {
   
   # Apr-2021: col names on line 16, data begins line 17
   withdrawals.hourly.mgd.df0 <- data.table::fread(
-    "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
-    skip = 16,
+    # "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
+    "https://icprbcoop.org/drupal4/products/wma_withdrawals_public.csv",
+    skip = 17, # row 16 is the header, but there's some glitch so skip 17
     header = FALSE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
@@ -381,7 +387,7 @@ if(autoread_hourlywithdrawals == 1) {
 if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     paste(ts_path, "wma_withdrawals.csv", sep = ""),
-    skip = 16,
+    # skip = 16,
     header = FALSE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
@@ -429,7 +435,12 @@ if(autoread_dailystorage == 1) {
   # "&sr_current_usable_storage=sr_current_usable_storage", 
   sep = "")
   
+  # TURN OF YEAR ISSUES TO BE SOLVED HERE!
+  # temp fix:
   year_temp <- today_year
+  if(month(date_today0) < 6)
+    year_temp <- substring(date_today0 - 365, first = 1, last = 4)
+  
   day_first <- "01"
   month_first <- "06"
   start_date_string <- paste("&startdate=", month_first, "%2F", 
@@ -486,21 +497,43 @@ if(autoread_dailystorage == 1) {
 #------------------------------------------------------------------------------
 
 if(autoread_dailystorage == 0) {
-  storage_daily_bg_df0 <- data.table::fread(
+  
+  year_temp <- today_year
+  # day_first <- "01"
+  # month_first <- "06"
+  # start_date_string <- paste("&startdate=", month_first, "%2F", 
+  #                            day_first, "%2F",
+  #                            year_temp, "&enddate=", sep="")
+  
+  storage_local_daily_bg_df <- data.table::fread(
     paste(ts_path, "wma_storage.csv", sep = ""),
-    skip = 3,
+    # skip = 3,
     header = FALSE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
-  names(storage_daily_bg_df0) <- c("date_time",
+  names(storage_local_daily_bg_df) <- c("date_time",
                                    "patuxent",
                                    "seneca",
-                                   "occoquan",
-                                   "jrr_total",
-                                   "jrr_ws",
-                                   "savage")
+                                   "occoquan")
+  
+  storage_nbr_df <- dataRetrieval::readNWISuv(
+    siteNumbers = c("01595790", "01597490"),
+    parameterCd = "00054",
+    startDate = paste0(year_temp, "-06-01"),
+    endDate = date_today0,
+    tz = "America/New_York"
+  ) %>%
+    mutate(stor_mg = X_00054_00000*0.3259/1000, date_time = dateTime) %>%
+    select(date_time, site_no, stor_mg) %>%
+    pivot_wider(names_from = site_no, names_prefix = "X", 
+                values_from = stor_mg) %>%
+    mutate(jrr_total = X01595790, jrr_ws = 13.1, savage = X01597490,
+           hour = lubridate::hour(date_time),
+           minute = lubridate::minute(date_time), 
+           date = lubridate::date(date_time)) %>%
+    select(-X01595790, -X01597490)
 }
 
 print("finished importing reservoir storages")
@@ -552,7 +585,7 @@ if(autoread_lffs == 0) {
 # Read the local LFFS data file------------------------------------------------
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  skip = 25,
+  # skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,
   colClasses = c(rep("numeric", 6)), # force cols to numeric

@@ -76,18 +76,26 @@ lffs.daily.mgd.df <- lffs.daily.cfs.df %>%
   dplyr::select(date_time, lfalls_lffs_daily)
 
 # Create df with baseflow corrected flows--------------------------------------
-lffs.daily.bfc.mgd.df0 <- 
+lffs.daily.bfc.mgd.df00 <- 
   left_join(flows.daily.mgd.df, lffs.daily.mgd.df,
                                          by = "date_time") %>%
+  filter(date_time <= date_today0 + 15)
+
+# Fill in missing lfalls (obs) using interpolation 
+#     or rollapply may fail when there are NA's
+lffs.daily.bfc.mgd.df00$lfalls <- 
+  zoo::na.approx(lffs.daily.bfc.mgd.df00$lfalls, na.rm = FALSE)
+
+lffs.daily.bfc.mgd.df0 <- lffs.daily.bfc.mgd.df00 %>%
   dplyr::select(date_time, lfalls, lfalls_lffs_daily) %>%
   # compute 30-day trailing mins
   # lfalls.y is from lffs; lfalls.x is from USGS
   dplyr::mutate(min_30day_lffs = 
                   zoo::rollapply(lfalls_lffs_daily, 30, min,
-                                 align = "right", fill = NA),
+                                 align = "right", fill = "extend"),
                 min_30day_usgs = 
                   zoo::rollapply(lfalls, 30, min,
-                                 align = "right", fill = NA),
+                                 align = "right", fill = "extend"),
                 # compute "baseflow corrections"
                 lfalls_bf_correction = min_30day_usgs - min_30day_lffs)
 

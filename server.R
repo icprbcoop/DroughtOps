@@ -37,7 +37,7 @@ shinyServer(function(input, output, session) {
       select(-date_time) %>%
       relocate(date)
     write_csv(flows_daily_temp, paste(ts_path, 
-                                       "flows_daily_cfs.csv",
+                                       "flows_daily_cfs_thru2021.csv",
                                        sep=""))
     
     flows_hourly_temp <- flows.hourly.cfs.df0 %>%
@@ -68,6 +68,7 @@ shinyServer(function(input, output, session) {
   
   # Code to write today's forecasts to /data/forecasts-------------------------
   observeEvent(input$write_fcs, {
+  
     write_csv(lffs.daily.fc.mgd.df, 
               paste("data/forecasts/lffs_daily/",
                     "flows_mgd_",

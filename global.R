@@ -17,6 +17,11 @@
 # OUTPUTS - NA
 # *****************************************************************************
 
+# *****************************************************************************
+# NOTES
+# Search needs_turn_of_year_update at beginning of new year
+# *****************************************************************************
+
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Take care of preliminaries
@@ -44,21 +49,24 @@ date_today0 <- today()
 time_now0 <- Sys.time()
 
 # Set data source switches (used in import_data.R)-----------------------------
-# This can be useful for drought exercises - can apply factors to rt data
-#    or in case there are data problems, can edit local files by hand
+# This can be useful for drought exercises (DREX) 
+#    where factors can be applied to rt data to simulate drought conditions
+#    or in case there are data problems - can edit local files by hand
 # To write downloaded input time series to ts_path, run app and then
 #    press "Write... to input dir" on LHS panel
 # Set switches to:
 #   - 1's to download online data
 #   - 0's to read from local files in ts_path/
 
-autoread_dailyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlyflows <- 1 # change to 0 after 1st run to improve speed
-autoread_hourlywithdrawals <- 1 # change to 0 after 1st run to improve speed
-autoread_dailystorage <- 1 # change to 0 after 1st run to improve speed
-autoread_lffs <- 1
+# local files are also useful to allow the app to run (not crash) 
+#    if an online data source is not available
 
- 
+autoread_dailyflows <- 1 # change to 0 if online data not available
+autoread_hourlyflows <- 1 # change to 0 if online data not available
+autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
+autoread_dailystorage <- 1 # change to 0 if online data not available
+autoread_lffs <- 1 # change to 0 if online data not available
+
 #******************************************************************************
 #******************************************************************************
 # Temporary for 2020 DREX
