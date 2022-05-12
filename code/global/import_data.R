@@ -18,7 +18,7 @@
 #             (autoread_dailyflows == 1)
 #     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
-#   For autoread option, if date >= June 1, start date is Jan 1;
+#   For autoread option, start date is Jan 1, year <= current year;
 #             end date is yesterday.
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA
@@ -139,12 +139,17 @@ today_year <- substring(date_today0, first = 1, last = 4)
 #------------------------------------------------------------------------------
 # DAILY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
 #   - read daily flow data automatically from NWIS
-#   - start date is January 1 of the current year
+
 #------------------------------------------------------------------------------
 
 if(autoread_dailyflows == 1) {
-  start_date_string <- paste(year(date_today0), "-01-01", sep="")
-  # start_date_string <- paste(year(date_today0 - 365), "-01-01", sep="")
+  
+  # start date <= January 1 of the current year  
+  # if(today_month >= 6) 
+  #   start_date_string = paste(year(date_today0), "-01-01", sep="") else 
+  #     start_date_string = paste(year(date_today0 - 365), "-01-01", sep="")
+  start_date_string = paste(year(date_today0), "-01-01", sep="")
+  
   end_date_string <- paste(date_today0 - 1)
   # the relevant fields are: site_no, Date, X00060_00003:
   flows_daily_long_cfs_df0 <- dataRetrieval::readNWISdv(
@@ -159,6 +164,7 @@ if(autoread_dailyflows == 1) {
                                      gages_daily, 
                                      by = c("site_no" = "gage_id")) %>%
       select(date_time, location, flow_cfs)
+  # Convert the long df to a wide df
   flows.daily.cfs.df0 <- flows_daily_long_cfs_df %>%
       pivot_wider(names_from = location, values_from = flow_cfs)
 }
@@ -167,7 +173,7 @@ if(autoread_dailyflows == 1) {
 # DAILY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
 #   - read daily flow data from file residing in /input/ts/current/
 #   - file name is flows_daily_cfs.csv
-#   - code set up so that these time series should begin on Jan 1 of current year
+#   ???- code is set up so that these time series should begin on Jan 1 of current year???
 #   - can create this file by hitting the "Write output time series" button 
 #        on the sidebar on the left, then copying from /output and pasting
 #        into /input/ts/current/.
@@ -183,15 +189,7 @@ if(autoread_dailyflows == 0) {
     paste(ts_path, "flows_daily_cfs.csv", sep = ""),
     header = TRUE,
     stringsAsFactors = FALSE,
-    colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
-    col.names = list_gages_daily_locations, # 1st column is "date"
-    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-    data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.Date(date)) %>%
-    select(-date) %>%
-    filter(!is.na(date_time)) %>%
-    select(date_time, everything()) %>%
-    arrange(date_time)
+    data.table = FALSE)  # %>%
 }
 print("finished importing daily flows")
 #------------------------------------------------------------------------------
@@ -204,53 +202,41 @@ print("finished importing daily flows")
 # autoread_hourlyflows <- 1 # automatic data retrieval from USGS NWIS
 # autoread_hourlyflows <- 0 # read data from file in local directory
 
+# define the desired gages---------------------------------------------------
+gages_hourly_names <- c("lfalls", 
+                        "seneca",
+                        "goose",
+                        "monoc_jug", 
+                        "por", 
+                        "luke",
+                        "kitzmiller",
+                        "barnum",
+                        "bloomington",
+                        "barton")
+gages_hourly_ids <- c("01646500", 
+                      "01645000",
+                      "01644000",
+                      "01643000", 
+                      "01638500",
+                      "01598500",
+                      "01595500",
+                      "01595800",
+                      "01597500",
+                      "01596500")
+gages_hourly <- data.frame(gage_id = gages_hourly_ids,
+                           location = gages_hourly_names)
+
+# n_gages_hourly <- length(gages_hourly_ids)
+
+# set desired number of past days--------------------------------------------
+n_past_days <- 150
+
 #------------------------------------------------------------------------------
 # HOURLY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
 #   - read hourly data automatically from NWIS using package, dataRetrieval
 #------------------------------------------------------------------------------
 
 if(autoread_hourlyflows == 1) {
-  
-  # define the desired gages---------------------------------------------------
-  gages_hourly_names <- c("lfalls", 
-                          "seneca",
-                          "goose",
-                          "monoc_jug", 
-                          "por", 
-                          "luke",
-                          "kitzmiller",
-                          "barnum",
-                          "bloomington",
-                          "barton")
-  gages_hourly_ids <- c("01646500", 
-                        "01645000",
-                        "01644000",
-                        "01643000", 
-                        "01638500",
-                        "01598500",
-                        "01595500",
-                        "01595800",
-                        "01597500",
-                        "01596500")
-  gages_hourly <- data.frame(gage_id = gages_hourly_ids,
-                             location = gages_hourly_names)
-  
-  # n_gages_hourly <- length(gages_hourly_ids)
-  
-  # set desired number of past days--------------------------------------------
-  n_past_days <- 150
-  # start_date <- as.POSIXct(date_today0) - lubridate::days(n_past_days)
-  # start_datetime <- time_now0 - lubridate::days(n_past_days)
-  # start_datetime <- lubridate::with_tz(start_datetime, "EST")
-  # # round to nearest hour in order to use dataRetrieval
-  # start_datetime <- lubridate::floor_date(start_datetime, unit = "hours")
-  # 
-  # # Create dummy df of dates and hours-----------------------------------------
-  # temp0 <- start_datetime - lubridate::hours(1) # first step back 1 hour
-  # flows.hourly.empty.df <- data.frame(date_time = temp0) %>%
-  #   add_row(date_time = seq.POSIXt(start_datetime,
-  #                                  by = "hour",
-  #                                  length.out = n_past_days*24))
   
   # download hourly flows into a df--------------------------------------------
   #   - the function below makes use of the USGS's package, dataRetrieval
@@ -268,6 +254,33 @@ if(autoread_hourlyflows == 1) {
   ) %>%
     mutate(date_time = dateTime, flow_cfs = X_00060_00000) %>%
     select(date_time, site_no, flow_cfs)
+}
+  
+#------------------------------------------------------------------------------
+# HOURLY FLOW OPTION 2 - READ REAL-TIME DATA FROM FILE IN LOCAL DIRECTORY
+#   - flow data file resides in /input/ts/current/
+#   - file name is flows_rt_cfs.csv
+#------------------------------------------------------------------------------
+  if(autoread_hourlyflows == 0) {
+
+    # read the lacal data table--------------------------------------------------
+    #   (need to convert date times to POSIXct for hourly's)
+    flows_rt_long_cfs_df0 <- data.table::fread(
+      paste(ts_path, "flows_rt_cfs.csv", sep = ""),
+      header = TRUE,
+      stringsAsFactors = FALSE,
+      colClasses = c('character', 'character', 'numeric'), # reading: date_time, site_no, flow_cfs
+      na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+      data.table = FALSE)  %>%
+      dplyr::mutate(date_time = as.POSIXct(date, tz = "EST")) %>%
+      select(-date) %>%
+      arrange(date_time) %>%
+      filter(!is.na(date_time)) %>% # sometime these are sneaking in
+      # head(-1) %>% # the last record is sometimes missing most data
+      select(date_time, everything())
+  }
+  
+  # Convert real-time flows to hourly flows------------------------------------  
   flows_rt_long_cfs_df <- left_join(flows_rt_long_cfs_df0, 
                                        gages_hourly, 
                                        by = c("site_no" = "gage_id")) %>%
@@ -284,50 +297,7 @@ if(autoread_hourlyflows == 1) {
     rename(date_time = date_hour) %>%
     ungroup()
   
-  # flows.hourly.cfs.df0 <- get_hourly_flows_func(gage_nos = gages_hourly_nos, 
-  #                                              gage_names = gages_hourly_names, 
-  #                                              flows_empty = flows.hourly.empty.df,
-  #                                              start_date = date_today0 - 
-  #                                                lubridate::days(n_past_days),
-  #                                              end_date = date_today0,
-  #                                              usgs_param = "00060")
-  
-  # Trim off a day of beginning rows to get rid of NA's------------------------
-  #   (this needs to be improved - ripe for creating a bug!)
-  # flows.hourly.cfs.df0 <- tail(flows.hourly.cfs.df0, (n_past_days - 1)*24)
-  }
-
-#------------------------------------------------------------------------------
-# HOURLY FLOW OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
-#   - flow data file resides in /input/ts/current/
-#   - file name is flows_hourly_cfs.csv
-#   - hourly data can be downloaded from CO-OP's Data Portal
-#   - link for manual download is https://icprbcoop.org/drupal4/icprb/flow-data
-#      - grab last few days of data only (or memory error!)
-#      - name appropriately then save the file to /input/ts/current/
-#      - can create a longer time series by pasting new data into existing file
-#------------------------------------------------------------------------------
-
-if(autoread_hourlyflows == 0) {
-
-  # read the lacal data table--------------------------------------------------
-  #   (need to convert date times to POSIXct for hourly's)
-  flows.hourly.cfs.df0 <- data.table::fread(
-    paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
-    header = TRUE,
-    stringsAsFactors = FALSE,
-    colClasses = c('date' = 'character'), 
-    # col.names = list_gages_daily_locations, # 1st column is "date"
-    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-    data.table = FALSE) %>%
-    dplyr::mutate(date_time = as.POSIXct(date, tz = "EST")) %>%
-    select(-date) %>%
-    arrange(date_time) %>%
-    filter(!is.na(date_time)) %>% # sometime these are sneaking in
-    head(-1) %>% # the last record is sometimes missing most data
-    select(date_time, everything())
-}
-print("finished importing hourly flows")
+ print("finished importing hourly flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # WITHDRAWAL DATA
@@ -377,32 +347,27 @@ if(autoread_hourlywithdrawals == 1) {
 # WITHDRAWAL OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
 #   - withdrawal data file resides in /input/ts/current/
 #   - file name is wma_withdrawals.csv
-#   - data can be downloaded from CO-OP's Data Portal via the "Products" tab
-#      - data is expressed as hourly
-#      - data extends from 30 days in past to 15 days in future
-#      - name appropriately then save the file to /input/ts/current/
-#      - can create a longer time series by pasting new data into existing file
 #------------------------------------------------------------------------------
 
 if(autoread_hourlywithdrawals == 0) {
   withdrawals.hourly.mgd.df0 <- data.table::fread(
     paste(ts_path, "wma_withdrawals.csv", sep = ""),
     # skip = 16,
-    header = FALSE,
+    header = TRUE,
     stringsAsFactors = FALSE,
     # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
-  names(withdrawals.hourly.mgd.df0) <- c("DateTime",
-                                         "FW_POT",
-                                         "WSSC_POT",
-                                         "WA_GF",
-                                         "WA_LF",
-                                         "LW_POT",
-                                         "LW_FW",
-                                         "FW_OC",
-                                         "WSSC_PA",
-                                         "LW_BR")
+  # names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+  #                                        "FW_POT",
+  #                                        "WSSC_POT",
+  #                                        "WA_GF",
+  #                                        "WA_LF",
+  #                                        "LW_POT",
+  #                                        "LW_FW",
+  #                                        "FW_OC",
+  #                                        "WSSC_PA",
+  #                                        "LW_BR")
 }
 print("finished importing withdrawals")
 #------------------------------------------------------------------------------
@@ -459,13 +424,13 @@ if(autoread_dailystorage == 1) {
     skip = 3,
     header = FALSE,
     stringsAsFactors = FALSE,
-    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    colClasses = c("Date", rep("numeric", 3)), # force cols 2-4 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
   names(storage_local_daily_bg_df) <- c("date_time",
                                          "patuxent",
                                          "seneca",
-                                         "occoquan")
+                                         "occoquan") 
   
   storage_nbr_df <- dataRetrieval::readNWISuv(
     siteNumbers = c("01595790", "01597490"),
@@ -487,13 +452,9 @@ if(autoread_dailystorage == 1) {
 
 #------------------------------------------------------------------------------
 # DAILY STORAGE OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
-#   - daily storage data file resides in /input/ts/current/
-#   - file name is wma_storage.csv
-#   - data can be downloaded from CO-OP's Data Portal via the "Products" tab
-#      - data is expressed as daily
-#      - data extends from June 1 through the current day
-#      - name appropriately then save the file to /input/ts/current/
-#      - can create a longer time series by pasting new data into existing file
+#   - daily storage data files resides in /input/ts/current/
+#   - file names are  wma_storage_local_daily.csv and wma_storage_nbr.csv
+
 #------------------------------------------------------------------------------
 
 if(autoread_dailystorage == 0) {
@@ -506,34 +467,19 @@ if(autoread_dailystorage == 0) {
   #                            year_temp, "&enddate=", sep="")
   
   storage_local_daily_bg_df <- data.table::fread(
-    paste(ts_path, "wma_storage.csv", sep = ""),
-    # skip = 3,
-    header = FALSE,
+    paste(ts_path, "wma_storage_local_daily.csv", sep = ""),
+    header = TRUE,
     stringsAsFactors = FALSE,
-    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
     na.strings = c("", "#N/A", "NA", -999999),
     data.table = FALSE)
-  names(storage_local_daily_bg_df) <- c("date_time",
-                                   "patuxent",
-                                   "seneca",
-                                   "occoquan")
   
-  storage_nbr_df <- dataRetrieval::readNWISuv(
-    siteNumbers = c("01595790", "01597490"),
-    parameterCd = "00054",
-    startDate = paste0(year_temp, "-06-01"),
-    endDate = date_today0,
-    tz = "America/New_York"
-  ) %>%
-    mutate(stor_mg = X_00054_00000*0.3259/1000, date_time = dateTime) %>%
-    select(date_time, site_no, stor_mg) %>%
-    pivot_wider(names_from = site_no, names_prefix = "X", 
-                values_from = stor_mg) %>%
-    mutate(jrr_total = X01595790, jrr_ws = 13.1, savage = X01597490,
-           hour = lubridate::hour(date_time),
-           minute = lubridate::minute(date_time), 
-           date = lubridate::date(date_time)) %>%
-    select(-X01595790, -X01597490)
+  storage_nbr_df <- data.table::fread(
+    paste(ts_path, "wma_storage_nbr.csv", sep = ""),
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    na.strings = c("", "#N/A", "NA", -999999),
+    data.table = FALSE)
+
 }
 
 print("finished importing reservoir storages")
@@ -558,7 +504,7 @@ if(autoread_lffs == 1) {
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
   # from cooplinux1:
-  "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", 
+   "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", 
   # from cooplinux2 - a backup source if FEWS Live is not working
   # "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow_s2", 
   skip = 25,
@@ -568,7 +514,6 @@ lffs.hourly.cfs.all.df0 <- data.table::fread(
   col.names = c("year", "month", "day", "minute", "second", "lfalls_lffs"),
   # na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
   data.table = FALSE) 
-
 }
 
 #------------------------------------------------------------------------------

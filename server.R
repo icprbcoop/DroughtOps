@@ -32,38 +32,46 @@ shinyServer(function(input, output, session) {
   
   # Code for sidebar button to write input ts files in input/ts/current/-------
   observeEvent(input$write_ts2, {
-    flows_daily_temp <- flows.daily.cfs.df0 %>%
-      dplyr::mutate(date = date_time) %>%
-      select(-date_time) %>%
-      relocate(date)
+    flows_daily_temp <- flows.daily.cfs.df0 # %>%
+      # dplyr::mutate(date = date_time) %>%
+      # select(-date_time) %>%
+      # relocate(date)
     write_csv(flows_daily_temp, paste(ts_path, 
-                                       "flows_daily_cfs_thru2021.csv",
+                                       "flows_daily_cfs.csv",
                                        sep=""))
     
-    flows_hourly_temp <- flows.hourly.cfs.df0 %>%
+      flows_rt_temp <- flows_rt_long_cfs_df0 %>%
       # need to change datetime to character or will be written as UTC
       dplyr::mutate(date = as.character(date_time)) %>%
       select(-date_time) %>%
       relocate(date)
-    write_csv(flows_hourly_temp, paste(ts_path, 
-                                       "flows_hourly_cfs.csv",
+    write_csv(flows_rt_temp, paste(ts_path, 
+                                       "flows_rt_cfs.csv",
                                        sep=""))
     
-    wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 %>%
+    wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 # %>%
       #  add 16 dummy rows, to mimic file from the Data Portal
-    add_row(FW_POT = rep(-99999.9, 16), .before=1)
+    # add_row(FW_POT = rep(-99999.9, 16), .before=1)
     write_csv(wma_withdrawals_temp, paste(ts_path,
                                        "wma_withdrawals.csv",
                                        sep=""),
-              col_names = FALSE)
+              col_names = TRUE)
     
-    wma_storage_temp <- storage_daily_bg_df0 %>%
+    wma_storage_local_temp <- storage_local_daily_bg_df # %>%
       #  add 3 dummy rows, to mimic file from the Data Portal
-      add_row(patuxent = rep(-99999.9, 3), .before=1)
-    write_csv(wma_storage_temp, paste(ts_path,
-                                          "wma_storage.csv",
+      # add_row(patuxent = rep(-99999.9, 3), .before=1)
+    write_csv(wma_storage_local_temp, paste(ts_path,
+                                          "wma_storage_local_daily.csv",
                                           sep=""),
-              col_names = FALSE)
+              col_names = TRUE)
+    
+    wma_storage_nbr_temp <- storage_nbr_df # %>%
+      #  add 3 dummy rows, to mimic file from the Data Portal
+      # add_row(patuxent = rep(-99999.9, 3), .before=1)
+      write_csv(wma_storage_nbr_temp, paste(ts_path,
+                                              "wma_storage_nbr.csv",
+                                              sep=""),
+                col_names = TRUE)
   })
   
   # Code to write today's forecasts to /data/forecasts-------------------------

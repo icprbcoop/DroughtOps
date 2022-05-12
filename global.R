@@ -35,9 +35,7 @@ source("code/global/load_packages.R", local = TRUE)
 # source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
-# ts_path <- "input/ts/temp/"
 ts_path <- "input/ts/current/" # path for data in local directory
-
 parameters_path <- "input/parameters/"
 ts_output <- "output/" # path of output directory
 map_path <- "data/Drought_Regions" #MD shapefiles
@@ -48,6 +46,9 @@ date_today0 <- today()
 # date_today0 <- force_tz(date_today0, tzone = "America/New_York")
 time_now0 <- Sys.time()
 
+# DREX switch: set to 1 if drought exercise, 0 if not
+DREX <- 0
+
 # Set data source switches (used in import_data.R)-----------------------------
 # This can be useful for drought exercises (DREX) 
 #    where factors can be applied to rt data to simulate drought conditions
@@ -55,13 +56,14 @@ time_now0 <- Sys.time()
 # To write downloaded input time series to ts_path, run app and then
 #    press "Write... to input dir" on LHS panel
 # Set switches to:
-#   - 1's to download online data
-#   - 0's to read from local files in ts_path/
+#   1's to download online data
+#   0's to read from local files in ts_path/
 
-# local files are also useful to allow the app to run (not crash) 
-#    if an online data source is not available
+# local files are also useful to allow the app to run (not crash), 
+#    if an online data source is not available,
+#    or if you want to do some minor edits to data!
 
-autoread_dailyflows <- 1 # change to 0 if online data not available
+autoread_dailyflows <- 1 # change to 0 if online data not available SOMETHING WRONG WHEN 0
 autoread_hourlyflows <- 1 # change to 0 if online data not available
 autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
 autoread_dailystorage <- 1 # change to 0 if online data not available
@@ -119,11 +121,11 @@ source("code/functions/display/md_drought_map_func.R", local = TRUE)
 source("code/functions/display/va_drought_map_func.R", local = TRUE)
 source("code/functions/display/date_func.R", local = TRUE)
 source("code/functions/display/warning_color_func.R", local = TRUE)
+# Luke: are the next 2 lines obsolete?
 # this is a lazy Friday fix that should be changed later:
 source("code/functions/display/warning_color_map_func.R", local = TRUE)
 
 # Read input parameters -------------------------------------------------------
-# source("config/paths.R", local = TRUE)
 source("input/parameters/parameters_ops.R", local = TRUE)
 source("input/parameters/parameters_physical.R", local = TRUE)
 source("input/parameters/css_ui_values.R", local = TRUE)

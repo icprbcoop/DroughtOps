@@ -21,4 +21,5 @@
 storage_nbr_daily_df <- storage_nbr_df %>%
   filter(hour == 7 & minute == 0) %>%
   select(date, jrr_total, jrr_ws, savage) %>%
-  rename(date_time = date)
+  rename(date_time = date) %>%
+  arrange(date_time)

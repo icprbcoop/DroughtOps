@@ -1,2 +1,2 @@
 # DroughtOps
-CO-OP's Shiny DroughtOps tool - hope to make some advances in 2020
+CO-OP's Shiny DroughtOps dashboard - to assist in operational decisions during drought

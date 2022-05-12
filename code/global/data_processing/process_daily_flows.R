@@ -30,29 +30,33 @@
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# First read the historical data-----------------------------------------------
-# needs_turn_of_year_update
-#   - update and rename flow_data_daily_from2014thru2021.csv
-historical_flows_daily_cfs_df <- data.table::fread(
-  paste("data/", "flow_data_daily_from2014thru2021.csv", sep = ""),
-  header = TRUE,
-  stringsAsFactors = FALSE,
-  colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
-  col.names = list_gages_daily_locations, # 1st column is "date"
-  na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-  data.table = FALSE) %>%
-  dplyr::mutate(date_time = as.Date(date)) %>%
-  select(-date) %>%
-  filter(!is.na(date_time)) %>%
-  select(date_time, everything()) %>%
-  arrange(date_time)
-
-# Append this year's data to historical daily data-----------------------------
-flows.daily.cfs.df1 <- rbind(historical_flows_daily_cfs_df,
+if(DREX == 0) {
+  # Read  and append the historical data-----------------------------------------
+  # needs_turn_of_year_update
+  #   - update and rename flow_data_daily_from2014thru2021.csv
+  historical_flows_daily_cfs_df <- data.table::fread(
+    paste("data/", "flow_data_daily_from2014thru2021.csv", sep = ""),
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    colClasses = c("character", rep("numeric", n_gages_daily)), # force numeric
+    col.names = list_gages_daily_locations, # 1st column is "date"
+    na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+    data.table = FALSE) %>%
+    dplyr::mutate(date_time = as.Date(date)) %>%
+    select(-date) %>%
+    filter(!is.na(date_time)) %>%
+    select(date_time, everything()) %>%
+    arrange(date_time)
+  # Append this year's data to historical daily data-----------------------------
+  flows.daily.cfs.df1 <- rbind(historical_flows_daily_cfs_df,
                              flows.daily.cfs.df0)
+  }
+
+# if it's a DREX, won't be verifying fc's, so don't need more data
+if(DREX == 1) {flows.daily.cfs.df1 <- flows.daily.cfs.df0}
 
 # Next grab flows of most recent hourlies for "today's" values
-#   actually step back an hour to avoid missing data
+#   actually, step back an hour to avoid missing data
 today_hourly_cfs.df00 <- tail(flows.hourly.cfs.df0, 2)
 today_hourly_cfs.df0 <- head(today_hourly_cfs.df00, 1)  %>%
   mutate(date_time = as.Date(date_time)) 
