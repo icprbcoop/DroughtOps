@@ -69,6 +69,9 @@ autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
 autoread_dailystorage <- 1 # change to 0 if online data not available
 autoread_lffs <- 1 # change to 0 if online data not available
 
+# Switch to use public or beta withdrawal forecast file (in import_data.R)
+withdr_file <- 1 # 1 if public or 2 if beta
+
 #******************************************************************************
 #******************************************************************************
 # Temporary for 2020 DREX

@@ -320,18 +320,17 @@ d_fw_c <- 10 # MGD
 
 if(autoread_hourlywithdrawals == 1) {
   # read the online table -----------------------------------------------------
-  
-  # Apr-2021: col names on line 16, data begins line 17
-  withdrawals.hourly.mgd.df0 <- data.table::fread(
-    # "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv",
-    "https://icprbcoop.org/drupal4/products/wma_withdrawals_public.csv",
-    skip = 17, # row 16 is the header, but there's some glitch so skip 17
-    header = FALSE,
-    stringsAsFactors = FALSE,
-    # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-    na.strings = c("", "#N/A", "NA", -999999),
-    data.table = FALSE)
-  names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+  # # Apr-2021: col names on line 16, data begins line 17
+  if(withdr_file == 1) {
+    withdrawals.hourly.mgd.df0 <- data.table::fread(
+      "https://icprbcoop.org/drupal4/products/wma_withdrawals_public.csv",
+      skip = 17, # row 16 is the header, but there's some glitch so skip 17
+      header = FALSE,
+      stringsAsFactors = FALSE,
+      # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+      na.strings = c("", "#N/A", "NA", -999999),
+      data.table = FALSE)
+    names(withdrawals.hourly.mgd.df0) <- c("DateTime",
                                          "FW_POT",
                                          "WSSC_POT",
                                          "WA_GF",
@@ -341,7 +340,39 @@ if(autoread_hourlywithdrawals == 1) {
                                          "FW_OC",
                                          "WSSC_PA",
                                          "LW_BR")
+  }
+  
+  # Need httr instead of data.table::fread if authentication is required.
+  # See httr tutorial at: https://httr.r-lib.org/articles/quickstart.html
+  if(withdr_file == 2) {
+    file_url <- "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv"
+    userid <- "CsSaAsLv123!!"
+    passwd <- "billygoattrail"
+    x <- httr::GET(paste(file_url, "/basic-auth/user/passwd", sep=""),
+                 httr::authenticate(userid, passwd))
+    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=17, 
+                     c("DateTime",
+                       "FW_POT",
+                       "WSSC_POT",
+                       "WA_GF",
+                       "WA_LF",
+                       "LW_POT",
+                       "LW_FW",
+                       "FW_OC",
+                       "WSSC_PA",
+                       "LW_BR"), 
+                     col_types = list(DateTime = "T",
+                                           FW_POT = "d",
+                                           WSSC_POT = "d",
+                                           WA_GF = "d",
+                                           WA_LF = "d",
+                                           LW_POT = "d",
+                                           LW_FW = "d",
+                                           FW_OC = "d",
+                                           WSSC_PA = "d",
+                                           LW_BR = "d"))
 }
+} # end if(autoread_hourlywithdrawals == 1)
 
 #------------------------------------------------------------------------------
 # WITHDRAWAL OPTION 2 - READ DATA FROM FILE IN LOCAL DIRECTORY
@@ -530,7 +561,7 @@ if(autoread_lffs == 0) {
 # Read the local LFFS data file------------------------------------------------
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  # skip = 25,
+  skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,
   colClasses = c(rep("numeric", 6)), # force cols to numeric
