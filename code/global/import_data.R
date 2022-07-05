@@ -11,14 +11,18 @@
 # gages_daily.csv - file listing USGS stream gages we use for daily data
 # 
 #------------------------------------------------------------------------------
+# GENERAL INFO ON DATA
+# Most types of data can be obtained from 2 different sources, with the source
+#   selected under DATA OPTIONS SWITCHES in global.R
+#------------------------------------------------------------------------------
 # DAILY FLOW DATA
-#   Can be obtained from 2 sources.
-#   The OPTION switch is set in global.R:
+#   Can be obtained from 2 sources:
 #     OPTION 1: read file directly from NWIS
 #             (autoread_dailyflows == 1)
 #     OPTION 2: read local file, /input/ts/current/flows_daily_cfs.csv
 #             (autoread_dailyflows == 0)
-#   For autoread option, start date is Jan 1, year <= current year;
+#   For autoread option, start date is Jan 1, year <= current year if(today_month >= 6) 
+#    but is Jan 1 of last year otherwise;
 #             end date is yesterday.
 #------------------------------------------------------------------------------
 # HOURLY FLOW DATA
@@ -144,11 +148,14 @@ today_year <- substring(date_today0, first = 1, last = 4)
 
 if(autoread_dailyflows == 1) {
   
-  # start date <= January 1 of the current year  
-  # if(today_month >= 6) 
-  #   start_date_string = paste(year(date_today0), "-01-01", sep="") else 
-  #     start_date_string = paste(year(date_today0 - 365), "-01-01", sep="")
-  start_date_string = paste(year(date_today0), "-01-01", sep="")
+  # start date <= January 1 of the current year if(today_month >= 6) 
+  #    but is Jan 1 of last year otherwise
+  
+  # alternative code:
+   if(month(date_today0) >= 6)
+      start_date_string = paste(year(date_today0), "-01-01", sep="") else
+      start_date_string = paste(year(date_today0 - 365), "-01-01", sep="")
+  # start_date_string = paste(year(date_today0), "-01-01", sep="")
   
   end_date_string <- paste(date_today0 - 1)
   # the relevant fields are: site_no, Date, X00060_00003:

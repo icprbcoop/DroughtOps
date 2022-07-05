@@ -43,13 +43,14 @@ map_path <- "data/Drought_Regions" #MD shapefiles
 # Set "today's" date ----------------------------------------------------------
 # date_today0 <- as.Date(today(), tz = "America/New_York")
 date_today0 <- today()
+# date_today0 <- as.Date("2022-05-13")
 # date_today0 <- force_tz(date_today0, tzone = "America/New_York")
 time_now0 <- Sys.time()
 
 # DREX switch: set to 1 if drought exercise, 0 if not
 DREX <- 0
 
-# Set data source switches (used in import_data.R)-----------------------------
+# Set DATA OPTIONS SWITCHES (used in import_data.R)----------------------------
 # This can be useful for drought exercises (DREX) 
 #    where factors can be applied to rt data to simulate drought conditions
 #    or in case there are data problems - can edit local files by hand
@@ -70,7 +71,7 @@ autoread_dailystorage <- 1 # change to 0 if online data not available
 autoread_lffs <- 1 # change to 0 if online data not available
 
 # Switch to use public or beta withdrawal forecast file (in import_data.R)
-withdr_file <- 1 # 1 if public or 2 if beta
+withdr_file <- 2 # 1 if public or 2 if beta
 
 #******************************************************************************
 #******************************************************************************
