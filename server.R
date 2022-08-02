@@ -72,6 +72,14 @@ shinyServer(function(input, output, session) {
                                               "wma_storage_nbr.csv",
                                               sep=""),
                 col_names = TRUE)
+      
+      lffs_hourly_temp <- lffs.hourly.cfs.all.df0  %>%
+      #  add 25 dummy rows, to mimic file from the Data Portal
+      add_row(year = rep(1888, 25), .before=1)
+      write_csv(lffs_hourly_temp, paste(ts_path,
+                                            "PM7_4820_0001.flow",
+                                            sep=""),
+                col_names = TRUE)
   })
   
   # Code to write today's forecasts to /data/forecasts-------------------------

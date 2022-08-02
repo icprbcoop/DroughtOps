@@ -24,11 +24,6 @@ source("input/parameters/parameters_physical.R", local = TRUE)
 #******************************************************************
 # Code related to the simulation, which is currently broken:
 
-# date_today0 is set in global.R, 
-#    but might want to change it, by using date_today
-# date_today <- as.Date("1930-02-01")
-date_today <- date_today0
-
   # Run the main simulation to the hard-coded input, date_today
   #    - ts here is the precursor of the set of reactive values
   ts0 <- list(sen = sen.ts.df0, 

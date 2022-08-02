@@ -173,7 +173,8 @@ if(autoread_dailyflows == 1) {
       select(date_time, location, flow_cfs)
   # Convert the long df to a wide df
   flows.daily.cfs.df0 <- flows_daily_long_cfs_df %>%
-      pivot_wider(names_from = location, values_from = flow_cfs)
+      pivot_wider(names_from = location, values_from = flow_cfs) %>%
+    arrange(date_time)
 }
 
 #------------------------------------------------------------------------------
@@ -328,37 +329,70 @@ d_fw_c <- 10 # MGD
 if(autoread_hourlywithdrawals == 1) {
   # read the online table -----------------------------------------------------
   # # Apr-2021: col names on line 16, data begins line 17
-  if(withdr_file == 1) {
-    withdrawals.hourly.mgd.df0 <- data.table::fread(
-      "https://icprbcoop.org/drupal4/products/wma_withdrawals_public.csv",
-      skip = 17, # row 16 is the header, but there's some glitch so skip 17
-      header = FALSE,
-      stringsAsFactors = FALSE,
-      # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-      na.strings = c("", "#N/A", "NA", -999999),
-      data.table = FALSE)
-    names(withdrawals.hourly.mgd.df0) <- c("DateTime",
-                                         "FW_POT",
-                                         "WSSC_POT",
-                                         "WA_GF",
-                                         "WA_LF",
-                                         "LW_POT",
-                                         "LW_FW",
-                                         "FW_OC",
-                                         "WSSC_PA",
-                                         "LW_BR")
+  if(withdr_file == 1) { # for "public file" 
+    # withdrawals.hourly.mgd.df0 <- data.table::fread(
+    #   "https://icprbcoop.org/products/wma_withdrawals_public.csv",
+    #   skip = 17, # row 16 is the header, but there's some glitch so skip 17
+    #   header = FALSE,
+    #   stringsAsFactors = FALSE,
+    #   # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+    #   na.strings = c("", "#N/A", "NA", -999999),
+    #   data.table = FALSE)
+    # names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+    #                                      "FW_POT",
+    #                                      "WSSC_POT",
+    #                                      "WA_GF",
+    #                                      "WA_LF",
+    #                                      "LW_POT",
+    #                                      "LW_FW",
+    #                                      "FW_OC",
+    #                                      "WSSC_PA",
+    #                                      "LW_BR")
+    
+   # Read the public file using httr::GET
+   file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
+    x0 <- httr::GET(file_url, type = "basic")
+    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x0, "raw")), skip=16, 
+                                                  na = c("", "NA"),
+                                                  col_names = c("DateTime",
+                                                                "FW_POT",
+                                                                "WSSC_POT",
+                                                                "WA_GF",
+                                                                "WA_LF",
+                                                                "LW_POT",
+                                                                "LW_FW",
+                                                                "FW_OC",
+                                                                "WSSC_PA",
+                                                                "LW_BR"),
+                                                  col_types = list(DateTime = "T",
+                                                                   FW_POT = "d",
+                                                                   WSSC_POT = "d",
+                                                                   WA_GF = "d",
+                                                                   WA_LF = "d",
+                                                                   LW_POT = "d",
+                                                                   LW_FW = "d",
+                                                                   FW_OC = "d",
+                                                                   WSSC_PA = "d",
+                                                                   LW_BR = "d")) 
+    
   }
   
   # Need httr instead of data.table::fread if authentication is required.
   # See httr tutorial at: https://httr.r-lib.org/articles/quickstart.html
+  
+ # y <- httr::GET("https://icprbcoop.org/products/wma_withdrawals_private.csv")
+ # xx <- httr::GET("https://icprbcoop.org/products/wma_withdrawals_private.csv/basis-auth/admin1/CsSaAsLv123!!")
   if(withdr_file == 2) {
-    file_url <- "https://icprbcoop.org/drupal4/products/wma_withdrawals.csv"
-    userid <- "CsSaAsLv123!!"
-    passwd <- "billygoattrail"
-    x <- httr::GET(paste(file_url, "/basic-auth/user/passwd", sep=""),
-                 httr::authenticate(userid, passwd))
-    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=17, 
-                     c("DateTime",
+    file_url <- "https://icprbcoop.org/products/wma_withdrawals_private.csv"
+    userid <- "admin1"
+    passwd <- "CsSaAsLv123!!"
+    # x <- httr::GET(paste(file_url, "/basic-auth/user/passwd", sep=""), # <- 404 - NOT FOUND
+    x1 <- httr::GET(file_url, # <- 403 FORBIDDEN
+                 httr::authenticate(userid, passwd, type = "basic"))
+    # withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=16, 
+    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x1, "raw")), skip=16, 
+                                                  na = c("", "NA"),
+                    col_names = c("DateTime",
                        "FW_POT",
                        "WSSC_POT",
                        "WA_GF",
@@ -367,7 +401,7 @@ if(autoread_hourlywithdrawals == 1) {
                        "LW_FW",
                        "FW_OC",
                        "WSSC_PA",
-                       "LW_BR"), 
+                       "LW_BR"),
                      col_types = list(DateTime = "T",
                                            FW_POT = "d",
                                            WSSC_POT = "d",
@@ -377,8 +411,9 @@ if(autoread_hourlywithdrawals == 1) {
                                            LW_FW = "d",
                                            FW_OC = "d",
                                            WSSC_PA = "d",
-                                           LW_BR = "d"))
-}
+                                           LW_BR = "d")
+                    )
+} # end if(withdr_file ==2)
 } # end if(autoread_hourlywithdrawals == 1)
 
 #------------------------------------------------------------------------------
@@ -428,48 +463,15 @@ print("finished importing withdrawals")
 if(autoread_dailystorage == 1) {
   # read the online data ------------------------------------------------------
   
-  # paste together the url for Data Portal's daily storage data 
-  url_dailystor0 <- paste("https://icprbcoop.org/drupal4/icprb/data-view?",
-  "patuxent_reservoirs_current_usable_storage_wssc=patuxent_reservoirs_current_usable_storage_wssc",
-  "&little_seneca_reservoir_current_usable_storage_wssc=little_seneca_reservoir_current_usable_storage_wssc",
-  "&occoquan_reservoir_current_usable_storage=occoquan_reservoir_current_usable_storage",
-  # "&jrr_current_usable_storage=jrr_current_usable_storage",
-  # "&jrr_current_usable_ws_storage=jrr_current_usable_ws_storage",
-  # "&sr_current_usable_storage=sr_current_usable_storage", 
-  sep = "")
-  
   # TURN OF YEAR ISSUES TO BE SOLVED HERE!
   # temp fix:
   year_temp <- today_year
   if(month(date_today0) < 6)
     year_temp <- substring(date_today0 - 365, first = 1, last = 4)
-  
   day_first <- "01"
   month_first <- "06"
-  start_date_string <- paste("&startdate=", month_first, "%2F", 
-                             day_first, "%2F",
-                             year_temp, "&enddate=", sep="")
-  url_dailystor <- paste(url_dailystor0, start_date_string, 
-                     today_month, "%2F", 
-                     today_day, "%2F", 
-                     today_year, "&format=csv&submit=Submit", 
-                     sep="")
   
-  # the name storage.daily.bg.df0 is used in the legacy sim code (line 566)
-
-  storage_local_daily_bg_df <- data.table::fread(
-    url_dailystor,
-    skip = 3,
-    header = FALSE,
-    stringsAsFactors = FALSE,
-    colClasses = c("Date", rep("numeric", 3)), # force cols 2-4 numeric
-    na.strings = c("", "#N/A", "NA", -999999),
-    data.table = FALSE)
-  names(storage_local_daily_bg_df) <- c("date_time",
-                                         "patuxent",
-                                         "seneca",
-                                         "occoquan") 
-  
+  # Get North Br storage from the USGS'S NWIS site
   storage_nbr_df <- dataRetrieval::readNWISuv(
     siteNumbers = c("01595790", "01597490"),
     parameterCd = "00054",
@@ -486,6 +488,57 @@ if(autoread_dailystorage == 1) {
            minute = lubridate::minute(date_time), 
            date = lubridate::date(date_time)) %>%
     select(-X01595790, -X01597490)
+  
+  # paste together the url for Data Portal's daily local storage data 
+  # https://icprbcoop.org/products/data_view?wssc_usable_storage_patuxent=wssc_usable_storage_patuxent&wssc_usable_storage_seneca=wssc_usable_storage_seneca&fw_usable_storage_occoquan=fw_usable_storage_occoquan&startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
+  # &startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
+  url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_test?",
+  "wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
+  "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
+  "&fw_usable_storage_occoquan=fw_usable_storage_occoquan",
+  sep = "")
+  
+  start_date_string <- paste("&startdate=", month_first, "%2F", 
+                             day_first, "%2F",
+                             year_temp, "&enddate=", sep="")
+  url_dailystor_local <- paste(url_dailystor0, start_date_string, 
+                     today_month, "%2F", 
+                     today_day, "%2F", 
+                     today_year, "&format=csv&submit=Submit", 
+                     sep="")
+  
+  # the name storage.daily.bg.df0 is used in the legacy sim code (line 566)
+  # OLD CODE ***************************************
+  storage_local_daily_bg_df <- data.table::fread(
+    url_dailystor_local,
+    skip = 1,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    colClasses = c("Date", rep("numeric", 3)), # force cols 2-4 numeric
+    na.strings = c("", "#N/A", "NA", -999999),
+    data.table = FALSE)
+  names(storage_local_daily_bg_df) <- c("date_time",
+                                        "patuxent",
+                                        "seneca",
+                                        "occoquan") 
+  
+ # NEW CODE *****************************************
+  # userid <- "admin1"
+  # passwd <- "CsSaAsLv123!!"
+  # x2 <- httr::GET(url_dailystor_local, # <- 403 FORBIDDEN
+  #                 httr::authenticate(userid, passwd, type = "basic"))
+  # # withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=16, 
+  # storage_local_daily_bg_df <- readr::read_csv(rawToChar(httr::content(x2, "raw")), skip=1, 
+  #                                               na = c("", "NA"),
+  #                                               col_names = c("date_time",
+  #                                                             "patuxent",
+  #                                                             "seneca",
+  #                                                             "occoquan"),
+  #                                               col_types = list(date_time = "T",
+  #                                                                patuxent = "d",
+  #                                                                seneca = "d",
+  #                                                                occoquan = "d"))
+  
 }
 
 #------------------------------------------------------------------------------
@@ -539,12 +592,16 @@ print("finished importing reservoir storages")
 if(autoread_lffs == 1) {
   
 # Read LFFS LFalls online data ------------------------------------------------
+  # If you're unsure about which LFFS file to read, 
+  #    go to https://icprbcoop.org/dss_data_exchange/ and check dates
+
+  path_name <- "https://icprbcoop.org/dss_data_exchange/"
+  # file_name <- "PM7_4820_0001.flow"
+  # file_name <- "PM7_4820_0001.flow_s2"
+  file_name <- "PM7_4820_0001.flow_s2_p6"
+  
 lffs.hourly.cfs.all.df0 <- data.table::fread(
-  # paste(ts_path, "PM7_4820_0001.flow", sep = ""),
-  # from cooplinux1:
-   "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow", 
-  # from cooplinux2 - a backup source if FEWS Live is not working
-  # "http://icprbcoop.org/dss_data_exchange/PM7_4820_0001.flow_s2", 
+  paste(path_name, file_name, sep = ""),
   skip = 25,
   header = FALSE,
   stringsAsFactors = FALSE,

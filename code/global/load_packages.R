@@ -26,6 +26,7 @@ need <- c("shiny",
           "rvest",
           "dataRetrieval",
           "readr",
+          "httr",
           "tidyr")
           # "tidyverse") 
 # find out which packages are installed
