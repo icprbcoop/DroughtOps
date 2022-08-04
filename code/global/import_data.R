@@ -492,7 +492,7 @@ if(autoread_dailystorage == 1) {
   # paste together the url for Data Portal's daily local storage data 
   # https://icprbcoop.org/products/data_view?wssc_usable_storage_patuxent=wssc_usable_storage_patuxent&wssc_usable_storage_seneca=wssc_usable_storage_seneca&fw_usable_storage_occoquan=fw_usable_storage_occoquan&startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
   # &startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
-  url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_test?",
+  url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_public?",
   "wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
   "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
   "&fw_usable_storage_occoquan=fw_usable_storage_occoquan",
