@@ -33,6 +33,7 @@
 source("code/global/load_packages.R", local = TRUE)
 # Use this one when publishing, can comment out otherwise:
 # source("code/global/import_packages.R", local = TRUE)
+# Note: Shiny.io url is: https://icprb.shinyapps.io/DroughtOps/
 
 # Set paths -------------------------------------------------------------------
 ts_path <- "input/ts/current/" # path for data in local directory

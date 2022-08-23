@@ -330,50 +330,50 @@ if(autoread_hourlywithdrawals == 1) {
   # read the online table -----------------------------------------------------
   # # Apr-2021: col names on line 16, data begins line 17
   if(withdr_file == 1) { # for "public file" 
-    # withdrawals.hourly.mgd.df0 <- data.table::fread(
-    #   "https://icprbcoop.org/products/wma_withdrawals_public.csv",
-    #   skip = 17, # row 16 is the header, but there's some glitch so skip 17
-    #   header = FALSE,
-    #   stringsAsFactors = FALSE,
-    #   # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
-    #   na.strings = c("", "#N/A", "NA", -999999),
-    #   data.table = FALSE)
-    # names(withdrawals.hourly.mgd.df0) <- c("DateTime",
-    #                                      "FW_POT",
-    #                                      "WSSC_POT",
-    #                                      "WA_GF",
-    #                                      "WA_LF",
-    #                                      "LW_POT",
-    #                                      "LW_FW",
-    #                                      "FW_OC",
-    #                                      "WSSC_PA",
-    #                                      "LW_BR")
+    withdrawals.hourly.mgd.df0 <- data.table::fread(
+      "https://icprbcoop.org/products/wma_withdrawals_public.csv",
+      skip = 17, # row 16 is the header, but there's some glitch so skip 17
+      header = FALSE,
+      stringsAsFactors = FALSE,
+      # colClasses = c("character", rep("numeric", 6)), # force cols 2-6 numeric
+      na.strings = c("", "#N/A", "NA", -999999),
+      data.table = FALSE)
+    names(withdrawals.hourly.mgd.df0) <- c("DateTime",
+                                         "FW_POT",
+                                         "WSSC_POT",
+                                         "WA_GF",
+                                         "WA_LF",
+                                         "LW_POT",
+                                         "LW_FW",
+                                         "FW_OC",
+                                         "WSSC_PA",
+                                         "LW_BR")
     
-   # Read the public file using httr::GET
-   file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
-    x0 <- httr::GET(file_url, type = "basic")
-    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x0, "raw")), skip=16, 
-                                                  na = c("", "NA"),
-                                                  col_names = c("DateTime",
-                                                                "FW_POT",
-                                                                "WSSC_POT",
-                                                                "WA_GF",
-                                                                "WA_LF",
-                                                                "LW_POT",
-                                                                "LW_FW",
-                                                                "FW_OC",
-                                                                "WSSC_PA",
-                                                                "LW_BR"),
-                                                  col_types = list(DateTime = "T",
-                                                                   FW_POT = "d",
-                                                                   WSSC_POT = "d",
-                                                                   WA_GF = "d",
-                                                                   WA_LF = "d",
-                                                                   LW_POT = "d",
-                                                                   LW_FW = "d",
-                                                                   FW_OC = "d",
-                                                                   WSSC_PA = "d",
-                                                                   LW_BR = "d")) 
+   # # Read the public file using httr::GET
+   # file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
+   #  x0 <- httr::GET(file_url, type = "basic")
+   #  withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x0, "raw")), skip=16, 
+   #                                                na = c("", "NA"),
+   #                                                col_names = c("DateTime",
+   #                                                              "FW_POT",
+   #                                                              "WSSC_POT",
+   #                                                              "WA_GF",
+   #                                                              "WA_LF",
+   #                                                              "LW_POT",
+   #                                                              "LW_FW",
+   #                                                              "FW_OC",
+   #                                                              "WSSC_PA",
+   #                                                              "LW_BR"),
+   #                                                col_types = list(DateTime = "T",
+   #                                                                 FW_POT = "d",
+   #                                                                 WSSC_POT = "d",
+   #                                                                 WA_GF = "d",
+   #                                                                 WA_LF = "d",
+   #                                                                 LW_POT = "d",
+   #                                                                 LW_FW = "d",
+   #                                                                 FW_OC = "d",
+   #                                                                 WSSC_PA = "d",
+   #                                                                 LW_BR = "d")) 
     
   }
   
