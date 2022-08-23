@@ -30,9 +30,9 @@
 
 # Load packages ---------------------------------------------------------------  
 # Use this one when not publishing to shinyapp.io, comment out when publishing:
-source("code/global/load_packages.R", local = TRUE)
+# source("code/global/load_packages.R", local = TRUE)
 # Use this one when publishing, can comment out otherwise:
-# source("code/global/import_packages.R", local = TRUE)
+source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
 ts_path <- "input/ts/current/" # path for data in local directory
@@ -66,15 +66,15 @@ DREX <- 0
 
 autoread_dailyflows <- 1 # change to 0 if online data not available SOMETHING WRONG WHEN 0
 autoread_hourlyflows <- 1 # change to 0 if online data not available
-autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
-autoread_dailystorage <- 1 # change to 0 if online data not available
-autoread_lffs <- 1 # change to 0 if online data not available
+autoread_hourlywithdrawals <- 0 # change to 0 if online data not available
+autoread_dailystorage <- 0 # change to 0 if online data not available
+autoread_lffs <- 0 # change to 0 if online data not available
 
 # Switch to use public or beta withdrawal forecast file (in import_data.R)
 withdr_file <- 1 # 1 if public or 2 if beta-private
 
-#******************************************************************************
-#******************************************************************************
+# ******************************************************************************
+# ******************************************************************************
 # Temporary for 2020 DREX
 # 1. Set all switches (except storage) to 1 and run app to fetch real-time data
 # 2. Run write_data.R to write new data into input/ts/current/
@@ -96,8 +96,8 @@ withdr_file <- 1 # 1 if public or 2 if beta-private
 # autoread_hourlywithdrawals <- 0
 # autoread_resstorage <- 0
 # autoread_lffs <- 0
-#******************************************************************************
-#******************************************************************************
+# ******************************************************************************
+# ******************************************************************************
 
 # Read classes and functions --------------------------------------------------
 source("code/functions/data_processing/recess_daily_flows.R", local = TRUE)

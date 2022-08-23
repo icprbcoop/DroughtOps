@@ -21,6 +21,11 @@ library(tidyr)
 library(readr)
 # library(tidyverse)
 library(curl)
+library(rvest)
+library(dataRetrieval)
+library(readr)
+library(httr)
+library(tidyr)
 
 
 
