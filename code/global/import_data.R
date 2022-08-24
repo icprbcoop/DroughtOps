@@ -349,7 +349,7 @@ if(autoread_hourlywithdrawals == 1) {
                                          "WSSC_PA",
                                          "LW_BR")
     
-<<<<<<< HEAD
+
    # Read the public file using httr::GET
    # file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
     # x0 <- httr::GET(file_url, type = "basic")
@@ -376,7 +376,7 @@ if(autoread_hourlywithdrawals == 1) {
     #                                                                WSSC_PA = "d",
     #                                                                LW_BR = "d")) 
     # 
-=======
+
    # # Read the public file using httr::GET
    # file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
    #  x0 <- httr::GET(file_url, type = "basic")
@@ -403,7 +403,7 @@ if(autoread_hourlywithdrawals == 1) {
    #                                                                 WSSC_PA = "d",
    #                                                                 LW_BR = "d")) 
     
->>>>>>> 57f74d3b28a2abf807cbda5c1da372293a0e0cd9
+
   }
   
   # Need httr instead of data.table::fread if authentication is required.
