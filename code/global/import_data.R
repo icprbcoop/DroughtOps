@@ -412,13 +412,34 @@ if(autoread_hourlywithdrawals == 1) {
  # y <- httr::GET("https://icprbcoop.org/products/wma_withdrawals_private.csv")
  # xx <- httr::GET("https://icprbcoop.org/products/wma_withdrawals_private.csv/basis-auth/admin1/CsSaAsLv123!!")
   if(withdr_file == 2) {
-    file_url <- "https://icprbcoop.org/products/wma_withdrawals_private.csv"
-    userid <- "admin1"
-    passwd <- "CsSaAsLv123!!"
+    # file_url <- "https://icprbcoop.org/products/wma_withdrawals_private.csv"
+    
+    #get data retrieval hash
+    time_url = ymd_hms(now("GMT"))#gets global standard time
+    test_month = month.abb[month(time_url)]#sets proper month format
+    hash_stamp = paste0(test_month,day(time_url),year(time_url), sprintf("%02d",hour(time_url)))#pulls time variables from global standard time #sets 2 digit hour format
+    hash = toString(paste0(hash_stamp,'wikajfkgha')) # convert to string and adds characters to the end
+    hash = digest::digest(hash, algo="md5", serialize = FALSE) #converts to hash characters
+    file_url <- paste0("https://icprbcoop.org/products/wma_withdrawals_hidden.csv?password=",hash) #assemebles url
+    
+    x1 <- httr::GET(file_url)#get page data from url
+
+    ###note: this is where the code is breaking. The content is in the x1 variable 
+    ###and can be seen as text in the x1_text variable. It's likely a formatting issue.
+    
+    x1_text <-content(as="text",x1)
+    
+    
+    
+    ######################don't need this anymore
+    # userid <- "admin1"  ###don't need this anymore
+    # passwd <- "CsSaAsLv123!!" ###don't need this anymore
     # x <- httr::GET(paste(file_url, "/basic-auth/user/passwd", sep=""), # <- 404 - NOT FOUND
-    x1 <- httr::GET(file_url, # <- 403 FORBIDDEN
-                 httr::authenticate(userid, passwd, type = "basic"))
+    # x1 <- httr::GET(file_url, # <- 403 FORBIDDEN
+                 # httr::authenticate(userid, passwd, type = "basic"))
     # withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=16, 
+    #####################
+    
     withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x1, "raw")), skip=16, 
                                                   na = c("", "NA"),
                     col_names = c("DateTime",
@@ -518,14 +539,42 @@ if(autoread_dailystorage == 1) {
            date = lubridate::date(date_time)) %>%
     select(-X01595790, -X01597490)
   
-  # paste together the url for Data Portal's daily local storage data 
-  # https://icprbcoop.org/products/data_view?wssc_usable_storage_patuxent=wssc_usable_storage_patuxent&wssc_usable_storage_seneca=wssc_usable_storage_seneca&fw_usable_storage_occoquan=fw_usable_storage_occoquan&startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
-  # &startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
-  url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_public?",
-  "wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
-  "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
-  "&fw_usable_storage_occoquan=fw_usable_storage_occoquan",
-  sep = "")
+  #if switched to online data_view_file
+  if(data_view_file == 2){
+    # #get data retrieval hash
+    time_url = ymd_hms(now("GMT")) #gets global standard time
+    test_month = month.abb[month(time_url)] #sets proper month format
+    hash_stamp = paste0(test_month,day(time_url),year(time_url), sprintf("%02d",hour(time_url))) #pulls time variables from global standard time #sets 2 digit hour format
+    hash = toString(paste0(hash_stamp,'djasokdmas')) # convert to string and adds characters to the end
+    hash = digest::digest(hash, algo="md5", serialize = FALSE) #converts to hash characters
+    site_url = "https://icprbcoop.org/products/data_view_hidden?password=" 
+    selection_url =    paste0("&wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
+                              "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
+                              "&fw_usable_storage_occoquan=fw_usable_storage_occoquan") #assemble selections # the & symbol int he front is needed now that the password section follows it
+    
+    file_url <- paste0(site_url,hash)#assemebles url
+    
+    
+    # url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_public?",
+    url_dailystor0 <- paste(file_url,
+                            "&wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
+                            "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
+                            "&fw_usable_storage_occoquan=fw_usable_storage_occoquan",
+                            sep = "") #
+  } #END if(data_view_file == 2
+  
+  #if switched to loval data_view_file
+  if(data_view_file == 1){
+    # paste together the url for Data Portal's daily local storage data 
+    # https://icprbcoop.org/products/data_view?wssc_usable_storage_patuxent=wssc_usable_storage_patuxent&wssc_usable_storage_seneca=wssc_usable_storage_seneca&fw_usable_storage_occoquan=fw_usable_storage_occoquan&startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
+    # &startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit
+    url_dailystor0 <- paste("https://icprbcoop.org/products/data_view_public?",
+    "wssc_usable_storage_patuxent=wssc_usable_storage_patuxent",
+    "&wssc_usable_storage_seneca=wssc_usable_storage_seneca",
+    "&fw_usable_storage_occoquan=fw_usable_storage_occoquan",
+    sep = "")
+  
+  } #END if(data_view_file == 1)
   
   start_date_string <- paste("&startdate=", month_first, "%2F", 
                              day_first, "%2F",

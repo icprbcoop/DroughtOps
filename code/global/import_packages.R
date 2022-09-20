@@ -26,6 +26,7 @@ library(dataRetrieval)
 library(readr)
 library(httr)
 library(tidyr)
+library(digest)
 
 
 
