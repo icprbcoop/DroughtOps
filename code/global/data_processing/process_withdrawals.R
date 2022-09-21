@@ -143,7 +143,7 @@ add_dates <- if(as.numeric(check_ts_lastdate - date_today0) < 15) {
   15 - as.numeric(check_ts_lastdate - date_today0)} else {0}
 
 withdrawals.daily.df0 <- withdrawals.daily.df00 %>%
-  dplyr::add_row(date_time = seq.Date(check_ts_lastdate + 1,
+  dplyr::add_row(date_time = seq.Date(check_ts_lastdate,
                                       check_ts_lastdate + add_dates,
                                       by = "day"))
 
