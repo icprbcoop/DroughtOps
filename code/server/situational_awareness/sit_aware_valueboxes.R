@@ -26,7 +26,7 @@
     lfalls_yesterday_cfs <- "NA"
   }
   
-  # Next grab flow and time of most recent real-time data
+  # Next grab flow and time of most recent hourly data
   por_rt.df <- flows_rt_cfs_df %>%
     select(date_time, por) %>%
     drop_na(por) %>%

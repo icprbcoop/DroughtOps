@@ -195,9 +195,16 @@ if(autoread_dailyflows == 0) {
   # read the lacal data table--------------------------------------------------
   flows.daily.cfs.df0 <- data.table::fread(
     paste(ts_path, "flows_daily_cfs.csv", sep = ""),
+    colClasses = c('character', 'numeric', 'numeric', 'numeric', 
+                   'numeric', 'numeric', 'numeric', 'numeric', 'numeric',
+                   'numeric', 'numeric', 'numeric', 'numeric', 'numeric',
+                   'numeric', 'numeric', 'numeric', 'numeric', 'numeric',
+                   'numeric', 'numeric', 'numeric', 'numeric', 'numeric',
+                   'numeric', 'numeric', 'numeric', 'numeric', 'numeric'),
     header = TRUE,
     stringsAsFactors = FALSE,
-    data.table = FALSE)  # %>%
+    data.table = FALSE)  %>%
+    mutate(date_time = as.Date(date_time))
 }
 print("finished importing daily flows")
 #------------------------------------------------------------------------------
@@ -234,64 +241,40 @@ gages_hourly_ids <- c("01646500",
 gages_hourly <- data.frame(gage_id = gages_hourly_ids,
                            location = gages_hourly_names)
 
-# n_gages_hourly <- length(gages_hourly_ids)
+n_gages_hourly <- length(gages_hourly_ids)
 
 # set desired number of past days--------------------------------------------
-n_past_days <- 150
+n_past_days <- 100
 
 #------------------------------------------------------------------------------
-# HOURLY FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
-#   - read hourly data automatically from NWIS using package, dataRetrieval
+# RT FLOW OPTION 1 - AUTOMATIC DATA RETRIEVAL
+#   - read real-time data automatically from NWIS using package, dataRetrieval
 #------------------------------------------------------------------------------
 
-if(autoread_hourlyflows == 1) {
+if(autoread_rtflows == 1) {
   
   # download hourly flows into a df--------------------------------------------
   #   - the function below makes use of the USGS's package, dataRetrieval
   #   - timezone is set as EST
   
   # the relevant fields are: site_no, Date, X00060_00003:
+  startDate0 <- as.character(date_today0 - n_past_days)
   flows_rt_long_cfs_df0 <- dataRetrieval::readNWISuv(
-    # siteNumbers = gages_hourly_ids,
     siteNumbers = gages_hourly_ids,
-    parameterCd = "00060",
+    # siteNumbers = '01646500',
+    parameterCd = '00060',
     # startDate = start_date,
-    startDate = date_today0 - n_past_days,
-    endDate = date_today0,
+    startDate = startDate0,
+    endDate = as.character(date_today0),
     tz = "America/New_York"
   ) %>%
     mutate(date_time = dateTime, flow_cfs = X_00060_00000) %>%
     select(date_time, site_no, flow_cfs)
-}
-  
-#------------------------------------------------------------------------------
-# HOURLY FLOW OPTION 2 - READ REAL-TIME DATA FROM FILE IN LOCAL DIRECTORY
-#   - flow data file resides in /input/ts/current/
-#   - file name is flows_rt_cfs.csv
-#------------------------------------------------------------------------------
-  if(autoread_hourlyflows == 0) {
-
-    # read the lacal data table--------------------------------------------------
-    #   (need to convert date times to POSIXct for hourly's)
-    flows_rt_long_cfs_df0 <- data.table::fread(
-      paste(ts_path, "flows_rt_cfs.csv", sep = ""),
-      header = TRUE,
-      stringsAsFactors = FALSE,
-      colClasses = c('character', 'character', 'numeric'), # reading: date_time, site_no, flow_cfs
-      na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
-      data.table = FALSE)  %>%
-      dplyr::mutate(date_time = as.POSIXct(date, tz = "EST")) %>%
-      select(-date) %>%
-      arrange(date_time) %>%
-      filter(!is.na(date_time)) %>% # sometime these are sneaking in
-      # head(-1) %>% # the last record is sometimes missing most data
-      select(date_time, everything())
-  }
   
   # Convert real-time flows to hourly flows------------------------------------  
   flows_rt_long_cfs_df <- left_join(flows_rt_long_cfs_df0, 
-                                       gages_hourly, 
-                                       by = c("site_no" = "gage_id")) %>%
+                                    gages_hourly, 
+                                    by = c("site_no" = "gage_id")) %>%
     select(date_time, location, flow_cfs)
   flows_rt_cfs_df <- flows_rt_long_cfs_df %>%
     pivot_wider(names_from = location, values_from = flow_cfs)
@@ -303,9 +286,37 @@ if(autoread_hourlyflows == 1) {
     group_by(date_hour) %>%
     summarise(across(where(is.numeric), ~mean(.x, na.rm = TRUE))) %>%
     rename(date_time = date_hour) %>%
-    ungroup()
+    ungroup() 
   
- print("finished importing hourly flows")
+}
+  
+#------------------------------------------------------------------------------
+# HOURLY FLOW OPTION 2 - READ REAL-TIME DATA FROM FILE IN LOCAL DIRECTORY
+#   - flow data file resides in /input/ts/current/
+#   - file name is flows_rt_cfs.csv
+#------------------------------------------------------------------------------
+  if(autoread_rtflows == 0) {
+
+    # read the lacal data table--------------------------------------------------
+    #   (need to convert date times to POSIXct for hourly's)
+    # first col is date_time, next 10 are numeric
+    flows.hourly.cfs.df0 <- data.table::fread(
+      paste(ts_path, "flows_hourly_cfs.csv", sep = ""),
+      header = TRUE,
+      stringsAsFactors = FALSE,
+      colClasses = c('character', 'numeric', 'numeric',  'numeric', 'numeric', 
+                     'numeric', 'numeric', 'numeric', 'numeric', 'numeric', 'numeric'), 
+      na.strings = c("eqp", "Ice", "Bkw", "", "#N/A", "NA", -999999),
+      data.table = FALSE)  %>%
+      dplyr::mutate(date_time = as.POSIXct(date, tz = "EST")) %>%
+      select(-date) %>%
+      arrange(date_time) %>%
+      filter(!is.na(date_time)) %>% # sometime these are sneaking in
+      # head(-1) %>% # the last record is sometimes missing most data
+      select(date_time, everything())
+  }
+  
+ print("finished importing real-time flows")
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # WITHDRAWAL DATA

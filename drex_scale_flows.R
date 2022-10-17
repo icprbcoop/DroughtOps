@@ -17,15 +17,18 @@
 # *****************************************************************************
 
 # Paths -----------------------------------------------------------------------
-drex_path <- "input/ts/2020_drex_day3p_Sep20/"
-current_path <- "input/ts/current/"
+# drex_path <- "input/ts/2020_drex_day3p_Sep20/"
+drex_path <- "input/ts/2022_drex_test/" # write to
+current_path <- "input/ts/current/" # read from
 today_year <- substring(date_today0, first = 1, last = 4)
 
 # Key drex inputs -------------------------------------------------------------
-flow_scale_factor <- 0.28
-withdrawals_scale_factor <- 1.3
+flow_scale_factor <- 0.25
+withdrawals_scale_factor <- 1.1
+pot_withdr_scale_factor <- 1.1
 luke_assumed_cfs <- 120
 luke_min_cfs <- 120
+
 pot_withdr_assumed_actual_mgd <- 350 # mgd
 pot_withdr_assumed_actual_cfs <- pot_withdr_assumed_actual_mgd*mgd_to_cfs
 pot_withdr_assumed_scaled_cfs <- 
@@ -37,7 +40,7 @@ scale_flows_func <- function(x, scalefactor) {round(x*scalefactor, 0)}
 # Read hourly withdr's from current folder and scale --------------------------
 withdr.hourly.actual <- data.table::fread(
   paste(current_path, "wma_withdrawals.csv", sep = ""),
-  skip = 14,
+  # skip = 14,
   header = TRUE,
   stringsAsFactors = FALSE,
   colClasses = c("character", rep("numeric", 9)), # force cols 2-10 numeric
@@ -45,15 +48,14 @@ withdr.hourly.actual <- data.table::fread(
   data.table = FALSE) 
 
 withdr.hourly.scaled <- withdr.hourly.actual %>%
-  dplyr::mutate_at(2:10, scale_flows_func, withdrawals_scale_factor) %>%
-#  write the future header
-  add_row(DateTime = "DateTime", FW_POT = "FW_POT", WSSC_POT = "WSSC_POT",
-        WA_GF = "WA_GF", WA_LF = "WA_LF", LW_POT = "LW_POT",
-        LW_FW = "LW_FW", FW_OC = "FW_OC", WSSC_PA = "WSSC_PA",
-        LW_BR = "LW_BR", .before = 1) %>%
-  #  write 13 dummy rows, to mimic file from the Data Portal
-  add_row(DateTime = rep("dummy-row", 13), .before=1)
-
+  dplyr::mutate_at(2:9, scale_flows_func, withdrawals_scale_factor) # %>%
+# #  write the future header
+#   add_row(DateTime = "DateTime", FW_POT = "FW_POT", WSSC_POT = "WSSC_POT",
+#         WA_GF = "WA_GF", WA_LF = "WA_LF", LW_POT = "LW_POT",
+#         LW_FW = "LW_FW", FW_OC = "FW_OC", WSSC_PA = "WSSC_PA",
+#         LW_BR = "LW_BR", .before = 1) # %>%
+  # #  write 13 dummy rows, to mimic file from the Data Portal
+  # add_row(DateTime = rep("dummy-row", 13), .before=1)
 
 # Read daily flows from current folder and scale ------------------------------
 #   - Luke and LFalls handled in special way
@@ -62,16 +64,18 @@ flows.daily.actual <- data.table::fread(
   header = TRUE,
   stringsAsFactors = FALSE,
   na.strings = c("eqp", "Ice", "Bkw", "", "NA", "#N/A", -999999),  
-  colClasses = c("Date", rep("numeric", 31)), # try to force cols 2-32 numeric
-  col.names = list_gages_daily_locations, 
+  # colClasses = c("Date", rep("numeric", 31)), # try to force cols 2-32 numeric
+  colClasses = c("Date", rep("numeric", 28)), # try to force cols 2-29 numeric
+  # col.names = list_gages_daily_locations, 
   data.table = FALSE) 
 
-# Apply scale factor
+# Apply scale factor, but lfalls and luke are special
 flows.daily.scaled <- flows.daily.actual %>%
   # convert LFalls obs to LFalls adj before scaling
   dplyr::mutate(lfalls = lfalls + pot_withdr_assumed_actual_cfs) %>% 
   # dplyr::mutate_at(2:32, scale_flows_func, flow_scale_factor) %>%
-  dplyr::mutate_at(2:24, scale_flows_func, flow_scale_factor) %>%
+  # dplyr::mutate_at(2:24, scale_flows_func, flow_scale_factor) %>%
+  dplyr::mutate_at(2:29, scale_flows_func, flow_scale_factor) %>%
   # convert LFalls adj back to LFalls
   dplyr::mutate(lfalls = lfalls - pot_withdr_assumed_scaled_cfs) %>%
   # and Luke flow is assumed to be kept above min by NBr reservoirs
@@ -126,7 +130,7 @@ flows.lffs.scaled <- flows.lffs.actual %>%
   # convert LFalls adj back to LFalls
   dplyr::mutate(lfalls_lffs = lfalls_lffs - pot_withdr_assumed_scaled_cfs) %>%
   # write 10 dummy rows, to mimic file from the Data Portal
-  add_row(year = rep("dummy-row", 25), .before=1)
+  add_row(year = rep(-9999, 25), .before=1)
 
 # Write to drex folder --------------------------------------------------------
 write_csv(flows.daily.scaled, paste(drex_path, 

@@ -18,8 +18,8 @@ need <- c("shiny",
           "pryr",
           "zoo",
           "sp",
-          "leaflet",
-          "rgdal",
+          "leaflet", # needed?
+          "rgdal", # needed?
           "png",
           "RCurl",
           "curl",
@@ -27,7 +27,6 @@ need <- c("shiny",
           "dataRetrieval",
           "readr",
           "httr",
-          "tidyr",
           "digest")
           # "tidyverse") 
 # find out which packages are installed

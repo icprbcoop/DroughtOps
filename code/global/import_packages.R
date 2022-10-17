@@ -14,8 +14,8 @@ library(pryr)
 library(zoo)
 library(sp)
 library(png)
-library(leaflet)
-library(rgdal)
+# library(leaflet)
+# library(rgdal)
 library(RCurl)
 library(tidyr)
 library(readr)
@@ -27,6 +27,7 @@ library(readr)
 library(httr)
 library(tidyr)
 library(digest)
+library(xml2)
 
 
 

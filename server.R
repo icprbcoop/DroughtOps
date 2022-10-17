@@ -32,6 +32,8 @@ shinyServer(function(input, output, session) {
   
   # Code for sidebar button to write input ts files in input/ts/current/-------
   observeEvent(input$write_ts2, {
+    
+    # write table of daily flows
     flows_daily_temp <- flows.daily.cfs.df0 # %>%
       # dplyr::mutate(date = date_time) %>%
       # select(-date_time) %>%
@@ -40,13 +42,14 @@ shinyServer(function(input, output, session) {
                                        "flows_daily_cfs.csv",
                                        sep=""))
     
-      flows_rt_temp <- flows_rt_long_cfs_df0 %>%
+    # write table of hourly flows
+      flows_hourly_temp <- flows.hourly.cfs.df0 %>%
       # need to change datetime to character or will be written as UTC
       dplyr::mutate(date = as.character(date_time)) %>%
       select(-date_time) %>%
       relocate(date)
-    write_csv(flows_rt_temp, paste(ts_path, 
-                                       "flows_rt_cfs.csv",
+    write_csv(flows_hourly_temp, paste(ts_path, 
+                                       "flows_hourly_cfs.csv",
                                        sep=""))
     
     wma_withdrawals_temp <- withdrawals.hourly.mgd.df0 # %>%
