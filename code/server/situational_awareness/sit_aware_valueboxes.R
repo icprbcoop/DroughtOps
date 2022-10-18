@@ -8,6 +8,7 @@
 # First grab Point of Rocks & Little Falls daily mean yesterday
   flows_yesterday.df <- flows.daily.cfs.df0 %>%
     select(date_time, lfalls, por) %>%
+    filter(date_time < date_today0) %>%
     tail(1)
   
   # Error trapping: make sure last day is yesterday
@@ -16,9 +17,9 @@
          yesterday_available <- 0
   
   if(yesterday_available == 1) {por_yesterday_cfs <- flows_yesterday.df$por[1]
-  por_yesterday_mgd <- round(por_yesterday_cfs/mgd_to_cfs)
-  lfalls_yesterday_cfs <- flows_yesterday.df$lfalls[1]
-  lfalls_yesterday_mgd <- round(lfalls_yesterday_cfs/mgd_to_cfs)
+  por_yesterday_mgd <- round(por_yesterday_cfs/mgd_to_cfs, 0)
+  lfalls_yesterday_cfs <- round(flows_yesterday.df$lfalls[1], 0)
+  lfalls_yesterday_mgd <- round(lfalls_yesterday_cfs/mgd_to_cfs, 0)
   } else {
     por_yesterday_mgd <- "NA"
     por_yesterday_cfs <- "NA"
@@ -27,20 +28,22 @@
   }
   
   # Next grab flow and time of most recent hourly data
-  por_rt.df <- flows_rt_cfs_df %>%
+  por_rt.df <- flows.hourly.cfs.df %>%
     select(date_time, por) %>%
+    filter(date_time==date_today0) %>%
     drop_na(por) %>%
     arrange(date_time)
-  por_rt_cfs <- tail(por_rt.df, 1)$por[1]
-  por_rt_mgd <- round(por_rt_cfs/mgd_to_cfs)
+  por_rt_cfs <- round(tail(por_rt.df, 1)$por[1], 0)
+  por_rt_mgd <- round(por_rt_cfs/mgd_to_cfs, 0)
   por_rt_time <- tail(por_rt.df, 1)$date_time[1]
   
   lfalls_rt.df <- flows_rt_cfs_df %>%
     select(date_time, lfalls) %>%
+    filter(date_time==date_today0) %>%
     drop_na(lfalls) %>%
     arrange(date_time)
-  lfalls_rt_cfs <- tail(lfalls_rt.df, 1)$lfalls[1] 
-  lfalls_rt_mgd <- round(lfalls_rt_cfs/mgd_to_cfs)
+  lfalls_rt_cfs <- round(tail(lfalls_rt.df, 1)$lfalls[1], 0)
+  lfalls_rt_mgd <- round(lfalls_rt_cfs/mgd_to_cfs, 0)
   lfalls_rt_time <- tail(lfalls_rt.df, 1)$date_time[1]
   
   # The following reactive objects seem to be accessible globally

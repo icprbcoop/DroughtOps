@@ -1,7 +1,8 @@
 # *****************************************************************************
 # DESCRIPTION
 # *****************************************************************************
-# Scale current input flows and withdrawals for drought exercises
+# Scale current input flows and withdrawals for drought exercises,
+#   and clip the time series consistent with simulated "today"
 # *****************************************************************************
 # INPUTS
 # *****************************************************************************
@@ -20,10 +21,11 @@
 # drex_path <- "input/ts/2020_drex_day3p_Sep20/"
 drex_path <- "input/ts/2022_drex_test/" # write to
 current_path <- "input/ts/current/" # read from
+date_today0 <- as.Date("2022-09-25")
 today_year <- substring(date_today0, first = 1, last = 4)
 
 # Key drex inputs -------------------------------------------------------------
-flow_scale_factor <- 0.25
+flow_scale_factor <- 0.40
 withdrawals_scale_factor <- 1.1
 pot_withdr_scale_factor <- 1.1
 luke_assumed_cfs <- 120
@@ -48,7 +50,9 @@ withdr.hourly.actual <- data.table::fread(
   data.table = FALSE) 
 
 withdr.hourly.scaled <- withdr.hourly.actual %>%
-  dplyr::mutate_at(2:9, scale_flows_func, withdrawals_scale_factor) # %>%
+  dplyr::mutate_at(2:9, scale_flows_func, withdrawals_scale_factor) %>%
+  # clip to simulated forecast horizon
+  dplyr::filter(DateTime <= date_today0 + 15)
 # #  write the future header
 #   add_row(DateTime = "DateTime", FW_POT = "FW_POT", WSSC_POT = "WSSC_POT",
 #         WA_GF = "WA_GF", WA_LF = "WA_LF", LW_POT = "LW_POT",
@@ -71,6 +75,8 @@ flows.daily.actual <- data.table::fread(
 
 # Apply scale factor, but lfalls and luke are special
 flows.daily.scaled <- flows.daily.actual %>%
+  # clip to <= simulated "yesterday"
+  dplyr::filter(date_time < date_today0) %>%
   # convert LFalls obs to LFalls adj before scaling
   dplyr::mutate(lfalls = lfalls + pot_withdr_assumed_actual_cfs) %>% 
   # dplyr::mutate_at(2:32, scale_flows_func, flow_scale_factor) %>%
@@ -97,6 +103,8 @@ flows.hourly.actual <- data.table::fread(
 
 # Apply scale factor
 flows.hourly.scaled <- flows.hourly.actual %>%
+  # clip to <= simulated "today"
+  dplyr::filter(date <= date_today0) %>%
   # convert LFalls obs to LFalls adj before scaling
   mutate(lfalls = lfalls + pot_withdr_assumed_actual_cfs) %>%
   # dplyr::mutate_at(2:n_gages_hourly, scale_flows_func, flow_scale_factor) %>%
@@ -123,6 +131,8 @@ flows.lffs.actual <- data.table::fread(
   filter(year >= today_year) # %>%
 
 flows.lffs.scaled <- flows.lffs.actual %>%
+  # clip to <= simulated forecast period
+  # dplyr::filter(date_time < date_today0 + 15) %>%
   # convert LFalls obs to LFalls adj before scaling
   dplyr::mutate(lfalls_lffs = lfalls_lffs + pot_withdr_assumed_actual_cfs) %>%
   # apply scale factor
@@ -142,7 +152,7 @@ write_csv(flows.hourly.scaled, paste(drex_path,
 write_csv(withdr.hourly.scaled, paste(drex_path,
                               "wma_withdrawals.csv", sep=""))
 
-write_csv(flows.lffs.scaled, paste(drex_path,
-                                      "PM7_4820_0001.flow", sep=""),
-          col_names = FALSE)
+# write_csv(flows.lffs.scaled, paste(drex_path,
+#                                       "PM7_4820_0001.flow", sep=""),
+#           col_names = FALSE)
 

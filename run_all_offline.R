@@ -7,6 +7,22 @@
 # Thus, you can inspect most dataframes of interest
 source("global.R", local = TRUE)
 
+source("input/parameters/parameters_ops.R", local = TRUE)
+source("input/parameters/parameters_physical.R", local = TRUE)
+source("input/parameters/css_ui_values.R", local = TRUE)
+source("code/global/import_data.R", local = TRUE)
+print("finished all imports")
+source("code/global/data_processing/process_hourly_flows.R", local = TRUE)
+print("finished processing hourly flows")
+source("code/global/data_processing/process_withdrawals.R", local = TRUE)
+print("finished processing withdrawals")
+source("code/global/data_processing/process_daily_flows.R", local = TRUE)
+print("finished processing daily flows")
+source("code/global/data_processing/process_lffs.R", local = TRUE)
+print("finished processing LFFS flows")
+source("code/global/data_processing/process_rt_storages.R", local = TRUE)
+print("finished processing rt storages")
+
 #******************************************************************
 # For 2019 DREX
 # date_today0 <- as.Date("2019-11-21")

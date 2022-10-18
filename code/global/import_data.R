@@ -574,7 +574,7 @@ if(autoread_dailystorage == 1) {
                             sep = "") #
   } #END if(data_view_file == 2
   
-  #if switched to loval data_view_file
+  #if switched to local data_view_file
   if(data_view_file == 1){
     # paste together the url for Data Portal's daily local storage data 
     # https://icprbcoop.org/products/data_view?wssc_usable_storage_patuxent=wssc_usable_storage_patuxent&wssc_usable_storage_seneca=wssc_usable_storage_seneca&fw_usable_storage_occoquan=fw_usable_storage_occoquan&startdate=06%2F28%2F2022&enddate=07%2F05%2F2022&format=csv&submit=Submit

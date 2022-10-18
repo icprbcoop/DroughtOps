@@ -44,7 +44,7 @@ map_path <- "data/Drought_Regions" #MD shapefiles
 # Set "today's" date ----------------------------------------------------------
 # date_today0 <- as.Date(today(), tz = "America/New_York")
 date_today0 <- today()
-# date_today0 <- as.Date("2022-10-12")
+# date_today0 <- as.Date("2022-09-24")
 # date_today0 <- force_tz(date_today0, tzone = "America/New_York")
 time_now0 <- Sys.time()
 
@@ -68,7 +68,7 @@ DREX <- 1
 autoread_dailyflows <- 1 # change to 0 if online data not available SOMETHING WRONG WHEN 0
 autoread_rtflows <- 1 # change to 0 if online data not available
 autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
-autoread_dailystorage <- 0 # change to 0 if online data not available
+autoread_dailystorage <- 1 # change to 0 if online data not available
 autoread_lffs <- 0 # change to 0 if online data not available
 
 # Switch to use public or beta withdrawal forecast file (in import_data.R)
@@ -98,7 +98,7 @@ data_view_file <- 2 # for reservoir storage file - 1 if public or 2 if beta-priv
 # 5. Set DREX=1, which will turn on code below, and rerun app.
 
 if(DREX==1) {
-  date_today0 <- as.Date("2022-09-15") 
+  date_today0 <- as.Date("2022-09-25") 
   ts_path <- "input/ts/2022_drex_test/"
 
 # 2020 DREX 
