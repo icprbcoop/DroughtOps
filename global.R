@@ -78,10 +78,10 @@ data_view_file <- 2 # for reservoir storage file - 1 if public or 2 if beta-priv
 # ******************************************************************************
 # ******************************************************************************
 # For DREX - assuming you will use some period of this year's flows.
-# 1. To prepare for DREX, in code above, set DREX=0 and all switches to 1 (read online data) 
-#     and run app to fetch real-time data.
+# 1. To prepare time series for a DREX, in code above, set DREX=0 and
+#      all switches to 1 (read online data) and run app to fetch real-time data.
 #    Then press "Write" on panel on LHS of Shiny app to write time series
-#     data to input/ts/current/.
+#      data to local directory, input/ts/current/.
 # 1b. Need to run global.R via run_all_offline.R to fill up data tables.
 # 2. Create a DREX time series folder in input/ts/, say 2022_drex_test
 #    Because of old code, need to copy by hand some dummy files into this folder
@@ -91,10 +91,13 @@ data_view_file <- 2 # for reservoir storage file - 1 if public or 2 if beta-priv
 #            drex2018_output_occ.csv
 #            drex2018_output_pat.csv
 #            state_drought_status.csv
-# 3. Run drex_scale_flows.R to scale flows in input/ts/current 
+# 3. Also copy storage time series files, wma_storage_local_daily.csv and
+#      wma_storage_nbr.csv, into the DREX folder. You should edit these to
+#      create whatever reservoir storage scenario you want.
+# 4. Run drex_scale_flows.R to scale flows in input/ts/current 
 #     and write into your DREX folder, e.g. input/ts/2022_drex_test/.
-# 4. Copy in the storage time series: wma_storage_nbr.csv and wma_storage_local_daily.csv
-#     (these are available in input/current/) and edit for your scenario.
+#     (In order for this to work, first run global.R via run_all_offline.R 
+#     to fill up data tables.)
 # 5. Set DREX=1, which will turn on code below, and rerun app.
 
 if(DREX==1) {
