@@ -70,6 +70,17 @@ date_time_9dayshence = date_today_ops + days(9)
 # Compute LSen/JJR "buffer" based on imbalance in fractional storage
 # Temporary placeholder:
 lsen_jrr_buffer <- 20
+storage_local_today <- storage_local_daily_bg_df %>%
+  filter(date_time == date_today_ops)
+lsen_percent <- 100*storage_local_today$seneca[1]/(sen_cap/1000)
+
+jrr_ws_cap <- jrr_cap*jrr_ws_frac
+storage_nbr_today <- storage_nbr_daily_df %>%
+  filter(date_time == date_today_ops)
+jrr_percent <- 100*storage_nbr_today$jrr_ws[1]/(jrr_ws_cap/1000)
+
+lsen_jrr_buffer <- 10*(lsen_percent - jrr_percent)
+
 
 # This is JUST FOR QA'ING - non-reactive!
 ops_10day.dfQA <- ops_10day.df00 %>%

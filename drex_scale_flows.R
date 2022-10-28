@@ -21,13 +21,13 @@
 # drex_path <- "input/ts/2020_drex_day3p_Sep20/"
 drex_path <- "input/ts/2022_drex_test/" # write to
 current_path <- "input/ts/current/" # read from
-date_today0 <- as.Date("2022-09-25")
+date_today0 <- as.Date("2022-08-25")
 today_year <- substring(date_today0, first = 1, last = 4)
 
 # Key drex inputs -------------------------------------------------------------
-flow_scale_factor <- 0.40
-withdrawals_scale_factor <- 1.1
-pot_withdr_scale_factor <- 1.1
+flow_scale_factor <- 0.3
+withdrawals_scale_factor <- 1.15
+pot_withdr_scale_factor <- 1.15
 luke_assumed_cfs <- 120
 luke_min_cfs <- 120
 
@@ -52,7 +52,8 @@ withdr.hourly.actual <- data.table::fread(
 withdr.hourly.scaled <- withdr.hourly.actual %>%
   dplyr::mutate_at(2:9, scale_flows_func, withdrawals_scale_factor) %>%
   # clip to simulated forecast horizon
-  dplyr::filter(DateTime <= date_today0 + 15)
+  dplyr::filter(DateTime <= date_today0 + 15) %>%
+  dplyr::arrange(DateTime)
 # #  write the future header
 #   add_row(DateTime = "DateTime", FW_POT = "FW_POT", WSSC_POT = "WSSC_POT",
 #         WA_GF = "WA_GF", WA_LF = "WA_LF", LW_POT = "LW_POT",

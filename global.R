@@ -101,7 +101,7 @@ data_view_file <- 2 # for reservoir storage file - 1 if public or 2 if beta-priv
 # 5. Set DREX=1, which will turn on code below, and rerun app.
 
 if(DREX==1) {
-  date_today0 <- as.Date("2022-09-25") 
+  date_today0 <- as.Date("2022-08-25") 
   ts_path <- "input/ts/2022_drex_test/"
 
 # 2020 DREX 
