@@ -685,10 +685,10 @@ if(autoread_lffs == 1) {
   #    go to https://icprbcoop.org/dss_data_exchange/ and check dates
 
   path_name <- "https://icprbcoop.org/dss_data_exchange/"
-  # file_name <- "PM7_4820_0001.flow" # FEWS_Live
+  file_name <- "PM7_4820_0001.flow" # FEWS_Live
   # file_name <- "PM7_4820_0001.flow_s2"
   # file_name <- "PM7_4820_0001.flow_s2_p6" # cooplinux2 standalone
-  file_name <- "PM7_4820_0001.flow_s1_p6" # cooplinux1 standalone
+  # file_name <- "PM7_4820_0001.flow_s1_p6" # cooplinux1 standalone
   
 lffs.hourly.cfs.all.df0 <- data.table::fread(
   paste(path_name, file_name, sep = ""),

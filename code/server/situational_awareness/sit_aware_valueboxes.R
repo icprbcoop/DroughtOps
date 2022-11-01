@@ -223,14 +223,9 @@ output$coop_ops <- renderUI({
 
 output$lfaa_alert <- renderUI({
 
-  #
-  # sen.last <- last(ts$sen)
-  # jrr.last <- last(ts$jrr)
-  # sen_stor <- sen.last$stor[1]
-  # jrr_ws_stor <- jrr.last$storage_ws[1]
-  # jrr_ws_cap_cp <- jrr_cap*jrr_ws_frac
-  # shared_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap + jrr_ws_cap_cp)
-  #
+  # These values are from LFAA, ARTICLE 2.B., 
+  #   and include changes called for in MOI
+  # Note EMERGENCY stage is just a placeholder right now
   if(yesterday_available == 0) {
     text_stage <- "NO DATA"
     text_stage2 <- ""
@@ -241,6 +236,7 @@ output$lfaa_alert <- renderUI({
       color_stage <- green
       text_stage2 <- ""}
   
+    # ALERT stage triggered when W >= 0.5*Qadj
     if(lfalls_adj_yesterday() <= withdr_pot_yesterday()/0.5 
        & lfalls_adj_yesterday() > 
        (withdr_pot_yesterday() + lfalls_threshold)/0.8){
@@ -248,17 +244,20 @@ output$lfaa_alert <- renderUI({
       color_stage <- yellow
       text_stage2 <- " (eligible)"}
   
+    # RESTRICTION stage triggered when (W + flowby) >= Qadj*0.8
     if(lfalls_adj_yesterday() <= (withdr_pot_yesterday() +
                                   lfalls_threshold)/0.8) 
       {
       text_stage <- "RESTRICTION"
       color_stage <- orange
       text_stage2 <- " (eligible)"}
-  
-    # if(shared_ws_frac <= 0.02){
-    #   text_stage <- "EMERGENCY"
-    #   color_stage <- red
-    #   text_stage2 <- " (eligible)"}
+    
+    # PLACEHOLDER for EMERGENCY stage: triggered when it's expected that
+    #   (W + flowby) > Qadj in any of next 5 days
+    if(sen_stor/sen_cap_bg <= 0.05){
+      text_stage <- "EMERGENCY"
+      color_stage <- red
+      text_stage2 <- " (eligible)"}
     }
   
   # Below is Luke's code because I asked for changes in box sizes

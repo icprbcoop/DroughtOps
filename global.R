@@ -49,7 +49,7 @@ date_today0 <- today()
 time_now0 <- Sys.time()
 
 # DREX switch: set to 1 if drought exercise, 0 if not
-DREX <- 1
+DREX <- 0
 
 # Set DATA OPTIONS SWITCHES (used in import_data.R)----------------------------
 # This can be useful for drought exercises (DREX) 
@@ -69,7 +69,7 @@ autoread_dailyflows <- 1 # change to 0 if online data not available SOMETHING WR
 autoread_rtflows <- 1 # change to 0 if online data not available
 autoread_hourlywithdrawals <- 1 # change to 0 if online data not available
 autoread_dailystorage <- 1 # change to 0 if online data not available
-autoread_lffs <- 0 # change to 0 if online data not available
+autoread_lffs <- 1 # change to 0 if online data not available
 
 # Switch to use public or beta withdrawal forecast file (in import_data.R)
 withdr_file <- 2 # 1 if public or 2 if beta-private
