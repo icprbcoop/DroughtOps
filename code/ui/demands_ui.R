@@ -44,18 +44,11 @@ fluidRow( # major row that contains whole body
       valueBoxOutput("w_wa_gf_yesterday", width = NULL),
       valueBoxOutput("w_wa_lf_yesterday", width = NULL),
       valueBoxOutput("w_lw_pot_yesterday", width = NULL),
+      valueBoxOutput("disch_lw_pot_yesterday", width = NULL),
       valueBoxOutput("w_fw_occ_yesterday", width = NULL),
       valueBoxOutput("w_wssc_pat_yesterday", width = NULL),
       valueBoxOutput("w_wma_pot_yesterday", width = NULL)
 
-      # br(),
-      # box(title = "Jennings Randolph water supply release based on LFalls 9-day forecast from LFFS",
-      #     width = NULL,
-      #     height=60),
-      # valueBoxOutput("lfalls_lffs_9day_fc", width = NULL),
-      # valueBoxOutput("lffs_9day_deficit", width = NULL),
-      # valueBoxOutput("luke_target2", width = NULL)
-      # # valueBoxOutput("lfalls_obs", width = NULL)
     ) # end of 2nd main column
   ) # end of major column that contains whole body
 ) # end of major row that contains whole body

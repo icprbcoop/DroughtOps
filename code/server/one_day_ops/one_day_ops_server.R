@@ -332,7 +332,7 @@ output$lfalls_1day_fc1 <- renderValueBox({
                           lfalls_1day_fc1_cfs, " cfs)",
                           sep = "")
   valueBox(
-    value = tags$p(lfalls_1day_fc1, style = "font-size: 50%;"),
+    value = tags$p(lfalls_1day_fc1, style = "font-size: 40%;"),
     subtitle = NULL,
     color = "light-blue"
   )
@@ -352,7 +352,7 @@ output$lfalls_1day_deficit1 <- renderValueBox({
     lfalls_1day_deficit1_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_1day_def1, style = "font-size: 50%;"),
+    value = tags$p(lfalls_1day_def1, style = "font-size: 40%;"),
     subtitle = NULL,
     # LukeV: change color to orange if value > 0
     color = "light-blue"
@@ -372,7 +372,7 @@ output$lfalls_1day_fc2 <- renderValueBox({
     lfalls_1day_fc2_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_1day_fc2, style = "font-size: 50%;"),
+    value = tags$p(lfalls_1day_fc2, style = "font-size: 40%;"),
     subtitle = NULL,
     color = "light-blue"
   )
@@ -392,7 +392,7 @@ output$lfalls_1day_deficit2 <- renderValueBox({
     lfalls_1day_deficit2_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_1day_def2, style = "font-size: 50%;"),
+    value = tags$p(lfalls_1day_def2, style = "font-size: 40%;"),
     subtitle = NULL,
     # LukeV: change color to orange if value > 0
     color = "light-blue"
@@ -414,7 +414,7 @@ output$lfalls_0day_fc1 <- renderValueBox({
     lfalls_0day_fc1_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_0day_fc1, style = "font-size: 50%;"),
+    value = tags$p(lfalls_0day_fc1, style = "font-size: 40%;"),
     subtitle = NULL,
     color = "light-blue"
   )
@@ -434,7 +434,7 @@ output$lfalls_0day_deficit1 <- renderValueBox({
     lfalls_0day_deficit1_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_0day_def1, style = "font-size: 50%;"),
+    value = tags$p(lfalls_0day_def1, style = "font-size: 40%;"),
     subtitle = NULL,
     # LukeV: change color to orange if value > 0
     color = "light-blue"
@@ -454,7 +454,7 @@ output$lfalls_0day_fc2 <- renderValueBox({
     lfalls_0day_fc2_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_0day_fc2, style = "font-size: 50%;"),
+    value = tags$p(lfalls_0day_fc2, style = "font-size: 40%;"),
     subtitle = NULL,
     color = "light-blue"
   )
@@ -474,7 +474,7 @@ output$lfalls_0day_deficit2 <- renderValueBox({
     lfalls_0day_deficit2_cfs, " cfs)",
     sep = "")
   valueBox(
-    value = tags$p(lfalls_0day_def2, style = "font-size: 50%;"),
+    value = tags$p(lfalls_0day_def2, style = "font-size: 40%;"),
     subtitle = NULL,
     # LukeV: change color to orange if value > 0
     color = "light-blue"

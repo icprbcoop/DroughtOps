@@ -186,20 +186,6 @@ fc_lfalls_adj_9days_hence <- reactive({
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
-# Prepare for plotting LFalls & POR flows - first graph on ui -----------------
-# lfalls_10day.plot.df <- ops_10day.df %>%
-#   dplyr::select(date_time, lfalls,
-#                 por, monoc_jug, d_pot_total,
-#                 lfalls_from_upstr, lfalls_lffs_bfc,
-#                 lfalls_flowby
-#                 ) %>%
-#   gather(key = "site", value = "flow", -date_time)
-
-# lfalls_10day.plot2.df <- ops_10day.df0 %>%
-#   dplyr::select(date_time, lfalls_empirical_fc) %>%
-#   gather(key = "site", value = "flow", -date_time) %>%
-#   filter(date_time == date_time_9dayshence & site == "lfalls_empirical_fc")
-
 # Create LFalls flow plot - 1st graph on tab ----------------------------------
 output$ten_day_plot <- renderPlot({
   # Prepare df for plotting LFalls flows - first graph on ui ------------------
@@ -318,7 +304,7 @@ output$lfalls_empirical_9day_fc <- renderValueBox({
     round(fc_9days_hence.df()$w_pot_total_net_lagged[1])
   
   lfalls_9day_fc1 <- paste(
-    "9 day mpirical fc (MGD): lfalls_adj, w, lfalls: ",
+    "9-day empirical fc (MGD): lfalls_adj, w, lfalls: ",
     fc_lfalls_adj_9days_hence, ", " , 
     fc_w_9days_hence, ", " , 
     fc_lfalls_adj_9days_hence - fc_w_9days_hence,

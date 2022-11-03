@@ -440,18 +440,8 @@ if(autoread_hourlywithdrawals == 1) {
     
     x1_text <-content(as="text",x1)
     
-    
-    
-    ######################don't need this anymore
-    # userid <- "admin1"  ###don't need this anymore
-    # passwd <- "CsSaAsLv123!!" ###don't need this anymore
-    # x <- httr::GET(paste(file_url, "/basic-auth/user/passwd", sep=""), # <- 404 - NOT FOUND
-    # x1 <- httr::GET(file_url, # <- 403 FORBIDDEN
-                 # httr::authenticate(userid, passwd, type = "basic"))
-    # withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x, "raw")), skip=16, 
-    #####################
-    
-    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x1, "raw")), skip=16, 
+    withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x1, "raw")), 
+                                                  skip=16, 
                                                   na = c("", "NA"),
                     col_names = c("DateTime",
                        "FW_POT",

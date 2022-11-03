@@ -174,6 +174,18 @@ output$w_lw_pot_yesterday <- renderValueBox({
   )
 })
 
+output$disch_lw_pot_yesterday <- renderValueBox({
+  disch_lw_pot_yesterday <- paste(
+    "Loudoun Water - Broad Run discharge: ",
+    round(withdrawals_yesterday.df$disch_lw_pot[1], 1),
+    " MGD", sep = "")
+  valueBox(
+    value = tags$p(disch_lw_pot_yesterday, style = "font-size: 50%;"),
+    subtitle = NULL,
+    color = "light-blue"
+  )
+})
+
 output$w_fw_occ_yesterday <- renderValueBox({
   w_fw_occ_yesterday <- paste(
     "Fairfax Water Occoquan - Griffith: ",
@@ -212,7 +224,7 @@ output$w_wma_pot_yesterday <- renderValueBox({
     filter(date_time == date_today0 -1)
     
   w_wma_pot_yesterday <- paste(
-    "WMA Potomac total: ",
+    "WMA net Potomac total: ",
     round(withdrawals_yesterday.df$w_pot_total_net[1],0),
     " MGD", sep = "")
   valueBox(
