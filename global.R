@@ -73,7 +73,7 @@ autoread_lffs <- 1 # change to 0 if online data not available
 
 # Switch to use public or beta withdrawal forecast file (in import_data.R)
 withdr_file <- 2 # 1 if public or 2 if beta-private
-data_view_file <- 2 # for reservoir storage file - 1 if public or 2 if beta-private
+data_view_file <- 1 # for reservoir storage file - 1 if public or 2 if beta-private
 
 # ******************************************************************************
 # ******************************************************************************

@@ -428,7 +428,7 @@ if(autoread_hourlywithdrawals == 1) {
     #get data retrieval hash
     time_url = ymd_hms(now("GMT"))#gets global standard time
     test_month = month.abb[month(time_url)]#sets proper month format
-    hash_stamp = paste0(test_month,day(time_url),year(time_url), sprintf("%02d",hour(time_url)))#pulls time variables from global standard time #sets 2 digit hour format
+    hash_stamp = paste0(test_month,sprintf("%02d",day(time_url)),year(time_url), sprintf("%02d",hour(time_url)))#pulls time variables from global standard time #sets 2 digit hour format
     hash = toString(paste0(hash_stamp,'wikajfkgha')) # convert to string and adds characters to the end
     hash = digest::digest(hash, algo="md5", serialize = FALSE) #converts to hash characters
     file_url <- paste0("https://icprbcoop.org/products/wma_withdrawals_hidden.csv?password=",hash) #assemebles url
@@ -545,7 +545,7 @@ if(autoread_dailystorage == 1) {
     # #get data retrieval hash
     time_url = ymd_hms(now("GMT")) #gets global standard time
     test_month = month.abb[month(time_url)] #sets proper month format
-    hash_stamp = paste0(test_month,day(time_url),year(time_url), sprintf("%02d",hour(time_url))) #pulls time variables from global standard time #sets 2 digit hour format
+    hash_stamp = paste0(test_month,sprintf("%02d",day(time_url)),year(time_url), sprintf("%02d",hour(time_url))) #pulls time variables from global standard time #sets 2 digit hour format
     hash = toString(paste0(hash_stamp,'djasokdmas')) # convert to string and adds characters to the end
     hash = digest::digest(hash, algo="md5", serialize = FALSE) #converts to hash characters
     site_url = "https://icprbcoop.org/products/data_view_hidden?password=" 
