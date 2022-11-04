@@ -69,17 +69,17 @@ date_time_9dayshence = date_today_ops + days(9)
 
 # Compute LSen/JJR "buffer" based on imbalance in fractional storage
 # Temporary placeholder:
-storage_local_today <- storage_local_daily_bg_df %>%
-  filter(date_time == date_today_ops)
-lsen_percent <- 100*storage_local_today$seneca[1]/(sen_cap/1000)
+storage_local_yesterday <- storage_local_daily_bg_df %>%
+  filter(date_time == date_today_ops - 1)
+lsen_percent <- 100*storage_local_yesterday$seneca[1]/(sen_cap/1000)
 
 jrr_ws_cap <- jrr_cap*jrr_ws_frac
-storage_nbr_today <- storage_nbr_daily_df %>%
-  filter(date_time == date_today_ops)
-jrr_percent <- 100*storage_nbr_today$jrr_ws[1]/(jrr_ws_cap/1000)
+storage_nbr_yesterday <- storage_nbr_daily_df %>%
+  filter(date_time == date_today_ops - 1)
+jrr_percent <- 100*storage_nbr_yesterday$jrr_ws[1]/(jrr_ws_cap/1000)
 
 # If JRR is fuller (buffer is positive), it should release a bit more:
-lsen_jrr_buffer <- 10*(jrr_percent -lsen_percent)
+lsen_jrr_buffer <- round(10*(jrr_percent -lsen_percent), 0)
 
 # This is JUST FOR QA'ING - non-reactive!
 ops_10day.dfQA <- ops_10day.df00 %>%
@@ -246,6 +246,10 @@ output$nbr_ten_day_plot <- renderPlot({
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# Three overview value boxes
+#------------------------------------------------------------------------------
+
 # Value box to display LFalls today -------------------------------------------
 
 output$lfalls_today <- renderValueBox({
@@ -292,8 +296,9 @@ output$luke <- renderValueBox({
   )
 })
 
-# 3 value boxes giving N Br water supply release info -----------------------
-#   - based on empirical recession eq. 9-day forecast
+#------------------------------------------------------------------------------
+# Three empirical forecast value boxes - based on empirical recession eq.
+#------------------------------------------------------------------------------
 
 # LFalls 9-day empirical eq. fc value
 output$lfalls_empirical_9day_fc <- renderValueBox({
@@ -341,18 +346,25 @@ output$luke_target1 <- renderValueBox({
   lfalls_fc <- ops_10day.df() %>%
     filter(date_time == date_time_9dayshence) %>%
     mutate(flow = lfalls_empirical_fc)
-  lfalls_9day_fc1_mgd <- round(lfalls_fc$flow[1], 0)
-  deficit1_mgd <- round(lfalls_flowby - lfalls_9day_fc1_mgd, 0)
-  luke_mgd <- round(flows_today.df()$luke[1], 0)
+  lfalls_9day_fc1_mgd <- round(lfalls_fc$flow[1], 2)
+  
+  # a negative deficit is a surplus
+  deficit1_mgd <- round(lfalls_flowby - lfalls_9day_fc1_mgd, 2)
+  luke_mgd <- round(flows_today.df()$luke[1], 2)
   luke_extra1 <- if_else(deficit1_mgd <= 0, 0, deficit1_mgd)
-  luke_target1_mgd <- round(luke_mgd + luke_extra1 + lsen_jrr_buffer, 0)
+  
+  # if surplus > buffer, set final buffer to zero to calculate Luke target
+  lsen_jrr_buffer_final <- if_else(deficit1_mgd + lsen_jrr_buffer < 0, 0.0, lsen_jrr_buffer)
+  luke_target1_mgd <- round(luke_mgd + luke_extra1 + lsen_jrr_buffer_final, 0)
   luke_target1_cfs <- round(luke_target1_mgd*mgd_to_cfs, 0)
   
-  luke_target1 <- paste("Today's Luke target plus 'buffer': ",
+  luke_target1 <- paste("Today's Luke target plus 'buffer' ['buffer']: ",
                        luke_target1_mgd,
                          " MGD (", 
                        luke_target1_cfs, 
-                         " cfs)", sep = "")
+                         " cfs) [", 
+                       lsen_jrr_buffer, 
+                       " (MGD)]", sep = "")
   valueBox(
     value = tags$p(luke_target1, style = "font-size: 35%;"),
     subtitle = NULL,
@@ -361,8 +373,9 @@ output$luke_target1 <- renderValueBox({
   )
 })
 
-# Display 3 boxes giving N Br water supply release info -----------------------
-#   - based on LFFS 9-day forecast
+#------------------------------------------------------------------------------
+# Three LFFS forecast value boxes - based on LFFS 9-day forecast
+#------------------------------------------------------------------------------
 
 output$lfalls_lffs_9day_fc <- renderValueBox({
   
@@ -433,10 +446,13 @@ output$luke_target2 <- renderValueBox({
   deficit2_mgd <- round(lfalls_flowby - lfalls_9day_fc2_mgd, 0)
   deficit2_cfs <- round(deficit2_mgd*mgd_to_cfs)
   
+  # if surplus > buffer, set final buffer to zero to calculate Luke target
+  lsen_jrr_buffer_final <- if_else(deficit2_mgd + lsen_jrr_buffer < 0, 0.0, lsen_jrr_buffer)
+  
   # Today's Luke target
   luke_mgd <- round(flows_today.df()$luke[1], 0)
   luke_extra2 <- if_else(deficit2_mgd <= 0, 0, deficit2_mgd)
-  luke_target2_mgd <- round(luke_mgd + luke_extra2 + lsen_jrr_buffer, 0)
+  luke_target2_mgd <- round(luke_mgd + luke_extra2 + lsen_jrr_buffer_final, 0)
   luke_target2_cfs <- round(luke_target2_mgd*mgd_to_cfs, 0)
   
   luke_target2 <- paste("Today's Luke target plus 'buffer': ",
