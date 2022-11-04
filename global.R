@@ -49,7 +49,7 @@ date_today0 <- today()
 time_now0 <- Sys.time()
 
 # DREX switch: set to 1 if drought exercise, 0 if not
-DREX <- 0
+DREX <- 1
 
 # Set DATA OPTIONS SWITCHES (used in import_data.R)----------------------------
 # This can be useful for drought exercises (DREX) 
@@ -101,19 +101,26 @@ data_view_file <- 1 # for reservoir storage file - 1 if public or 2 if beta-priv
 # 5. Set DREX=1, which will turn on code below, and rerun app.
 
 if(DREX==1) {
-  date_today0 <- as.Date("2022-08-25") 
-  ts_path <- "input/ts/2022_drex_test/"
+  #############
+  # 2022 DREX #
+  #############
+  
+  # Day 1 Nov 15, 2022
+  # date_today0 <- as.Date("2022-08-25") 
+  # ts_path <- "input/ts/2022_drex - 8-25-2022/" #0.29 and 1.1
+  
+  # Day 2 Nov 16, 2022
+  # date_today0 <- as.Date("2022-08-28") 
+  # ts_path <- "input/ts/2022_drex - 8-28-2022/" #0.305125, 1, AND 1.18
 
-# 2020 DREX 
-# date_today0 <- as.Date("2020-09-15") # 2020_drex_day1
-# ts_path <- "input/ts/2020_drex_day1_Sep15/" # for 2020 DREX
-# # 
-# date_today0 <- as.Date("2020-09-18") # 2020_drex_day2
-# ts_path <- "input/ts/2020_drex_day2_Sep18/" # for 2020 DREX
-# #
-# date_today0 <- as.Date("2020-09-20") # 2020_drex_day3
-# ts_path <- "input/ts/2020_drex_day3_Sep20/" # for 2020 DREX
-#
+  # Day 3 Nov 17, 2022
+  date_today0 <- as.Date("2022-08-29") 
+  ts_path <- "input/ts/2022_drex - 8-29-2022/" #0.318 and 1.2 plus flow edits
+
+  # testing directory
+  # date_today0 <- as.Date("2022-08-28") 
+  # ts_path <- "input/ts/2022_drex/"
+
 # (these data source switches are ordinarily set above)
 #   - 1's to download online data
 #   - 0's to read from ts/path/
