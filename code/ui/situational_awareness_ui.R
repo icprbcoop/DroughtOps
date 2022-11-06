@@ -91,8 +91,10 @@ tabPanel("Situational Awareness",
           height = 260,#220,
           htmlOutput(outputId="MD_title"),
           box(
-            tags$img(alt="Drought Status Map:2019-05-31",
-                       src= md_drought_map,
+            tags$img(
+              # alt="Drought Status Map:2019-05-31",
+                       # src= md_drought_map,
+                     src = "https://mde.maryland.gov/programs/water/droughtinformation/Currentconditions/PublishingImages/DroughtGraphsStarting2021-09-30/Drought-Map-2022-09-30.png",
                        style="width:250px;height:150px;border:0;")
             #leafletOutput("mymap", height =140, width =300)
             )
@@ -102,6 +104,7 @@ tabPanel("Situational Awareness",
 
 
         #------------------------beginning of Virginia section----------------------------------
+        # https://deq1.bse.vt.edu/drought/state/images/maps/virginia_drought.png
         box(
           title = NULL,#"VIRGINIA DROUGHT STATUS",
           width = NULL,#6,

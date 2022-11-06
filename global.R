@@ -49,7 +49,7 @@ date_today0 <- today()
 time_now0 <- Sys.time()
 
 # DREX switch: set to 1 if drought exercise, 0 if not
-DREX <- 1
+DREX <- 0
 
 # Set DATA OPTIONS SWITCHES (used in import_data.R)----------------------------
 # This can be useful for drought exercises (DREX) 
