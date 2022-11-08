@@ -5,9 +5,9 @@ account: icprb
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2873793
-bundleId: 6483255
+bundleId: 6489453
 url: https://icprb.shinyapps.io/DroughtOps/
-when: 1667794819.23259
-lastSyncTime: 1667794819.23259
+when: 1667922618.79769
+lastSyncTime: 1667922618.79769
 asMultiple: FALSE
 asStatic: FALSE
