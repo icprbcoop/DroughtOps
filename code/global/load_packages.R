@@ -27,7 +27,8 @@ need <- c("shiny",
           "dataRetrieval",
           "readr",
           "httr",
-          "digest")
+          "digest",
+          "xml2")
           # "tidyverse") 
 # find out which packages are installed
 ins <- installed.packages()[, 1] 
