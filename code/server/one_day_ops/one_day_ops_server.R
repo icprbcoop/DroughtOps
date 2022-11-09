@@ -260,10 +260,10 @@ output$one_day_ops_plot1 <- renderPlot({
                                     by = "date_time") %>%
     mutate(lfalls_flowby = lfalls_flowby) %>%
     select(-w_pot_total_net, -goose, -por, -lfalls_daily) 
-  write_csv(lfalls_1day.plot0.df, 
-            paste("output/",
-                  "one-day-ts.csv",
-                  sep=""))
+  #write_csv(lfalls_1day.plot0.df, 
+           # paste("output/",
+                  #"one-day-ts.csv",
+                 # sep=""))
   lfalls_1day.plot1.df <- lfalls_1day.plot0.df %>%
     gather(key = "site", value = "flow", -date_time) %>%
     filter(date_time >= input$plot_range[1],

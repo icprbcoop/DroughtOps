@@ -31,9 +31,9 @@
 # Load packages ---------------------------------------------------------------  
 # Use this one when not publishing to shinyapp.io, comment out when publishing:
 # But load_packages.R code - by Zach - is no longer working - Oct-2022
-# source("code/global/load_packages.R", local = TRUE)
+source("code/global/load_packages.R", local = TRUE)
 # Use this one when publishing, can comment out otherwise:
-source("code/global/import_packages.R", local = TRUE)
+# source("code/global/import_packages.R", local = TRUE)
 
 # Set paths -------------------------------------------------------------------
 ts_path <- "input/ts/current/" # path for data in local directory
