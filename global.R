@@ -106,7 +106,7 @@ if(DREX==1) {
   #############
   
   # Day 1 Nov 15, 2022
-  # date_today0 <- as.Date("2022-08-25") 
+  # date_today0 <- as.Date("2022-08-25")
   # ts_path <- "input/ts/2022_drex - 8-25-2022/" #0.29 and 1.1
   
   # Day 2 Nov 16, 2022
