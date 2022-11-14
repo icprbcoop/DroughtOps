@@ -228,9 +228,11 @@ output$lfaa_alert <- renderUI({
   # Note EMERGENCY stage is just a placeholder right now
   if(yesterday_available == 0) {
     text_stage <- "NO DATA"
-    text_stage2 <- ""
+    text_stage2 <- "missing yesterday's flow data"
     color_stage <- red} # alas there is no grey
+  
   else {
+    
     if(lfalls_adj_yesterday() > withdr_pot_yesterday()/0.5) {
       text_stage <- "NORMAL"
       color_stage <- green
@@ -251,14 +253,23 @@ output$lfaa_alert <- renderUI({
       text_stage <- "RESTRICTION"
       color_stage <- orange
       text_stage2 <- " (eligible)"}
+  } # end of else there is flow data
     
     # PLACEHOLDER for EMERGENCY stage: triggered when it's expected that
-    #   (W + flowby) > Qadj in any of next 5 days
-    if(sen_stor/sen_cap_bg <= 0.05){
-      text_stage <- "EMERGENCY"
-      color_stage <- red
-      text_stage2 <- " (eligible)"}
+    #   (W + flowby) > Qadj in any of next 5 days (see Cruden report)
+    sen_stor_pc <- sen_stor/sen_cap_bg
+    if(is.numeric(sen_stor_pc)) {
+      if(sen_stor_pc <= 0.05){
+        text_stage <- "EMERGENCY"
+        color_stage <- red
+        text_stage2 <- " (eligible)"}
     }
+      else {
+        text_stage <- "MISSING DATA"
+        color_stage <- red
+        text_stage2 <- ""
+        # text_stage2 <- "missing yesterday's Seneca storage data"
+        }        
   
   # Below is Luke's code because I asked for changes in box sizes
   div(class="longbox",
@@ -294,27 +305,23 @@ output$lfaa_alert <- renderUI({
   reservoir_local_yesterday <- storage_local_daily_bg_df %>%
     dplyr::filter(date_time == date_today0 - 1)
   
-  jrr_ws_stor <- nbr_storage_yesterday$jrr_ws[1]
-  sen_stor <- reservoir_local_yesterday$seneca[1]
-  
   # capacity of jrr ws storage, in BG
   jrr_ws_cap_bg <- jrr_cap*jrr_ws_frac/1000
-  
   sen_cap_bg <- sen_cap/1000
   
-output$mwcog_stage <- renderUI({
-
-  # sen_last <- last(ts$sen)
-  # jrr.last <- last(ts$jrr)
-  # sen_stor <- sen.last$stor[1]
-  # jrr_ws_stor <- jrr.last$storage_ws[1]
-
+  # yesterday's shared upstream storage as fraction of copacity
+  jrr_ws_stor <- nbr_storage_yesterday$jrr_ws[1]
+  sen_stor <- reservoir_local_yesterday$seneca[1]
   combined_ws_frac <- (sen_stor + jrr_ws_stor)/(sen_cap_bg + jrr_ws_cap_bg)
   
+output$mwcog_stage <- renderUI({
+  
   if(flows_yesterday.df$date_time[1] > daily_flow_data_last_date) {
-    text_stage <- "NO DATA"
+    text_stage <- "MISSING DATA"
     text_stage2 <- ""
+    # text_stage2 <- "yesterday's flow data not available"
     color_stage <- red} # alas there is no grey
+  
   else {
     if(por_yesterday > noaa_d1_surrogate) {
       text_stage <- "NORMAL" 
@@ -326,16 +333,26 @@ output$mwcog_stage <- renderUI({
       text_stage <- "WATCH" 
       text_stage2 <- "- Voluntary Water Conservation"
       color_stage <- yellow}
-    if(combined_ws_frac <= 0.60){
-      text_stage <- "WARNING"
-      text_stage2 <- "- Voluntary Water Conservation"
-      color_stage <- orange}
-    # if(shared_ws_frac <= 0.05){
-    if(combined_ws_frac <= 0.05){
-      text_stage <- "EMERGENCY"
-      text_stage2 <- "- Voluntary Water Conservation"
-      color_stage <- red}
-  }
+
+    # try to trap error if no jr or sen storage data yesterday
+    if(is.numeric(combined_ws_frac)) {
+      if(combined_ws_frac <= 0.60){
+        text_stage <- "WARNING"
+        text_stage2 <- "- Voluntary Water Conservation"
+        color_stage <- orange}
+      # if(shared_ws_frac <= 0.05){
+      if(combined_ws_frac <= 0.05){
+        text_stage <- "EMERGENCY"
+        text_stage2 <- "- Voluntary Water Conservation"
+        color_stage <- red}
+    } # error-trapping if
+      
+      else {
+        text_stage <- "MISSING DATA"
+        text_stage2 <- ""
+        # text_stage2 <- "- yesterday's storage data not available"
+        color_stage <- red}
+  } # end first else
   
   # Below is Luke's code because I asked for changes in box sizes
   div(class="longbox",
@@ -351,7 +368,6 @@ output$mwcog_stage <- renderUI({
                   div(class="table-cell2",
                       p(class="p2",text_stage)
                   ))))
-      
       
   ) # end div(class="longbox",
 }) # end renderUI
