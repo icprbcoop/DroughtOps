@@ -360,61 +360,6 @@ if(autoread_hourlywithdrawals == 1) {
                                          "WSSC_PA",
                                          "LW_BR")
     
-
-   # Read the public file using httr::GET
-   # file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
-    # x0 <- httr::GET(file_url, type = "basic")
-    # withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x0, "raw")), skip=16, 
-    #                                               na = c("", "NA"),
-    #                                               col_names = c("DateTime",
-    #                                                             "FW_POT",
-    #                                                             "WSSC_POT",
-    #                                                             "WA_GF",
-    #                                                             "WA_LF",
-    #                                                             "LW_POT",
-    #                                                             "LW_FW",
-    #                                                             "FW_OC",
-    #                                                             "WSSC_PA",
-    #                                                             "LW_BR"),
-    #                                               col_types = list(DateTime = "T",
-    #                                                                FW_POT = "d",
-    #                                                                WSSC_POT = "d",
-    #                                                                WA_GF = "d",
-    #                                                                WA_LF = "d",
-    #                                                                LW_POT = "d",
-    #                                                                LW_FW = "d",
-    #                                                                FW_OC = "d",
-    #                                                                WSSC_PA = "d",
-    #                                                                LW_BR = "d")) 
-    # 
-
-   # # Read the public file using httr::GET
-   # file_url <- "https://icprbcoop.org/products/wma_withdrawals_public.csv"
-   #  x0 <- httr::GET(file_url, type = "basic")
-   #  withdrawals.hourly.mgd.df0 <- readr::read_csv(rawToChar(httr::content(x0, "raw")), skip=16, 
-   #                                                na = c("", "NA"),
-   #                                                col_names = c("DateTime",
-   #                                                              "FW_POT",
-   #                                                              "WSSC_POT",
-   #                                                              "WA_GF",
-   #                                                              "WA_LF",
-   #                                                              "LW_POT",
-   #                                                              "LW_FW",
-   #                                                              "FW_OC",
-   #                                                              "WSSC_PA",
-   #                                                              "LW_BR"),
-   #                                                col_types = list(DateTime = "T",
-   #                                                                 FW_POT = "d",
-   #                                                                 WSSC_POT = "d",
-   #                                                                 WA_GF = "d",
-   #                                                                 WA_LF = "d",
-   #                                                                 LW_POT = "d",
-   #                                                                 LW_FW = "d",
-   #                                                                 FW_OC = "d",
-   #                                                                 WSSC_PA = "d",
-   #                                                                 LW_BR = "d")) 
-    
-
   }
   
   # Need httr instead of data.table::fread if authentication is required.

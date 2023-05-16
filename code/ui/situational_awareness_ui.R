@@ -6,6 +6,7 @@ tabPanel("Situational Awareness",
       column(  # c2: this is the 1st main column - with the graphs
         width = 6,
         fluidRow( # row with Potomac flow graph
+          h3("Potomac River and tributary flows (cfs)"),
           box(
             title = NULL,
             width = NULL,
